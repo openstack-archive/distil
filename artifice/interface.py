@@ -54,68 +54,6 @@ class Artifice(object):
         engine = create_engine(conn_string)
         session.configure(bind=engine)
         self.artifice = None
-        self.changes = []
-
-    def data_for(self, tenant=None, start=None, end=None, sections=None):
-        # This is turning into a giant function blob of goo, which is ungood.
-
-        if tenant is None:
-            raise KeyError("Missing tenant!")
-        if end is None:
-            end = datetime.datetime.now() - datetime.timedelta(days=1)
-
-        tenant = self.artifice.tenant(tenant)
-
-        # Okay, we've got some usefulness we can do now.
-        # Tenant is expected to be a text string, not the internal ID. So, we need to convert it.
-        resourcing_fields = [{"field": "project_id", "op": "eq", "value": tenant.id }]
-        data_fields = []
-        if start is not None:
-            data_fields.append({
-                "field": "timestamp", "op", "ge", "value": start.strftime(date_format)
-            })
-
-        data_fields.append({
-            "field": "timestamp", "op", "le", "value": end.strftime(date_format)
-        })
-        r = requests.get(
-            os.path.join(self.config["ceilometer"]["host"], "v2/resources"),
-            headers={"X-Auth-Token": self.auth.auth_token, "Content-Type":"application/json"},
-            data=json.dumps( { "q": resourcing_fields } )
-        )
-        resources = json.loads(r.text)
-        for resource in resources:
-            for link in resource["links"]:
-                if link["rel"] == "self":
-                    continue
-                # Currently dislike this layout. Will fix.
-                if sections and link['rel'] not in sections:
-                    continue
-
-                resp = requests.get(url, headers={"X-Auth-Token":keystone.auth_token, "Content-Type":"application/json"},
-                    data=json.dumps({
-                        "q": data_fields
-                    })
-                )
-
-                values = json.loads().text)
-                counter_types = set([meter["counter_type"] for meter in meters])
-
-                if len(counter_types) > 1:
-                    # Hmm.
-
-                try:
-                    func = getattr(self, counter_types[0])
-                    if not callable(func):
-                        # oops
-                        pass
-                    func()
-
-                except AttributeError:
-                    # Oops!
-                artifice = tenant[resource['rel']].add(usage)
-                artifice.save()
-                self.changes.append(artifice) # Hmm.
 
     def tenant(self, name):
         """
@@ -127,9 +65,9 @@ class Artifice(object):
         url = "%(url)s/tenants?%(query)s" % {"url": self.config["authenticator"], "query": urllib.urlencode({"name":name})}
         r = requests.get(url, headers={"X-Auth-Token": keystone.auth_token, "Content-Type": "application/json"})
         if r.ok:
-            datar = json.loads(r.text)
-            t = Tenant(datar["tenant"])
-
+            data = json.loads(r.text)
+            assert data
+            t = Tenant(data["tenant"])
             return t
         else:
             if r.status_code == 404:
@@ -142,10 +80,6 @@ class Artifice(object):
         if not self._tenancy:
             self._tenancy = dict([(t.name, Tenant(t)) for t in self.auth.tenants.list()))
         return self._tenancy
-
-    @property
-    def changes(self):
-        return self.changes
 
 class Tenant(object):
 
@@ -336,13 +270,12 @@ class Contents(object):
         """
         Iterate the list of things; save them to DB.
         """
-        self.db.begin()
+        # self.db.begin()
         for dc in contents.iterkeys():
             for section in contents[dc].iterkeys():
                 for meter in contents[dc][section]:
                     meter.save()
         self.db.commit()
-
 
 class Resource(object):
 
@@ -438,7 +371,17 @@ class Artifact(object):
         """
         value = self.volume()
         # self.artifice.
-        self.db.save(self.resource.id, value, start, end)
+        tenant_id = self.resource["tenant"]
+        resource_id = self.resource["resource_id"]
+
+        usage = models.Usage(
+            resource_id,
+            tenant_id,
+            value,
+            self.start,
+            self.end,
+        )
+        self.db.add(usage)
 
 
     def volume(self):
