@@ -1,6 +1,15 @@
 # In the real world, costs are expected to be pulled from OpenERP
-# As this is kind of an alpha piece of code, costs are pulled from 
+# As this is kind of an alpha piece of code, costs are pulled from
 # RIGHT HERE.
+
+"""
+an Invoice interface consists of:
+    Creating an Invoice object that relates to a Client
+    Fetching costs for a Resource Type in a Datacenter Region
+    Adding lines to the Invoice Object, representing a Usage per Time at Cost
+
+"""
+
 costs = {
     "cpu_util" : { "local": "1"}
 }
@@ -14,7 +23,7 @@ class Invoice(object):
         """
         Expects a list of dicts of datacenters
         Each DC is expected to have a list of Types: VM, Network, Storage
-        Each Type is expected to have a list of Meters
+        Each Type is expected have to a list of Meters
         Each Meter is expected to have a Usage method that takes our start
         and end values.
         Each Meter will be entered as a line on the Invoice.
@@ -37,7 +46,7 @@ class Invoice(object):
 
     def commit(self):
         pass
-    
+
     def close(self):
         """
         Makes this invoice no longer writable - it's closed and registered as

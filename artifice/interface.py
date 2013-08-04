@@ -30,7 +30,7 @@ other_date_format = "%Y-%m-%dT%H:%M:%S.%f"
 class NotFound(BaseException): pass
 
 class Artifice(object):
-    """It's an artificer for making artifacts of billing!"""
+    """Produces billable artifacts"""
     def __init__(self, config):
         super(Artifice, self).__init__()
         self.config = config
@@ -60,14 +60,18 @@ class Artifice(object):
         Returns a Tenant object describing the specified Tenant by name, or raises a NotFound error.
         """
         # Returns a Tenant object for the given name.
-        # This is irritatingly inefficient
+        # Uses Keystone API to perform a direct name lookup,
+        # as this is expected to work via name.
         self.config["authenticator"]
-        url = "%(url)s/tenants?%(query)s" % {"url": self.config["authenticator"], "query": urllib.urlencode({"name":name})}
+        url = "%(url)s/tenants?%(query)s" % {
+            "url": self.config["authenticator"],
+            "query": urllib.urlencode({"name":name})
+            }
         r = requests.get(url, headers={"X-Auth-Token": keystone.auth_token, "Content-Type": "application/json"})
         if r.ok:
             data = json.loads(r.text)
             assert data
-            t = Tenant(data["tenant"])
+            t = Tenant(data["tenant"], self)
             return t
         else:
             if r.status_code == 404:
@@ -78,22 +82,47 @@ class Artifice(object):
     def tenants(self):
         """All the tenants in our system"""
         if not self._tenancy:
-            self._tenancy = dict([(t.name, Tenant(t)) for t in self.auth.tenants.list()))
+            self._tenancy = {}
+            invoice_type = __import__(self.config["invoices"]["plugin"])
+            for tenant in self.auth.tenants.list():
+                t = Tenant(tenant, self)
+                t.invoice_type = self.config.
+
+            dict([(t.name, Tenant(t, self)) for t in self.auth.tenants.list()))
         return self._tenancy
 
 class Tenant(object):
 
-    def __init__(self, tenant):
+    def __init__(self, tenant, conn):
         self.tenant = tenant
         # Conn is the niceometer object we were instanced from
-        self.conn = None
+        self.conn = conn
         self._meters = set()
         self._resources = None
+
+        # Invoice type needs to get set from the config, which is
+        # part of the Artifice setup above.
+
 
     def __getattr__(self, attr):
         if attr not in self.tenant:
             return super(self, Tenant).__getattr__(attr)
         return self.tenant["attr"]
+
+
+    def invoice(self):
+
+        """
+        Creates a new Invoice.
+        Invoices are an Artifice datamodel that represent a
+        set of billable entries assigned to a client on a given Date.
+        An Invoice offers very little of its own opinions,
+        requiring a backend plugin to operate.
+        @returns: invoice
+        """
+
+        invoice = self.invoice_type(self)
+        return invoice
 
     @property
     def resources(self):
