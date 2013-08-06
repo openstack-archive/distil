@@ -5,4 +5,4 @@ from sqlalchemy.orm import sessionmaker
 Base = declarative_base()
 #
 
-session = sessionmaker()
+Session = sessionmaker()

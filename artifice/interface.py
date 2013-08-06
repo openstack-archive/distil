@@ -52,7 +52,8 @@ class Artifice(object):
             "database": config["database"]["database"]
         }
         engine = create_engine(conn_string)
-        session.configure(bind=engine)
+        Session.configure(bind=engine)
+        session = Session()
         self.artifice = None
 
     def tenant(self, name):
