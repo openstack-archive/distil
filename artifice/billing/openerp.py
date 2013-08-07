@@ -33,9 +33,7 @@ class OpenERP(invoice.Invoice):
 
         super(OpenERP, self).__init__(tenant)
         # Conn is expected to be a dict with:
-        #
         self.conn = connection(self.config)
-
         self.id = self.conn.create()
 
     def add_section(self, name):

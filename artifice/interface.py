@@ -1,5 +1,5 @@
 # Interfaces to the Ceilometer API
-import ceilometer
+# import ceilometer
 
 # Brings in HTTP support
 import requests
@@ -9,11 +9,13 @@ import json
 import datetime
 
 # Provides authentication against Openstack
-from keystoneclient.v2_0 import client
+from keystoneclient.v2_0 import client as keystone
 
 #
 # from .models import usage
-from .models import session, usage
+from .models import Session, usage
+
+from sqlalchemy import create_engine
 
 # Date format Ceilometer uses
 # 2013-07-03T13:34:17
@@ -37,11 +39,11 @@ class Artifice(object):
 
         # This is the Keystone client connection, which provides our
         # OpenStack authentication
-        self.auth = client.Client(
+        self.auth = keystone.Client(
             username=        config["openstack"]["username"],
             password=        config["openstack"]["password"],
             tenant_name=     config["openstack"]["default_tenant"],
-            auth_url=        config["openstack"]["authenticator"]
+            auth_url=        config["openstack"]["authentication_url"]
             # auth_url="http://localhost:35357/v2.0"
         )
         conn_string = 'postgresql://%(username)s:%(password)s@%(host)s:%(port)s/%(database)s' % {
@@ -63,12 +65,12 @@ class Artifice(object):
         # Returns a Tenant object for the given name.
         # Uses Keystone API to perform a direct name lookup,
         # as this is expected to work via name.
-        self.config["authenticator"]
+        authenticator = config["openstack"]["authentication_url"]
         url = "%(url)s/tenants?%(query)s" % {
-            "url": self.config["authenticator"],
+            "url": authenticator,
             "query": urllib.urlencode({"name":name})
             }
-        r = requests.get(url, headers={"X-Auth-Token": keystone.auth_token, "Content-Type": "application/json"})
+        r = requests.get(url, headers={"X-Auth-Token": self.auth.auth_token, "Content-Type": "application/json"})
         if r.ok:
             data = json.loads(r.text)
             assert data
@@ -88,7 +90,7 @@ class Artifice(object):
             for tenant in self.auth.tenants.list():
                 t = Tenant(tenant, self)
 
-            dict([(t.name, Tenant(t, self)) for t in self.auth.tenants.list()))
+            dict( [(t.name, Tenant(t, self)) for t in self.auth.tenants.list() ] )
         return self._tenancy
 
 class Tenant(object):
@@ -123,7 +125,7 @@ class Tenant(object):
         """
 
         if self.invoice_type is None:
-            invoice_type = self.conn.config.get("main", "invoice:object")
+            invoice_type = self.conn.config["main"]["invoice:object"]
             if ":" not in invoice_type:
                 raise AttributeError("Invoice configuration incorrect! %s" % invoice_type)
             module, call = invoice_type.split(":")
