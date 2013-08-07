@@ -10,50 +10,77 @@ an Invoice interface consists of:
 
 """
 
+class IntegrityViolation(BaseException): pass
+
+class BillingOverlap(BaseException): pass
+
+class NoSuchType(KeyError): pass
+
+class NoSuchLocation(KeyError): pass
+
 costs = {
-    "cpu_util" : { "local": "1"}
+    "cpu_util" : { "nova": "1" }
 }
+
+class Costs(object):
+
+    def cost(self, location, name):
+        """"""
+        try:
+            locations = costs[name]
+        except KeyError:
+            raise NoSuchType(name)
+        try:
+            return locations[location]
+        except KeyError:
+            raise NoSuchLocation(location)
+
+required = ["add_line", "close"]
+
+def requirements(name, parents, attrs):
+    for attr_name in required:
+        try:
+            assert attr_name in attrs
+        except AssertionError:
+            raise RuntimeError("%s not in %s" % (attr_name, name))
+
+        try:
+            assert callable(attr_name)
+        except AssertionError:
+            raise RuntimeError("%s is not callable" % (attr_name))
+    return type(name, parents, attrs)
 
 class Invoice(object):
 
-    def __init__(self, tenant):
+    # __metaclass__ = requirements
+
+    def __init__(self, tenant, config):
         self.tenant = tenant
+        self.config = config
+
+    def close(self):
+        raise NotImplementedError("Not implemented in base class")
 
     def bill(self, usage):
-        """
-        Expects a list of dicts of datacenters
-        Each DC is expected to have a list of Types: VM, Network, Storage
-        Each Type is expected have to a list of Meters
-        Each Meter is expected to have a Usage method that takes our start
-        and end values.
-        Each Meter will be entered as a line on the Invoice.
-        """
 
         for dc in usage:
             # DC is the name of the DC/region. Or the internal code. W/E.
             # print datacenter
             self.subheading(dc["name"])
             for section in dc["sections"]: # will be vm, network, storage
-                self.subheading( section )
+                self.add_section( section )
 
                 meters = dc["sections"][section]
 
                 for usage in meters:
                     cost = self.cost( dc["name"], meter["name"] )
 
-                    self.line( "%s per unit " % cost, usage.volume, cost * usage.volume )
+                    self.add_line( "%s per unit " % cost, usage.volume, cost * usage.volume )
         self.commit() # Writes to OpenERP? Closes the invoice? Something.
 
-    def commit(self):
-        pass
 
-    def close(self):
-        """
-        Makes this invoice no longer writable - it's closed and registered as
-        a closed invoice in OpenERP; sent out for payment, etc.
-        """
-        pass
+    def add_line(self, item):
+        raise NotImplementedError("Not implemented in base class")
 
-    def cost(self, datacenter, meter):
-        """Returns the cost of a given resource in a given datacenter."""
-        return costs[meter][datacenter]
+    def add_section(self, title):
+        raise NotImplementedError("Not implemented in base class")

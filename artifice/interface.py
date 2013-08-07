@@ -411,14 +411,16 @@ class Artifact(object):
             self.start,
             self.end,
         )
-        self.db.add(usage)
+        session.add(usage)
+        session.commit() # Persist to our backend
+
 
 
     def volume(self):
         """
         Default billable number for this volume
         """
-        return self.usage[-1]["counter_volume"]
+        return sum([x["counter_volume"] for x in self.usage])
 
 class Cumulative(Artifact):
 
@@ -428,12 +430,11 @@ class Cumulative(Artifact):
         total_usage = measurements[-1]["counter_volume"] - measurements[0]["counter_volume"]
         return total_usage
 
-class Gauge(Artifact):
 
-    # def volume(self):
-    #   pass
+# Gauge and Delta have very little to do: They are expected only to
+# exist as "not a cumulative" sort of artifact.
+class Gauge(Artifact):
     pass
 
 class Delta(Artifact):
-
     pass
