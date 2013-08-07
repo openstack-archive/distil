@@ -87,7 +87,6 @@ class Artifice(object):
             invoice_type = __import__(self.config["invoices"]["plugin"])
             for tenant in self.auth.tenants.list():
                 t = Tenant(tenant, self)
-                t.invoice_type = self.config.
 
             dict([(t.name, Tenant(t, self)) for t in self.auth.tenants.list()))
         return self._tenancy
@@ -100,6 +99,7 @@ class Tenant(object):
         self.conn = conn
         self._meters = set()
         self._resources = None
+        self.invoice_type = None
 
         # Invoice type needs to get set from the config, which is
         # part of the Artifice setup above.
@@ -122,7 +122,17 @@ class Tenant(object):
         @returns: invoice
         """
 
-        invoice = self.invoice_type(self)
+        if self.invoice_type is None:
+            invoice_type = self.conn.config.get("main", "invoice:object")
+            if ":" not in invoice_type:
+                raise AttributeError("Invoice configuration incorrect! %s" % invoice_type)
+            module, call = invoice_type.split(":")
+            _package = __import__(module, globals(), locals(), [call])
+            funct = getattr(_package, call)
+            self.invoice_type = funct
+        # Change from ConfigParser format into a straight dict
+        config = dict(self.conn.config.items("invoice_object"))
+        invoice = self.invoice_type(self, config)
         return invoice
 
     @property
@@ -139,10 +149,7 @@ class Tenant(object):
             self._resources = json.loads(r.text)
         return self._resources
 
-    def section(self, section):
-        """returns an object-sort of thing to represent a section: VM or
-           network or whatever"""
-        return
+
 
     # def usage(self, start, end, section=None):
     def contents(self, start, end):

@@ -44,7 +44,7 @@ if __name__ == '__main__':
         # An artifact knows its section
         tenant = n.tenant(tenant_name)
         # Makes a new invoice up for this tenant.
-        invoice = tenant.invoice(start=args.start, end=args.end)
+        invoice = tenant.invoice()
         print "Tenant: %s" % tenant.name
         print "Range: %s -> %s" % (args.start, args.end)
 
