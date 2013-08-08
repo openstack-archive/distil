@@ -4,13 +4,7 @@ import unittest
 import datetime
 import mock
 
-class keystone(object):
-
-    def __new__(cls):
-        pass
-
 class TestInstancing(unittest.TestCase):
-
 
     def setUp(self):
 
