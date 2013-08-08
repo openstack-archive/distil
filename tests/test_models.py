@@ -5,10 +5,11 @@ from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlalchemy.orm.exc import FlushError
 import os
 
+TENANT_ID = "test tenant"
+RESOURCE_ID = "test resource"
 
-class TestTenant(unittest.TestCase):
 
-    ID = "test tenant"
+class SessionBase(unittest.TestCase):
 
     def setUp(self):
 
@@ -35,21 +36,23 @@ class TestTenant(unittest.TestCase):
         self.session = None
 
 
+class TestTenant(SessionBase):
+
     def test_create_tenant(self):
 
         t = tenants.Tenant()
         self.objects.append(t)
-        t.id = self.ID
+        t.id = TENANT_ID
         self.session.add(t)
         self.session.flush()
         self.session.commit()
 
 
         t2 = self.session.query(tenants.Tenant)\
-            .filter(tenants.Tenant.id == self.ID)[0]
+            .filter(tenants.Tenant.id == TENANT_ID)[0]
 
         self.assertTrue( t2 is not None )
-        self.assertEqual( t2.id, self.ID )
+        self.assertEqual( t2.id, TENANT_ID )
 
 
     def test_create_identical_tenant_fails(self):
@@ -65,16 +68,59 @@ class TestTenant(unittest.TestCase):
             self.fail ( e )
 
 
-class TestResource(unittest.TestCase):
+class TestResource(SessionBase):
 
     def test_create_resource(self):
-        pass
+        r = resources.Resource()
+        t = tenants.Tenant()
+        t.id = TENANT_ID
 
-    def test_create_resource_with_bad_tenant(self):
-        pass
+        r.tenant = t
+        r.id = RESOURCE_ID
+        self.session.add(r)
+        self.session.add(t)
+        self.objects.extend((r,t))
+        self.session.flush()
+        self.session.commit()
 
-    def test_create_resource_without_tenant(self):
-        pass
+        r2 = self.session.query(resources.Resource)\
+            .filter(resources.Resource.id == RESOURCE_ID)[0]
+
+        self.assertEqual(r2.id, r.id)
+        self.assertEqual( r2.tenant.id, t.id )
+
+
+    def test_create_resource_with_bad_tenant_fails(self):
+
+        r = resources.Resource()
+
+        t = tenants.Tenant()
+        r.tenant = t
+
+        self.objects.extend((r,t))
+
+        self.session.add(r)
+        self.session.add(t)
+        try:
+            self.session.commit()
+        except IntegrityError:
+            self.assertTrue(True)
+        except Exception as e:
+            self.fail(e)
+
+    def test_create_resource_without_tenant_fails(self):
+
+        r = resources.Resource()
+        r.id = RESOURCE_ID
+        self.session.add(r)
+
+        try:
+            self.session.commit()
+        except IntegrityError:
+            self.assertTrue(True)
+        except Exception as e:
+            self.fail(e)
+
 
 
 

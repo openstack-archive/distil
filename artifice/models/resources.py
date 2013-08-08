@@ -9,5 +9,5 @@ class Resource(Base):
 
     id = Column(String, primary_key=True)
     type_ = Column(String)
-    tenant_id = Column(String, ForeignKey("tenants.id"))
+    tenant_id = Column(String, ForeignKey("tenants.id"), unique=True)
     tenant = relationship("Tenant", backref=backref("tenants"))
