@@ -5,8 +5,17 @@ from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlalchemy.orm.exc import FlushError
 import os
 
+from artifice.models.usage import Usage
+from artifice.models.tenants import Tenant
+from artifice.models.resources import Resource
+
+from datetime import datetime, timedelta
+
 TENANT_ID = "test tenant"
 RESOURCE_ID = "test resource"
+RESOURCE_ID_TWO = "A DIFFERENT RESOURCE"
+
+USAGE_ID = 12345
 
 
 class SessionBase(unittest.TestCase):
@@ -114,6 +123,8 @@ class TestResource(SessionBase):
         r.id = RESOURCE_ID
         self.session.add(r)
 
+        self.objects.append(r)
+
         try:
             self.session.commit()
         except IntegrityError:
@@ -122,29 +133,144 @@ class TestResource(SessionBase):
             self.fail(e)
 
 
-
-
-class TestUsage(unittest.TestCase):
+class TestUsage(SessionBase):
 
     """Tests various states of the Usage objects."""
 
-    def setUp(self):
-        pass
+    # def setUp(self):
+    #     super(TestUsage, self).setUp()
 
-    def tearDown(self):
-        pass
+    #     self.resource
 
-    def test_save_to_database(self):
-        pass
+    # def tearDown(self):
+    #     pass
+
+    def test_save_usage_to_database(self):
+        r = Resource()
+        r.id = RESOURCE_ID
+
+        t = Tenant()
+
+        t.id = TENANT_ID
+
+        r.tenant = t
+
+        self.objects.extend((r, t))
+
+        start = datetime.now() - timedelta(days=30)
+        end = datetime.now()
+
+        u = Usage(r, t, 1, start, end )
+        u.id = USAGE_ID
+
+        self.objects.append(u)
+
+        self.session.add(u)
+        self.session.add(r)
+        self.session.add(t)
+
+        self.session.commit()
+
+        u2 = self.session.query(Usage)[0]
+
+        self.assertTrue( u2.resource.id == r.id )
+        self.assertTrue( u2.tenant.tenant.id == t.id )
+        self.assertTrue( u2.created == u.created )
+        print u2.time
 
     def test_overlap_throws_exception(self):
+
+        self.test_save_usage_to_database()
+
+        r = self.session.query(Resource).filter(Resource.id == RESOURCE_ID)[0]
+        t = self.session.query(Tenant).filter(Tenant.id == TENANT_ID)[0]
+
+        start = datetime.now() - timedelta(days=15)
+        end = datetime.now()
+
+        u2 = Usage(r, t, 2, start, end)
+
+        self.session.add(u2)
+        try:
+            self.session.commit()
+        except IntegrityError:
+            self.assertTrue(True)
+        except Exception as e:
+            self.fail(e)
+
+    def test_overlap_with_different_resource_succeeds(self):
+
+        self.test_save_usage_to_database()
+
+        t = self.session.query(Tenant).filter(Tenant.id == TENANT_ID)[0]
+        r = Resource()
+        r.id = RESOURCE_ID_TWO
+        r.tenant = t
+
+        start = datetime.now() - timedelta(days=30)
+        end = datetime.now()
+
+        u = Usage(r, t, 2, start, end)
+
+        self.objects.extend((r, u))
+        self.session.add(u)
+        self.session.add(r)
+
+        try:
+            self.session.commit()
+        except IntegrityError as e:
+            self.fail("Integrity violation: %s" % e)
+        except Exception as e:
+            self.fail("Major exception: %s" % e)
+
+    def test_non_overlap_succeeds(self):
+        self.test_save_usage_to_database()
+
+        r = self.session.query(Resource).filter(Resource.id == RESOURCE_ID)[0]
+        t = self.session.query(Tenant).filter(Tenant.id == TENANT_ID)[0]
+
+        start = datetime.now()
+        end = datetime.now() + timedelta(days=30)
+
+        u = Usage(r, t, 1, start, end)
+
+        self.session.add(u)
+
+        try:
+            self.session.commit()
+            self.objects.append(u)
+        except IntegrityError as e:
+            self.fail("Integrity violation: %s" % e)
+        except Exception as e:
+            self.fail("Fail: %s" % e)
+
+    def test_tenant_does_not_exist_fails(self):
+
         pass
 
-    def test_non_overlap_does_not_throw_exception(self):
+    def test_resource_does_not_exist_fails(self):
         pass
 
-    def test_tenant_does_not_exist(self):
-        pass
+    def test_resource_belongs_to_different_tenant_fails(self):
+        self.test_save_usage_to_database()
+        t = Tenant()
+        t.id = "TENANT TWO"
 
-    def test_resource_does_not_exist(self):
-        pass
+        r = self.session.query(Resource).filter(Resource.id == RESOURCE_ID)[0]
+        start = datetime.now()
+        end = datetime.now() + timedelta(days=30)
+        self.session.add(t)
+
+        self.objects.append(t)
+
+        try:
+            u = Usage(r, t, 1, start, end)
+            self.session.commit()
+            self.objects.append(u)
+            self.fail("Should not have saved!")
+        except (IntegrityError, AssertionError) as e :
+            self.assertTrue(True) # Pass
+        except Exception as e:
+
+            self.fail(e.__class__)
+

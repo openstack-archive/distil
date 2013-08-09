@@ -52,7 +52,10 @@ class TestInstancing(unittest.TestCase):
         start = datetime.datetime.now() - datetime.timedelta(days=30)
         end = datetime.datetime.now()
 
-        u = usage.Usage(resources.Resource(), tenants.Tenant() , 1, start, end )
+        r = resources.Resource()
+        t = tenants.Tenant()
+        r.tenant = t
+        u = usage.Usage(r, t , 1, start, end )
         self.assertTrue ( isinstance( u, usage.Usage ) )
 
     def test_instance_tenant(self):
