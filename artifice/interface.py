@@ -5,17 +5,28 @@
 import requests
 import json
 
+
+from copy import copy
+from collections import defaultdict
+
 #
 import datetime
 
 # Provides authentication against Openstack
-from keystoneclient.v2_0 import client as keystone
+from keystoneclient.v2_0 import client as KeystoneClient
 
-#
+# Provides hooks to ceilometer, which we need for data.
+from ceilometerclient.v2.client import Client as ceilometer
+
 # from .models import usage
 from .models import Session, usage
 
 from sqlalchemy import create_engine
+
+from .models.usage import Usage
+from .models import resources, tenants
+
+# from .models.tenants import Tenant
 
 # Date format Ceilometer uses
 # 2013-07-03T13:34:17
@@ -29,7 +40,51 @@ date_format = "%Y-%m-%dT%H:%M:%S"
 # Sometimes things also have milliseconds, so we look for that too.
 other_date_format = "%Y-%m-%dT%H:%M:%S.%f"
 
+def get_meter(meter, start, end, auth):
+    date_fields = [{
+        "field": "timestamp",
+        "op": "ge",
+        "value": start.strftime(date_format)
+    },
+    {
+        "field": "timestamp",
+        "op": "lt",
+        "value": end.strftime(date_format)
+    }
+    ]
+    # I dislike directly calling requests here.
+    r = requests.get(
+        meter.link,
+        headers={
+            "X-Auth-Token": auth,
+            "Content-Type":"application/json"},
+        data=json.dumps({"q": date_fields})
+    )
+    return json.loads(r)
+
+
 class NotFound(BaseException): pass
+
+class keystone(KeystoneClient.Client):
+
+    def tenant_by_name(self, name):
+        authenticator = self.auth_url
+        url = "%(url)s/tenants?%(query)s" % {
+            "url": authenticator,
+            "query": urllib.urlencode({"name":name})
+            }
+        r = requests.get(url, headers={
+            "X-Auth-Token": self.auth_token,
+            "Content-Type": "application/json"
+        })
+        if r.ok:
+            data = json.loads(r.text)
+            assert data
+            return data
+        else:
+            if r.status_code == 404:
+                # couldn't find it
+                raise NotFound
 
 class Artifice(object):
     """Produces billable artifacts"""
@@ -39,7 +94,7 @@ class Artifice(object):
 
         # This is the Keystone client connection, which provides our
         # OpenStack authentication
-        self.auth = keystone.Client(
+        self.auth = keystone(
             username=        config["openstack"]["username"],
             password=        config["openstack"]["password"],
             tenant_name=     config["openstack"]["default_tenant"],
@@ -55,8 +110,15 @@ class Artifice(object):
         }
         engine = create_engine(conn_string)
         Session.configure(bind=engine)
-        session = Session()
+        self.session = Session()
         self.artifice = None
+
+        self.ceilometer = ceilometer(
+            self.config["ceilometer"]["host"],
+            token=self.auth.auth_token
+        )
+        self._tenancy = None
+
 
     def tenant(self, name):
         """
@@ -65,32 +127,21 @@ class Artifice(object):
         # Returns a Tenant object for the given name.
         # Uses Keystone API to perform a direct name lookup,
         # as this is expected to work via name.
-        authenticator = config["openstack"]["authentication_url"]
-        url = "%(url)s/tenants?%(query)s" % {
-            "url": authenticator,
-            "query": urllib.urlencode({"name":name})
-            }
-        r = requests.get(url, headers={"X-Auth-Token": self.auth.auth_token, "Content-Type": "application/json"})
-        if r.ok:
-            data = json.loads(r.text)
-            assert data
-            t = Tenant(data["tenant"], self)
-            return t
-        else:
-            if r.status_code == 404:
-                # couldn't find it
-                raise NotFound
+
+        data = self.auth.tenant_by_name(name)
+        t = Tenant(data["tenant"], self)
+        return t
 
     @property
     def tenants(self):
         """All the tenants in our system"""
+        # print "tenant list is %s" % self.auth.tenants.list()
         if not self._tenancy:
             self._tenancy = {}
             invoice_type = __import__(self.config["invoices"]["plugin"])
             for tenant in self.auth.tenants.list():
                 t = Tenant(tenant, self)
-
-            dict( [(t.name, Tenant(t, self)) for t in self.auth.tenants.list() ] )
+                self._tenancy[t.name] = t
         return self._tenancy
 
 class Tenant(object):
@@ -109,8 +160,9 @@ class Tenant(object):
 
     def __getattr__(self, attr):
         if attr not in self.tenant:
-            return super(self, Tenant).__getattr__(attr)
-        return self.tenant["attr"]
+            return object.__getattribute__(self, attr)
+            # return super(Tenant, self).__getattr__(attr)
+        return self.tenant[attr]
 
 
     def invoice(self):
@@ -137,24 +189,32 @@ class Tenant(object):
         invoice = self.invoice_type(self, config)
         return invoice
 
-    @property
-    def resources(self):
+    def resources(self, start, end):
         if not self._resources:
-            r = requests.get(
-                os.path.join(self.config["ceilometer"]["host"], "v2/resources"),
-                headers={"X-Auth-Token": self.auth.auth_token, "Content-Type":"application/json"},
-                data=json.dumps( { "q": resourcing_fields } )
-            )
-            if not r.ok:
-                return None
-
-            self._resources = json.loads(r.text)
+            date_fields = [{
+                "field": "timestamp",
+                    "op": "ge",
+                    "value": start.strftime(date_format)
+                },
+                {
+                    "field": "timestamp",
+                    "op": "lt",
+                    "value": end.strftime(date_format)
+                },
+                {   "field": "project_id",
+                    "op": "eq",
+                    "value": self.tenant["id"]
+                },
+            ]
+            self._resources = self.ceilometer.resources.list(date_fields)
         return self._resources
 
-
-
     # def usage(self, start, end, section=None):
-    def contents(self, start, end):
+    def usage(self, start, end):
+        """
+        Contents is the meat of Artifice, returning a dict of location to
+        sub-information
+        """
         # Returns a usage dict, based on regions.
         vms = {}
         vm_to_region = {}
@@ -162,69 +222,63 @@ class Tenant(object):
 
         usage_by_dc = {}
 
-        date_fields = [{
-            "field": "timestamp",
-                "op": "ge",
-                "value": start.strftime(date_format)
-            },
-            {
-                "field": "timestamp",
-                "op": "lt",
-                "value": end.strftime(date_format)
-            },
-        ]
         writing_to = None
 
         vms = []
         networks = []
         storage = []
         images = []
+        volumes = []
 
-        for resource in self.resources:
+        for resource in self.resources(start, end):
             rels = [link["rel"] for link in resource["links"] if link["rel"] != 'self' ]
             if "image" in rels:
                 # Images don't have location data - we don't know where they are.
                 # It may not matter where they are.
                 resource["_type"] = "image"
-                images.append(resource)
+                images.append(Resource(resource, self.conn))
                 pass
-            elif "storage" in rels:
+            elif "storage.objects" in rels:
                 # Unknown how this data layout happens yet.
-                resource["_type"] = "storage"
-                storage.append(resource)
+                resource["_type"] = "object"
+                storage.append(Resource(resource, self.conn))
                 pass
             elif "network" in rels:
                 # Have we seen the VM that owns this yet?
                 resource["_type"] = "network"
-                networks.append(resource)
-            else:
+                networks.append(Resource(resource , self.conn))
+            elif "volumne" in rels:
+                volumes.append( Resource(resource, self.conn) )
+            elif 'instance' in rels:
                 resource["_type"] = "vm"
-                vms.append(resource)
+                vms.append(Resource(resource, self.conn ))
 
         datacenters = {}
-        region_tmpl = { "vms": [],
-                    "network": [],
-                    "storage": []
+        region_tmpl = { "vms": vms,
+                    "network": networks,
+                    "objects": storage,
+                    "volumes": volumes
+
                 }
-        vm_to_region = {}
-        for vm in vms:
-            id_ = vm["resource_id"]
+        # vm_to_region = {}
+        # for vm in vms:
+        #     id_ = vm["resource_id"]
 
-            datacenter = self.host_to_dc( vm["metadata"]["host"] )
+        #     datacenter = self.conn.host_to_dc( vm["metadata"]["host"] )
 
-            if datacenter not in datacenters:
-                dict_ = copy(region_tmpl)
-                datacenters[datacenter] = dict_
+        #     if datacenter not in datacenters:
+        #         dict_ = copy(region_tmpl)
+        #         datacenters[datacenter] = dict_
 
-            datacenters[datacenter]["vms"].append(vm)
+        #     datacenters[datacenter]["vms"].append(vm)
 
-            vm_to_region[id_] = datacenter
+        #     vm_to_region[id_] = datacenter
 
-        for network in networks:
-            vm_id = network["metadata"]["instance_id"]
-            datacenter = vm_to_region[ vm_id ]
+        # for network in networks:
+        #     vm_id = network["metadata"]["instance_id"]
+        #     datacenter = self.host_to_dc( network["metadata"]["host"] )
 
-            datacenters[datacenter]["network"].append(network)
+        #     datacenters[datacenter]["network"].append(network)
 
         # for resource in storage:
         #   pass
@@ -240,42 +294,62 @@ class Tenant(object):
         # So we can now start to collect stats and construct what we consider to be
         # usage information for this tenant for this timerange
 
-        return Contents(datacenters, start, end)
-
-    @property
-    def meters(self):
-        if not self.meters:
-            resourcing_fields = [{"field": "project_id", "op": "eq", "value": self.tenant.id }]
-            r = requests.get(
-                os.path.join(self.config["ceilometer"]["host"], "v2/resources"),
-                headers={"X-Auth-Token": self.auth.auth_token, "Content-Type":"application/json"},
-                data=json.dumps( { "q": resourcing_fields } )
-            )
-            # meters = set()
-            resources = json.loads(r.text)
-            for resource in resources:
-                for link in resource["links"]:
-                    if link["rel"] == "self":
-                        continue
-                    self._meters.add(link["rel"])
-                # sections.append(Section(self, link))
-        return self._meters()
+        return Usage(region_tmpl, start, end, self.conn)
 
 
-class Contents(object):
+class Usage(object):
+    """
+    This is a dict-like object containing all the datacenters and
+    meters available in those datacenters.
+    """
 
-    def __init__(self, contents, start, end):
+    def __init__(self, contents, start, end, conn):
         self.contents = contents
         self.start = start
         self.end = end
+        self.conn = conn
+
+        self._vms = []
+        self._objects = []
+        self._volumes = []
+
 
         # Replaces all the internal references with better references to
         # actual metered values.
-        self._replace()
+        # self._replace()
 
-    def __getitem__(self, item):
+    @property
+    def vms(self):
 
-        return self.contents[item]
+        if not self._vms:
+            vms = []
+
+            for vm in self.contents["vms"]:
+                VM = resources.VM(vm)
+                VM.location = self.conn.host_to_dc( vm["metadata"]["host"] )
+                vms.append(VM)
+            self._vms = vms
+        return self._vms
+
+    @property
+    def objects(self):
+        if not self._objects:
+            vms = []
+
+            for object_ in self.contents["objects"]:
+                obj = resources.Object(object_)
+                obj.location = self.conn.host_to_dc( vm["metadata"]["host"] )
+                vms.append(VM)
+            self._vms = vms
+        return self._vms
+
+    @property
+    def volumes(self):
+        return []
+
+    # def __getitem__(self, item):
+
+    #     return self.contents[item]
 
     def __iter__(self):
         return self
@@ -290,19 +364,21 @@ class Contents(object):
     def _replace(self):
         # Turns individual metering objects into
         # Usage objects that this expects.
-        for dc in contents.iterkeys():
-            for section in contents[dc].iterkeys():
+        for dc in self.contents.iterkeys():
+            for section in self.contents[dc].iterkeys():
                 meters = []
-                for meter in contents[dc][section]:
-
+                for resource in self.contents[dc][section]:
+                    meters.extend(resource.meters)
+                usages = []
+                for meter in meters:
                     usage = meter.usage(self.start, self.end)
-                    usage.db = self.db # catch the DB context?
+                    usage.db = self.conn # catch the DB context?
 
-                    meters.append(usage)
+                    usages.append(usage)
                 # Overwrite the original metering objects
                 # with the core usage objects.
                 # This is because we're not storing metering.
-                contents[dc][section] = meters
+                self.contents[dc][section] = usages
 
     def save(self):
 
@@ -310,78 +386,79 @@ class Contents(object):
         Iterate the list of things; save them to DB.
         """
         # self.db.begin()
-        for dc in contents.iterkeys():
-            for section in contents[dc].iterkeys():
-                for meter in contents[dc][section]:
-                    meter.save()
-        self.db.commit()
+        # for
+        # for dc in self.contents.iterkeys():
+        #     for section in self.contents[dc].iterkeys():
+        #         for meter in self.contents[dc][section]:
+        #             meter.save()
+        # self.conn.session.commit()
+        raise NotImplementedError("Not implemented")
 
 class Resource(object):
 
-    def __init__(self, resource):
+    def __init__(self, resource, conn):
         self.resource = resource
+        self.conn = conn
+        self._meters = {}
+
+    def meter(self, name):
+        pass # Return a named meter
+
+
+    def __getitem__(self, name):
+        return self.resource[name]
 
     @property
     def meters(self):
-        meters = []
-        for link in self.resource["links"]:
-            if link["rel"] == "self":
-                continue
-            meter = Meter(self.resource, link)
-            meters.append(meter)
-        return meters
+        if not self._meters:
+            meters = []
+            for link in self.resource["links"]:
+                if link["rel"] == "self":
+                    continue
+                meter = Meter(self, link, self.conn)
+                meters.append(meter)
+            self._meters = meters
+        return self._meters
 
 class Meter(object):
 
-    def __init__(self, resource, link):
+    def __init__(self, resource, link, conn):
         self.resource = resource
         self.link = link
+        self.conn = conn
         # self.meter = meter
 
     def __getitem__(self, x):
-        if isintance(x, slice):
+        if isinstance(x, slice):
             # Woo
             pass
         pass
 
-    @property
     def usage(self, start, end):
         """
         Usage condenses the entirety of a meter into a single datapoint:
         A volume value that we can plot as a single number against previous
         usage for a given range.
         """
-        date_fields = [{
-                "field": "timestamp",
-                "op": "ge",
-                "value": start.strftime(date_format)
-            },
-            {
-                "field": "timestamp",
-                "op": "lt",
-                "value": end.strftime(date_format)
-            }
-        ]
-        r = requests.get(
-            self.link,
-            headers={
-                "X-Auth-Token": self.auth.auth_token,
-                "Content-Type":"application/json"},
-            data=json.dumps({"q": date_fields})
-        )
-        measurements = json.loads(r)
+        measurements = get_meter(self, start, end, self.conn.auth.auth_token)
+
         self.measurements = defaultdict(list)
         self.type = set([a["counter_type"] for a in measurements])
+        if len(self.type) > 1:
+            # That's a big problem
+            raise RuntimeError("Too many types for measurement!")
+        elif len(self.type) == 0:
+            raise RuntimeError("No types!")
+        else:
+            self.type = self.type.pop()
         type_ = None
         if self.type == "cumulative":
             # The usage is the last one, which is the highest value.
             #
             # Base it just on the resource ID.
-
             # Is this a reasonable thing to do?
             # Composition style: resource.meter("cpu_util").usage(start, end) == artifact
             type_ = Cumulative
-
         elif self.type == "gauge":
             type_ = Gauge
             # return Gauge(self.Resource, )
@@ -391,6 +468,11 @@ class Meter(object):
         return type_(self.resource, measurements, start, end)
 
 class Artifact(object):
+
+    """
+    Provides base artifact controls; generic typing information
+    for the artifact structures.
+    """
 
     def __init__(self, resource, usage, start, end):
 
@@ -409,20 +491,47 @@ class Artifact(object):
         Persists to our database backend. Opinionatedly this is a sql datastore.
         """
         value = self.volume()
+        session = self.resource.conn.session
         # self.artifice.
-        tenant_id = self.resource["tenant"]
+        try:
+            tenant_id = self.resource["tenant_id"]
+        except KeyError:
+            tenant_id = self.resource["project_id"]
         resource_id = self.resource["resource_id"]
 
-        usage = models.Usage(
-            resource_id,
-            tenant_id,
+        tenant = session.query(tenants.Tenant).get(tenant_id)
+
+        if tenant is None:
+            res = resources.Resource()
+            tenant = tenants.Tenant()
+            tenant.id = tenant_id
+
+            res.id = resource_id
+            res.tenant = tenant
+            session.add(res)
+            session.add(tenant)
+        else:
+            try:
+                res = session.query(resources.Resource).filter(resources.Resource.id == resource_id)[0]
+                tenant = res.tenant
+            except IndexError:
+                res = resources.Resource()
+                tenant = tenants.Tenant()
+                tenant.id = tenant_id
+                res.id = resource_id
+                res.tenant = tenant
+                session.add(res)
+                session.add(tenant)
+
+        usage = Usage(
+            res,
+            tenant,
             value,
             self.start,
             self.end,
         )
         session.add(usage)
         session.commit() # Persist to our backend
-
 
 
     def volume(self):

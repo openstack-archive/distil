@@ -1,5 +1,5 @@
 import yaml
-from models import session
+from models import Session
 from interface import Artifice
 default_config = "/etc/artifice/config.yaml"
 
