@@ -28,6 +28,19 @@ class BaseModelConstruct(object):
     def _fetch_meter_name(self, name):
         return name
 
+    def usage(self):
+        dct = {}
+        for meter in self.relevant_meters:
+            meter = self._fetch_meter_name(meter)
+            try:
+                vol = self._raw.meter(meter, self.start, self.end).volume()
+                dct[meter] = vol
+            except AttributeError:
+                # This is OK. We're not worried about non-existent meters,
+                # I think. For now, anyway.
+                pass
+        return dct
+
     def save(self):
         for meter in self.relevant_meters:
             meter = self._fetch_meter_name(meter)
@@ -77,6 +90,10 @@ class VM(BaseModelConstruct):
     def ips(self):
         """floating IPs; this is a metered value"""
         return 0
+
+    @property
+    def name(self):
+        return self._raw["metadata"]["display_name"]
 
 
 class Object(BaseModelConstruct):

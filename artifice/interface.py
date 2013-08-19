@@ -99,7 +99,6 @@ class Artifice(object):
             password=        config["openstack"]["password"],
             tenant_name=     config["openstack"]["default_tenant"],
             auth_url=        config["openstack"]["authentication_url"]
-            # auth_url="http://localhost:35357/v2.0"
         )
         conn_string = 'postgresql://%(username)s:%(password)s@%(host)s:%(port)s/%(database)s' % {
             "username": config["database"]["username"],
@@ -373,16 +372,6 @@ class Usage(object):
             vol.save()
 
 
-
-        # self.db.begin()
-        # for
-        # for dc in self.contents.iterkeys():
-        #     for section in self.contents[dc].iterkeys():
-        #         for meter in self.contents[dc][section]:
-        #             meter.save()
-        # self.conn.session.commit()
-        # raise NotImplementedError("Not implemented")
-
 class Resource(object):
 
     def __init__(self, resource, conn):
@@ -564,6 +553,7 @@ class Gauge(Artifact):
         """
         Default billable number for this volume
         """
+        # print "Usage is %s" % self.usage
         usage = sorted(self.usage, key=lambda x: x["timestamp"])
 
         blocks = []
@@ -573,11 +563,16 @@ class Gauge(Artifact):
             last["timestamp"] = datetime.datetime.strptime(last["timestamp"], date_format)
         except ValueError:
             last["timestamp"] = datetime.datetime.strptime(last["timestamp"], other_date_format)
+        except TypeError:
+            pass
+
         for val in usage[1:]:
             try:
                 val["timestamp"] = datetime.datetime.strptime(val["timestamp"], date_format)
             except ValueError:
                 val["timestamp"] = datetime.datetime.strptime(val["timestamp"], other_date_format)
+            except TypeError:
+                pass
 
             if (val['timestamp'] - last["timestamp"]) > datetime.timedelta(hours=1):
                 blocks.append(curr)

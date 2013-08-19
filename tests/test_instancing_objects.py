@@ -15,7 +15,7 @@ class TestInstancing(unittest.TestCase):
         pass
 
     @mock.patch("artifice.models.Session")
-    @mock.patch("keystoneclient.v2_0.client.Client")
+    @mock.patch("artifice.interface.keystone")
     @mock.patch("sqlalchemy.create_engine")
     def test_instance_artifice(self, sqlmock, keystone, session):
 
@@ -26,19 +26,24 @@ class TestInstancing(unittest.TestCase):
         config = {
             "main": {},
             "database": {
-                "username": "foo",
-                "password": "bar",
-                "host": "1234",
-                "port": "1234",
+                "username": "aurynn",
+                "password": "aurynn",
+                "host": "localhost",
+                "port": "5433",
                 "database": "artifice"
             },
             "openstack": {
                 "username": "foo",
                 "password": "bar",
                 "default_tenant":"asdf",
-                "authentication_url": "foo"
+                "authentication_url": "http://foo"
             },
-            "invoice": {}
+            "ceilometer": {
+                "host": 'http://whee'
+            },
+            "invoices": {
+                "plugin": "json"
+            }
         }
 
         a = Artifice(config)

@@ -323,7 +323,45 @@ class TestInterface(unittest.TestCase):
         # Now examine the database
 
     def test_correct_usage_values(self):
-        pass
+        """Usage data matches expected results:
+
+        tests that we get the usage data we expect from the processing
+        system as developed.
+
+        """
+        self.test_get_usage()
+
+        usage = self.usage
+
+        for vm in usage.vms:
+            volume = vm.usage()
+            # print "vm is %s" % vm
+            # print vm.size
+            # print "Volume is: %s" % volume
+            # VM here is a resource object, not an underlying meter object.
+            id_ = vm["project_id"]
+
+            for rvm in self.resources:
+                if not rvm["project_id"] == id_:
+                    continue
+                for meter in rvm["links"]:
+                    if not meter["rel"] in volume:
+                        continue
+                    data = mappings[ meter["href"] ]
+                    vol = volume[ meter["rel"] ]
+
+                    type_ = data[0]["counter_type"]
+                    if type_ == "cumulative":
+                        v = interface.Cumulative(rvm, data, self.start, self.end)
+                    elif type_ == "gauge":
+                        v = interface.Gauge(rvm, data, self.start, self.end)
+                    elif type_ == "delta":
+                        v = interface.Delta(rvm, data, self.start, self.end)
+                    # Same type of data
+                    self.assertEqual( v.__class__, vol.__class__ )
+                    # Why are these different?
+                    self.assertEqual( v.volume(), vol.volume() )
+
 
     def test_use_a_bunch_of_data(self):
         pass
