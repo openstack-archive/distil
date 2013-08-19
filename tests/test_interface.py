@@ -124,7 +124,6 @@ for resource in resources:
     # elif "ip.floating" in rels:
     #     res["ips"].append(resource)
 
-
 def resources_replacement(tester):
     #
     def repl(self, start, end):
@@ -269,10 +268,21 @@ class TestInterface(unittest.TestCase):
 
         # key = contents.keys()[0] # Key is the datacenter
         print from_
-        self.assertTrue( hasattr(usage, from_) )
-        self.assertTrue( hasattr(usage, "vms") )
 
-        lens = { "vms": 1}
+        self.assertTrue( isinstance(usage, interface.Usage) )
+
+        try:
+            getattr(usage, from_)
+            # self.assertTrue( hasattr(usage, from_) )
+        except AttributeError:
+            self.fail("No property %s" % from_)
+
+        try:
+            getattr(usage, "vms")
+        except AttributeError:
+            self.fail ("No property vms")
+
+        lens = { "vms": 1 }
 
         if from_ == "vms":
             lens["vms"] = 2
@@ -309,7 +319,6 @@ class TestInterface(unittest.TestCase):
         # try:
         usage.save()
         # except Exception as e:
-        self.fail(e)
 
         # Now examine the database
 

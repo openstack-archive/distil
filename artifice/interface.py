@@ -23,8 +23,8 @@ from .models import Session, usage
 
 from sqlalchemy import create_engine
 
-from .models.usage import Usage
-from .models import resources, tenants
+# from .models.usage import Usage
+from .models import resources, tenants, usage
 
 # from .models.tenants import Tenant
 
@@ -227,18 +227,13 @@ class Tenant(object):
         vms = []
         networks = []
         storage = []
-        images = []
         volumes = []
+
+        # Object storage is mapped by project_id
 
         for resource in self.resources(start, end):
             rels = [link["rel"] for link in resource["links"] if link["rel"] != 'self' ]
-            if "image" in rels:
-                # Images don't have location data - we don't know where they are.
-                # It may not matter where they are.
-                resource["_type"] = "image"
-                images.append(Resource(resource, self.conn))
-                pass
-            elif "storage.objects" in rels:
+            if "storage.objects" in rels:
                 # Unknown how this data layout happens yet.
                 resource["_type"] = "object"
                 storage.append(Resource(resource, self.conn))
@@ -254,12 +249,12 @@ class Tenant(object):
                 vms.append(Resource(resource, self.conn ))
 
         datacenters = {}
-        region_tmpl = { "vms": vms,
-                    "network": networks,
-                    "objects": storage,
-                    "volumes": volumes
-
-                }
+        region_tmpl = {
+            "vms": vms,
+            "network": networks,
+            "objects": storage,
+            "volumes": volumes
+        }
         # vm_to_region = {}
         # for vm in vms:
         #     id_ = vm["resource_id"]
@@ -320,12 +315,10 @@ class Usage(object):
 
     @property
     def vms(self):
-
         if not self._vms:
             vms = []
-
             for vm in self.contents["vms"]:
-                VM = resources.VM(vm)
+                VM = resources.VM(vm, self.start, self.end)
                 VM.location = self.conn.host_to_dc( vm["metadata"]["host"] )
                 vms.append(VM)
             self._vms = vms
@@ -334,19 +327,22 @@ class Usage(object):
     @property
     def objects(self):
         if not self._objects:
-            vms = []
-
+            objs = []
             for object_ in self.contents["objects"]:
-                obj = resources.Object(object_)
-                obj.location = self.conn.host_to_dc( vm["metadata"]["host"] )
-                vms.append(VM)
-            self._vms = vms
-        return self._vms
+                obj = resources.Object(object_, self.start, self.end)
+                objs.append(obj)
+            self._objs = objs
+        return self._objs
 
     @property
     def volumes(self):
-        return []
-
+        if not self._volumes:
+            objs = []
+            for obj in self.contents["volumes"]:
+                obj = resources.Volume(obj, self.start, self.end)
+                objs.append(obj)
+            self._volumes = objs
+        return self._volumes
     # def __getitem__(self, item):
 
     #     return self.contents[item]
@@ -361,30 +357,23 @@ class Usage(object):
             yield key
         raise StopIteration()
 
-    def _replace(self):
-        # Turns individual metering objects into
-        # Usage objects that this expects.
-        for dc in self.contents.iterkeys():
-            for section in self.contents[dc].iterkeys():
-                meters = []
-                for resource in self.contents[dc][section]:
-                    meters.extend(resource.meters)
-                usages = []
-                for meter in meters:
-                    usage = meter.usage(self.start, self.end)
-                    usage.db = self.conn # catch the DB context?
-
-                    usages.append(usage)
-                # Overwrite the original metering objects
-                # with the core usage objects.
-                # This is because we're not storing metering.
-                self.contents[dc][section] = usages
-
     def save(self):
 
         """
         Iterate the list of things; save them to DB.
         """
+
+        for vm in self.vms:
+            vm.save()
+
+        for obj in self.objects:
+            obj.save()
+
+        for vol in self.volumes:
+            vol.save()
+
+
+
         # self.db.begin()
         # for
         # for dc in self.contents.iterkeys():
@@ -392,7 +381,7 @@ class Usage(object):
         #         for meter in self.contents[dc][section]:
         #             meter.save()
         # self.conn.session.commit()
-        raise NotImplementedError("Not implemented")
+        # raise NotImplementedError("Not implemented")
 
 class Resource(object):
 
@@ -401,8 +390,14 @@ class Resource(object):
         self.conn = conn
         self._meters = {}
 
-    def meter(self, name):
+    def meter(self, name, start, end):
         pass # Return a named meter
+        for meter in self.resource["links"]:
+            if meter["rel"] == name:
+                m = Meter(self, meter, self.conn, start, end)
+                self._meters[name] = m
+                return m
+        raise AttributeError("no such meter %s" % name)
 
 
     def __getitem__(self, name):
@@ -422,10 +417,12 @@ class Resource(object):
 
 class Meter(object):
 
-    def __init__(self, resource, link, conn):
+    def __init__(self, resource, link, conn, start=None, end=None):
         self.resource = resource
         self.link = link
         self.conn = conn
+        self.start = start
+        self.end = end
         # self.meter = meter
 
     def __getitem__(self, x):
@@ -434,6 +431,10 @@ class Meter(object):
             pass
         pass
 
+    def volume(self):
+
+        return self.usage(self.start, self.end)
+
     def usage(self, start, end):
         """
         Usage condenses the entirety of a meter into a single datapoint:
@@ -441,6 +442,7 @@ class Meter(object):
         usage for a given range.
         """
         measurements = get_meter(self, start, end, self.conn.auth.auth_token)
+        # return measurements
 
         self.measurements = defaultdict(list)
         self.type = set([a["counter_type"] for a in measurements])
@@ -466,6 +468,12 @@ class Meter(object):
             type_ = Delta
 
         return type_(self.resource, measurements, start, end)
+
+    def save(self):
+        if not self.start and self.end:
+            raise AttributeError("Needs start and end defined to save")
+        self.volume().save()
+
 
 class Artifact(object):
 
@@ -523,15 +531,15 @@ class Artifact(object):
                 session.add(res)
                 session.add(tenant)
 
-        usage = Usage(
+        this_usage = usage.Usage(
             res,
             tenant,
             value,
             self.start,
             self.end,
         )
-        session.add(usage)
-        session.commit() # Persist to our backend
+        session.add(this_usage)
+        session.commit() # Persist to Postgres
 
 
     def volume(self):
@@ -552,7 +560,42 @@ class Cumulative(Artifact):
 # Gauge and Delta have very little to do: They are expected only to
 # exist as "not a cumulative" sort of artifact.
 class Gauge(Artifact):
-    pass
+    def volume(self):
+        """
+        Default billable number for this volume
+        """
+        usage = sorted(self.usage, key=lambda x: x["timestamp"])
+
+        blocks = []
+        curr = [usage[0]]
+        last = usage[0]
+        try:
+            last["timestamp"] = datetime.datetime.strptime(last["timestamp"], date_format)
+        except ValueError:
+            last["timestamp"] = datetime.datetime.strptime(last["timestamp"], other_date_format)
+        for val in usage[1:]:
+            try:
+                val["timestamp"] = datetime.datetime.strptime(val["timestamp"], date_format)
+            except ValueError:
+                val["timestamp"] = datetime.datetime.strptime(val["timestamp"], other_date_format)
+
+            if (val['timestamp'] - last["timestamp"]) > datetime.timedelta(hours=1):
+                blocks.append(curr)
+                curr = [val]
+                last = val
+            else:
+                curr.append(val)
+
+        # We are now sorted into 1-hour blocks
+        totals = []
+        for block in blocks:
+            usage = max( [v["counter_volume"] for v in block])
+            totals.append( usage )
+
+        # totals = [max(x, key=lambda val: val["counter_volume"] ) for x in blocks]
+        # totals is now an array of max values per hour for a given month.
+        # print totals
+        return sum(totals)
 
 class Delta(Artifact):
     pass
