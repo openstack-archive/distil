@@ -22,8 +22,19 @@ class BaseModelConstruct(object):
         self.start = start
         self.end = end
 
+    @property
+    def amount(self):
+        return self.size
+
     def __getitem__(self, item):
         return self._raw[item]
+
+    def get(self, name):
+        # Returns a given name value thing?
+        # Based on patterning, this is expected to be a dict of usage information
+        # based on a meter, I guess?
+
+        return getattr(self, name)
 
     def _fetch_meter_name(self, name):
         return name
@@ -60,6 +71,10 @@ class VM(BaseModelConstruct):
         if name == "instance:<type>":
             return "instance:%s" % self.type
         return name
+
+    @property
+    def amount(self):
+        return self.size
 
     @property
     def type(self):
@@ -123,8 +138,9 @@ class Volume(BaseModelConstruct):
 
     @property
     def location(self):
-        pass
+        return self._location
 
+    @property
     def size(self):
         # Size of the thing over time.
         return self._raw.meter("volume.size", self.start, self.end).volume()

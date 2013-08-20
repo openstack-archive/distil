@@ -154,10 +154,10 @@ class TestInterface(unittest.TestCase):
         self.session.query(Resource).delete()
         self.session.query(tenants.Tenant).delete()
 
-
         self.session.commit()
         self.contents = None
         self.resources = []
+        self.artifice = None
 
 
     @mock.patch("artifice.models.Session")
@@ -184,6 +184,7 @@ class TestInterface(unittest.TestCase):
         interface.get_meter = get_meter
 
         artifice = Artifice(config)
+        self.artifice = artifice
         # Needed because this
         artifice.auth.tenants.list.return_value = TENANTS
         # this_config = copy.deepcopy(config["openstack"])
@@ -359,7 +360,6 @@ class TestInterface(unittest.TestCase):
                         v = interface.Delta(rvm, data, self.start, self.end)
                     # Same type of data
                     self.assertEqual( v.__class__, vol.__class__ )
-                    # Why are these different?
                     self.assertEqual( v.volume(), vol.volume() )
 
 

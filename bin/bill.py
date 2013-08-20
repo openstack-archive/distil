@@ -44,17 +44,19 @@ if __name__ == '__main__':
         # An artifact knows its section
         tenant = n.tenant(tenant_name)
         # Makes a new invoice up for this tenant.
-        invoice = tenant.invoice()
+        invoice = tenant.invoice(args.start, args.end)
         print "Tenant: %s" % tenant.name
         print "Range: %s -> %s" % (args.start, args.end)
 
         # usage = tenant.usage(start, end)
-        usage = tenant.contents(start, end)
+        usage = tenant.usage(args.start, args.end)
         # A Usage set is the entirety of time for this Tenant.
         # It's not time-limited at all.
         # But the
         usage.save()
-        invoice.bill(usage)
+        invoice.bill(usage.vms)
+        invoice.bill(usage.volumes)
+        invoice.bill(usage.objects)
         invoice.close()
 
         for datacenter, sections in usage.iteritems():

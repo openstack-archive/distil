@@ -164,7 +164,7 @@ class Tenant(object):
         return self.tenant[attr]
 
 
-    def invoice(self):
+    def invoice(self, start, end):
 
         """
         Creates a new Invoice.
@@ -180,11 +180,11 @@ class Tenant(object):
             if ":" not in invoice_type:
                 raise AttributeError("Invoice configuration incorrect! %s" % invoice_type)
             module, call = invoice_type.split(":")
-            _package = __import__(module, globals(), locals(), [call])
+            _package = __import__(module, globals(), locals(), [ call ])
+
             funct = getattr(_package, call)
             self.invoice_type = funct
-        # Change from ConfigParser format into a straight dict
-        config = dict(self.conn.config.items("invoice_object"))
+        config = self.conn.config["invoice_object"]
         invoice = self.invoice_type(self, config)
         return invoice
 
@@ -254,39 +254,6 @@ class Tenant(object):
             "objects": storage,
             "volumes": volumes
         }
-        # vm_to_region = {}
-        # for vm in vms:
-        #     id_ = vm["resource_id"]
-
-        #     datacenter = self.conn.host_to_dc( vm["metadata"]["host"] )
-
-        #     if datacenter not in datacenters:
-        #         dict_ = copy(region_tmpl)
-        #         datacenters[datacenter] = dict_
-
-        #     datacenters[datacenter]["vms"].append(vm)
-
-        #     vm_to_region[id_] = datacenter
-
-        # for network in networks:
-        #     vm_id = network["metadata"]["instance_id"]
-        #     datacenter = self.host_to_dc( network["metadata"]["host"] )
-
-        #     datacenters[datacenter]["network"].append(network)
-
-        # for resource in storage:
-        #   pass
-
-        # for image in images:
-        #   pass
-        #   # These can be billed as internal transfer, or block storage. TBD.
-
-        # Now, we have everything arranged by region
-        # As we've not queried for individual meters as yet, this represents
-        # only the breakdown of resources that exist in the various datacenter/region
-        # constructs.
-        # So we can now start to collect stats and construct what we consider to be
-        # usage information for this tenant for this timerange
 
         return Usage(region_tmpl, start, end, self.conn)
 
