@@ -1,0 +1,20 @@
+ADMIN_PASSWORD=openstack
+MYSQL_PASSWORD=openstack
+RABBIT_PASSWORD=openstack
+SERVICE_PASSWORD=openstack
+
+# Enable Quantum
+disable_service n-net
+enable_service q-svc
+enable_service q-agt
+enable_service q-dhcp
+enable_service q-l3
+enable_service q-meta
+enable_service quantum
+
+# Enable Swift
+enable_service swift
+
+# Enable ceilometer!
+
+enable_service ceilometer-acompute,ceilometer-acentral,ceilometer-collector,ceilometer-api

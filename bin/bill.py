@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from artifice import interface
 import datetime
 

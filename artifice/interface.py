@@ -113,7 +113,7 @@ class Artifice(object):
         self.artifice = None
 
         self.ceilometer = ceilometer(
-            self.config["ceilometer"]["host"],
+            self.config["openstack"]["ceilometer_url"],
             token=self.auth.auth_token
         )
         self._tenancy = None
