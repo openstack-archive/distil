@@ -4,6 +4,7 @@
 # Brings in HTTP support
 import requests
 import json
+import urllib
 
 
 from copy import copy
@@ -113,8 +114,9 @@ class Artifice(object):
         self.artifice = None
 
         self.ceilometer = ceilometer(
-            self.config["openstack"]["ceilometer_url"],
-            token=self.auth.auth_token
+            self.config["ceilometer"]["host"],
+            # Uses a lambda as ceilometer apparently wants to use it as a callable?
+            token=lambda: self.auth.auth_token
         )
         self._tenancy = None
 
@@ -137,10 +139,9 @@ class Artifice(object):
         # print "tenant list is %s" % self.auth.tenants.list()
         if not self._tenancy:
             self._tenancy = {}
-            invoice_type = __import__(self.config["invoices"]["plugin"])
             for tenant in self.auth.tenants.list():
                 t = Tenant(tenant, self)
-                self._tenancy[t.name] = t
+                self._tenancy[t["name"]] = t
         return self._tenancy
 
 class Tenant(object):
@@ -156,6 +157,12 @@ class Tenant(object):
         # Invoice type needs to get set from the config, which is
         # part of the Artifice setup above.
 
+    def __getitem__(self, item):
+
+        try:
+            return getattr(self.tenant, item)
+        except:
+            raise KeyError("No such key %s" % item)
 
     def __getattr__(self, attr):
         if attr not in self.tenant:
@@ -205,7 +212,7 @@ class Tenant(object):
                     "value": self.tenant["id"]
                 },
             ]
-            self._resources = self.ceilometer.resources.list(date_fields)
+            self._resources = self.conn.ceilometer.resources.list(date_fields)
         return self._resources
 
     # def usage(self, start, end, section=None):

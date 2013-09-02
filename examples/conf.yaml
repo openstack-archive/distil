@@ -1,0 +1,27 @@
+---
+ceilometer:
+  host: http://localhost:8777/v2
+database:
+  database: artifice
+  host: localhost
+  password: aurynn
+  port: '5433'
+  username: aurynn
+invoice_object:
+  delimiter: ','
+  output_file: '%(tenant)s-%(start)s-%(end)s.csv'
+  output_path: ./
+  row_layout:
+  - location
+  - type
+  - start
+  - end
+  - amount
+  - cost
+main:
+  invoice:object: billing.csv_invoice:Csv
+openstack:
+  authentication_url: http://localhost:35357/v2.0
+  default_tenant: demo
+  username: admin
+  password: openstack

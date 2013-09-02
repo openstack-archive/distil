@@ -84,3 +84,6 @@ class Invoice(object):
 
     def add_section(self, title):
         raise NotImplementedError("Not implemented in base class")
+
+    def total(self):
+        raise NotImplementedError("Not implemented in the base class")

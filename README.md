@@ -15,16 +15,16 @@ The Artifice data store will prevent overlapping bills for a given tenant and re
 ## Requirements:
 
 Artifice requires:
- * Postgresql 9.1 or greater.
- * Python >=2.7.5, <3.0
- * Python modules:
-   * pyaml
-   * mock
-   * no
-   * TODO
- * OpenStack Grizzly or greater
- * Openstack-Keystone
- * Openstack-Ceilometer
+  * Postgresql 9.1 or greater.
+  * Python >=2.7.5, <3.0
+  * Python modules:
+    * pyaml
+    * mock
+    * requests
+    *
+  * OpenStack Grizzly or greater
+  * Openstack-Keystone
+  * Openstack-Ceilometer
 
 ## Installation
 

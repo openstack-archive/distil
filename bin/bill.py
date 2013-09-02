@@ -61,40 +61,42 @@ if __name__ == '__main__':
         invoice.bill(usage.objects)
         invoice.close()
 
-        for datacenter, sections in usage.iteritems():
-            # DC is the name of the DC/region. Or the internal code. W/E.
-            print datacenter
+        print invoice.total()
 
-            for section_name in args.sections:
-                assert section in sections
+        # for datacenter, sections in usage.iteritems():
+        #     # DC is the name of the DC/region. Or the internal code. W/E.
+        #     print datacenter
 
-                # section = sections[ section ]
-                print sections[section_name]
-                for resources in sections[section_name]:
-                    for resource in resources:
-                        print resource
-                        for meter in resource.meters:
-                            usage = meter.usage(start, end)
-                            if usage.has_been_saved():
-                                continue
-                            print usage.volume()
-                            print usage.cost()
-                            usage.save()
-                            # Finally, bill it.
-                            # All of these things need to be converted to the
-                            # publicly-viewable version now.
-                            invoice.bill(datacenter, resource, meter, usage)
+        #     for section_name in args.sections:
+        #         assert section in sections
 
-                # Section is going to be in the set of vm, network, storage, image
-                # # or just all of them.
-                # # It's not going to be an individual meter name.
-                # artifacts = section.usage(args.start, args.end)
-                # for artifact in artifacts:
-                #     if artifact.has_been_saved:
-                #         # Does this artifact exist in the DB?
-                #         continue
-                #     artifact.save() # Save to the Artifact storage
-                #     # Saves to the invoice.
-                #     invoice.bill ( artifact )
-                #     # artifact.bill( invoice.id )
-                # print "%s: %s" % (section.name, artifact.volume)
+        #         # section = sections[ section ]
+        #         print sections[section_name]
+        #         for resources in sections[section_name]:
+        #             for resource in resources:
+        #                 print resource
+        #                 for meter in resource.meters:
+        #                     usage = meter.usage(start, end)
+        #                     if usage.has_been_saved():
+        #                         continue
+        #                     print usage.volume()
+        #                     print usage.cost()
+        #                     usage.save()
+        #                     # Finally, bill it.
+        #                     # All of these things need to be converted to the
+        #                     # publicly-viewable version now.
+        #                     invoice.bill(datacenter, resource, meter, usage)
+
+        #         # Section is going to be in the set of vm, network, storage, image
+        #         # # or just all of them.
+        #         # # It's not going to be an individual meter name.
+        #         # artifacts = section.usage(args.start, args.end)
+        #         # for artifact in artifacts:
+        #         #     if artifact.has_been_saved:
+        #         #         # Does this artifact exist in the DB?
+        #         #         continue
+        #         #     artifact.save() # Save to the Artifact storage
+        #         #     # Saves to the invoice.
+        #         #     invoice.bill ( artifact )
+        #         #     # artifact.bill( invoice.id )
+        #         # print "%s: %s" % (section.name, artifact.volume)

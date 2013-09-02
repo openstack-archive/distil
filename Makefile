@@ -5,9 +5,11 @@ INSTALL_PATH=/opt/stack/artifice
 BILLING_PROGRAM=bill.py
 BINARY_PATH=/usr/local/bin
 
+CONF_DIR=./work/${INSTALL_PATH}/etc/artifice
+
 clean:
 	@rm -rf ./work
-	@rm *.deb
+	@rm -f *.deb
 
 init:
 	@mkdir ./work/
@@ -18,6 +20,8 @@ deb: clean init
 
 	@cp -r ./bin ./artifice ./scripts ./README.md ./INVOICES.md \
 		requirements.txt setup.py ./work/${INSTALL_PATH}
+	@mkdir -p ${CONF_DIR}
+	@cp ./examples/conf.yaml ${CONF_DIR}
 	@ln -s ./work${INSTALL_PATH}/bin/${BILLING_PROGRAM} ./work${BINARY_PATH}/artifice-bill
 	@fpm -s dir -t deb -n ${NAME} -v ${VERSION} \
 	--pre-install=packaging/scripts/pre_install.sh   \

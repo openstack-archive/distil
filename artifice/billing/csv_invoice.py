@@ -51,3 +51,12 @@ class Csv(object):
 
         fh.close()
         self.closed = True
+
+    def total(self):
+        total = 0.0
+        for line in self.lines:
+            # Cheatery
+            # Creates a dict on the fly from the row layout and the line value
+            v = dict([(k, v) for k, v in zip(self.config["row_layout"], line)])
+            total += v["cost"] or 0
+        return total
