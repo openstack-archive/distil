@@ -198,10 +198,10 @@ class TestInterface(unittest.TestCase):
             auth_url=        config["openstack"]["authentication_url"]
         )
         tenants = None
-        try:
-            tenants = artifice.tenants
-        except Exception as e:
-            self.fail(e)
+        # try:
+        tenants = artifice.tenants
+        # except Exception as e:
+        #     self.fail(e)
 
         # self.assertEqual ( len(tenants.vms), 1 )
 

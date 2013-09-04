@@ -1,7 +1,21 @@
 #!/usr/bin/env python
 
-from artifice import interface
+import sys, os
+
+try:
+    from artifice import interface
+except ImportError:
+    loc, fn = os.path.split(__file__)
+    print loc
+    here =  os.path.abspath(os.path.join(loc +"/../"))
+    sys.path.insert(0, here)
+    # # Are we potentially in a virtualenv? Add that in.
+    # if os.path.exists( os.path.join(here, "lib/python2.7" ) ):
+    #     sys.path.insert(1, os.path.join(here, "lib/python2.7"))
+    from artifice import interface
+
 import datetime
+import yaml
 
 date_format = "%Y-%m-%dT%H:%M:%S"
 other_date_format = "%Y-%m-%dT%H:%M:%S.%f"
@@ -27,12 +41,20 @@ if __name__ == '__main__':
     parser.add_argument("--to", dest="end", help="When to end our date range. Defaults to yesterday.",
         type=date_fmt_fnc, default=datetime.datetime.now() - datetime.timedelta(days=1) )
 
-    parser.add_argument("--config", dest="config", help="Config file", default="/etc/niceometer/conf.yaml")
+    parser.add_argument("--config", dest="config", help="Config file", default="/opt/stack/artifice/etc/artifice/conf.yaml")
 
     args = parser.parse_args()
 
+    try:
+        conf = yaml.load(open(args.config).read())
+    except IOError:
+        # Whoops
+        print "couldn't load %s " % args.config
+        sys.exit(1)
+
+
     # Make ourselves a nice interaction object
-    n = niceometer.Niceometer(conf["username"], conf["password"], conf["admin_tenant"])
+    n = interface.Artifice(conf["username"], conf["password"], conf["admin_tenant"])
     tenants = args.tenants
     if not args.tenants:
         # only parse this list of tenants

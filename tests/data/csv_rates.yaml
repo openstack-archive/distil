@@ -1,0 +1,6 @@
+---
+storage.objects.size: 15
+m1.nano: 5
+network.incoming.bytes: 5
+network.outgoing.bytes: 1
+volume.size: 25

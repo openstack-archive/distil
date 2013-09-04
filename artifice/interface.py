@@ -160,9 +160,10 @@ class Tenant(object):
     def __getitem__(self, item):
 
         try:
-            return getattr(self.tenant, item)
+            return self.tenant[item]
         except:
-            raise KeyError("No such key %s" % item)
+            print self.tenant
+            raise KeyError("No such key '%s' in tenant" % item)
 
     def __getattr__(self, attr):
         if attr not in self.tenant:

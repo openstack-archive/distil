@@ -19,8 +19,10 @@ import yaml
 
 date_format = "%Y-%m-%dT%H:%M:%S"
 other_date_format = "%Y-%m-%dT%H:%M:%S.%f"
+date_fmt = "%Y-%m-%d"
 
-date_fmt_fnc = lambda x: datetime.datetime.strptime(date_fmt)
+def date_fmt_fnc(val):
+    return datetime.datetime.strptime(val, date_fmt)
 
 if __name__ == '__main__':
     import argparse
@@ -81,6 +83,9 @@ if __name__ == '__main__':
         usage = tenant.usage(args.start, args.end)
         # A Usage set is the entirety of time for this Tenant.
         # It's not time-limited at all.
-        # But the
+
+        invoice.bill(usage.vms)
+        invoice.bill(usage.volumes)
+        invoice.bill(usage.objects)
 
         print invoice.total()

@@ -1,5 +1,6 @@
 import os
 from csv import writer
+import yaml
 
 class Csv(object):
 
@@ -10,17 +11,45 @@ class Csv(object):
         self.closed = False
         self.start = None
         self.end = None
+        try:
+            fh = open(config["rates_file"])
+            self.costs = yaml.load( fh.read() )
+            fh.close()
+        except IOError:
+            # That's problem
+            print "couldn't load %s" % config["rates_file"]
+            raise
+        except KeyError:
+            # Couldn't find it!
+            print "Missing rates_file in config!"
+            raise
 
     def bill(self, usage):
-        # Usage is an ordered list?
+        # Usage is one of VMs, Storage, or Volumes.
         for element in usage:
             appendee = []
             for key in self.config["row_layout"]:
+                if key == "cost":
+                    # Ignore costs for now.
+                    appendee.append(None)
                 # What do we expect element to be?
                 try:
                     appendee.append( element.get(key) )
                 except AttributeError:
                     appendee.append("")
+
+            try:
+                x = self.config["row_layout"].index("cost")
+                print element.amount
+                print element.type
+                appendee[ x ] = element.amount * self.costs.get( element.type, 0 )
+
+            except ValueError:
+                # Not in this array. Well okay.
+                # We're not storing cost info, apparently.
+                raise RuntimeError("No costing information in CSV layout.")
+
+            print appendee
             self.add_line(appendee)
 
     def add_line(self, line):
@@ -58,5 +87,8 @@ class Csv(object):
             # Cheatery
             # Creates a dict on the fly from the row layout and the line value
             v = dict([(k, v) for k, v in zip(self.config["row_layout"], line)])
-            total += v["cost"] or 0
+            try:
+                total += float(v["cost"])
+            except (TypeError, ValueError):
+                total += 0
         return total

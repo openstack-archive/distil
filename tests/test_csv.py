@@ -5,14 +5,22 @@ import os
 import glob
 import mock
 
-import csv
+import csv, yaml
+
+try:
+    fn = os.path.abspath(__file__)
+    path, f = os.path.split(fn)
+except NameError:
+    path = os.getcwd()
+
 
 
 test_interface.config["invoice_object"] = {
     "output_path": "./",
     "output_file": "%(tenant)s-%(start)s-%(end)s.csv",
     "delimiter": ",",
-    "row_layout": ["location", "type", "start", "end", "amount", "cost"]
+    "row_layout": ["location", "type", "start", "end", "amount", "cost"],
+    "rates_file": os.path.join( path, "data/csv_rates.yaml")
 }
 test_interface.config["main"]["invoice:object"] = "billing.csv_invoice:Csv"
 
@@ -66,5 +74,11 @@ class TestInvoice(test_interface.TestInterface):
         rows = [row for row in r] # slurp
         fh.close()
 
+        # We need to grab the costing info here
+
+        fh = open(test_interface.config["invoice_object"]["rates_file"])
+        y = yaml.load(fh.read())
+        fh.close()
+
         for uvm, cvm in zip(self.usage.vms, rows):
-            self.assertEqual( uvm.amount, cvm[-2] )
+            self.assertEqual( uvm.amount * y.get(uvm.type, 0) , float(cvm[-2]) )

@@ -64,7 +64,9 @@ class BaseModelConstruct(object):
 
 
 class VM(BaseModelConstruct):
-
+    # The only relevant meters of interest are the type of the interest
+    # and the amount of network we care about.
+    # Oh, and floating IPs.
     relevant_meters = ["instance:<type>", "network.incoming.bytes", "network.outgoing.bytes"]
 
     def _fetch_meter_name(self, name):
@@ -74,7 +76,7 @@ class VM(BaseModelConstruct):
 
     @property
     def amount(self):
-        return self.size
+        return 1
 
     @property
     def type(self):
@@ -110,7 +112,6 @@ class VM(BaseModelConstruct):
     def name(self):
         return self._raw["metadata"]["display_name"]
 
-
 class Object(BaseModelConstruct):
 
     relevant_meters = ["storage.objects.size"]
@@ -145,3 +146,5 @@ class Volume(BaseModelConstruct):
         # Size of the thing over time.
         return self._raw.meter("volume.size", self.start, self.end).volume()
 
+class Network(BaseModelConstruct):
+    relevant_meters = ["ip.floating"]

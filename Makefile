@@ -22,6 +22,7 @@ deb: clean init
 		requirements.txt setup.py ./work/${INSTALL_PATH}
 	@mkdir -p ${CONF_DIR}
 	@cp ./examples/conf.yaml ${CONF_DIR}
+	@cp ./examples/csv_rates.yaml ${CONF_DIR}
 	@ln -s ./work${INSTALL_PATH}/bin/${BILLING_PROGRAM} ./work${BINARY_PATH}/artifice-bill
 	@fpm -s dir -t deb -n ${NAME} -v ${VERSION} \
 	--pre-install=packaging/scripts/pre_install.sh   \
