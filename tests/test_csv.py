@@ -81,4 +81,4 @@ class TestInvoice(test_interface.TestInterface):
         fh.close()
 
         for uvm, cvm in zip(self.usage.vms, rows):
-            self.assertEqual( uvm.amount * y.get(uvm.type, 0) , float(cvm[-2]) )
+            self.assertEqual( uvm.amount.volume() * y.get(uvm.type, 0) , float(cvm[-2]) )

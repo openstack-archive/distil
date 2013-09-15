@@ -40,9 +40,7 @@ class Csv(object):
 
             try:
                 x = self.config["row_layout"].index("cost")
-                print element.amount
-                print element.type
-                appendee[ x ] = element.amount * self.costs.get( element.type, 0 )
+                appendee[ x ] = element.amount.volume() * self.costs.get( element.type, 0 )
 
             except ValueError:
                 # Not in this array. Well okay.

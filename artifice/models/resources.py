@@ -76,7 +76,11 @@ class VM(BaseModelConstruct):
 
     @property
     def amount(self):
-        return 1
+        class Amount(object):
+            def volume(self):
+                return 1.0
+
+        return Amount()
 
     @property
     def type(self):
@@ -116,18 +120,12 @@ class Object(BaseModelConstruct):
 
     relevant_meters = ["storage.objects.size"]
 
-    def __init__(self, raw, start, end):
-        self._obj = raw
-        self.start, self.end = start, end
+    type = "object" # object storage
 
     @property
     def size(self):
         # How much use this had.
-        meter = self._raw.meter("storage.objects.size")
-        usage = meter.usage(self.start, self.end)
-
-        return usage.volume()
-
+        return self._raw.meter("storage.objects.size", self.start, self.end).volume()
         # Size is a gauge measured every 10 minutes.
         # So that needs to be compressed to 60-minute intervals
 

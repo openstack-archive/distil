@@ -9,7 +9,7 @@ import copy
 from sqlalchemy import create_engine
 from artifice.models import Session
 from artifice.models import usage, tenants
-from artifice.models.resources import Resource
+from artifice.models.resources import Resource, VM
 
 from datetime import datetime, timedelta
 
@@ -30,7 +30,9 @@ This will require an active Ceilometer with data in it, or,
 #     # from artifice.models import usage
 
 config = {
-    "main": {},
+    "main": {
+        "host_mapper": None
+    },
     "database": {
         "username": "aurynn",
         "password": "aurynn",
@@ -105,8 +107,44 @@ networks = []
 # res = {"vms": [], "network": [], 'storage': [], "ports":[]}
 res = {"vms": [], "volumes": [], 'objects': [], "network": []}
 
+class InternalResource(object):
+
+    def __init__(self, resource):
+        self.resource = resource
+    # def __getitem__(self, item):
+    #     return self.resource[item]
+
+    def __getattr__(self, attr):
+        return self.resource[attr]
+
+    def __str__(self):
+        return str(self.resource)
+
+    @property
+    def links(self):
+        return [MiniMeter(i) for i in self.resource['links']]
+
+class MiniMeter(object):
+
+    def __init__(self, meter):
+        self._ = meter
+
+    @property
+    def link(self):
+        return self._["href"]
+
+    @property
+    def rel(self):
+        return self._["rel"]
+
+    def __getitem__(self, item):
+        return self._[item]
+
+
+resources = [InternalResource(r) for r in resources]
+
 for resource in resources:
-    rels = [link["rel"] for link in resource["links"] if link["rel"] != 'self' ]
+    rels = [link.rel for link in resource.links if link.rel != 'self' ]
     if "image" in rels:
         continue
     elif "storage.objects" in rels:
@@ -158,6 +196,7 @@ class TestInterface(unittest.TestCase):
         self.contents = None
         self.resources = []
         self.artifice = None
+        self.usage = None
 
 
     @mock.patch("artifice.models.Session")
@@ -178,7 +217,7 @@ class TestInterface(unittest.TestCase):
             # Returns meter data from our data up above
             global mappings
             # print self.link
-            data = mappings[self.link["href"]]
+            data = mappings[self.link.link]
             return data
 
         interface.get_meter = get_meter
@@ -207,15 +246,24 @@ class TestInterface(unittest.TestCase):
 
         self.assertEqual( len(tenants), 1 )
         k = tenants.keys()[0]
-        t = tenants[k]
+        t = tenants[k] # First tenant
         self.assertTrue( isinstance( t, interface.Tenant ) )
 
         contents = None
 
         # t.resources = resources_replacement(self)
-        t.resources = mock.Mock()
+        # t.resources = mock.Mock(spec=interface.Resource)
+        t.resources = mock.create_autospec(interface.Resource, spec_set=True)
         t.resources.return_value = self.resources
 
+        try:
+            hdc = getattr(artifice, "host_to_dc")
+            self.assertTrue( callable(hdc) )
+        except AttributeError:
+            self.fail("Artifice object lacks host_to_dc method ")
+
+        # Replace the host_to_dc method with a mock that does what we need
+        # it to do, for the purposes of testing.
         artifice.host_to_dc = mock.Mock()
 
         artifice.host_to_dc.return_value = DATACENTRE
@@ -242,6 +290,7 @@ class TestInterface(unittest.TestCase):
         # self.assertEqual( len(usage.objects), 0)
         # self.assertEqual( len(usage.volumes), 0)
 
+        # This is a fully qualified Usage object.
         self.usage = usage
 
     # @mock.patch("artifice.models.Session")
@@ -304,6 +353,8 @@ class TestInterface(unittest.TestCase):
         """
 
         self.add_element("vms")
+        self.usage._vms = []
+        self.assertTrue(len(self.usage.vms) == 2)
 
     def test_add_storage(self):
 
@@ -343,9 +394,9 @@ class TestInterface(unittest.TestCase):
             id_ = vm["project_id"]
 
             for rvm in self.resources:
-                if not rvm["project_id"] == id_:
+                if not getattr(rvm, "project_id") == id_:
                     continue
-                for meter in rvm["links"]:
+                for meter in getattr(rvm, "links"):
                     if not meter["rel"] in volume:
                         continue
                     data = mappings[ meter["href"] ]
@@ -365,3 +416,26 @@ class TestInterface(unittest.TestCase):
 
     def test_use_a_bunch_of_data(self):
         pass
+
+
+    def test_usage_vms(self):
+        """
+        Tests the usage.vms by using a non-mock resource object
+
+        """
+
+        self.test_get_usage()
+
+        u = self.usage
+        u.contents = {"vms":[]}
+
+        r = interface.Resource(self.resources[0], self.artifice)
+        u.contents["vms"].append(r)
+
+        # Wipe it
+        # self.assertTrue( bool(getattr(u, '_vms')) )
+        self.assertEqual( u._vms, [] )
+
+        u._vms = []
+
+        self.assertEqual( len(u.vms), 1 )

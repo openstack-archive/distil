@@ -42,6 +42,9 @@ date_format = "%Y-%m-%dT%H:%M:%S"
 other_date_format = "%Y-%m-%dT%H:%M:%S.%f"
 
 def get_meter(meter, start, end, auth):
+    # Meter is a href; in this case, it has a set of fields with it already.
+    # print meter.link
+    # print dir(meter)
     date_fields = [{
         "field": "timestamp",
         "op": "ge",
@@ -53,15 +56,22 @@ def get_meter(meter, start, end, auth):
         "value": end.strftime(date_format)
     }
     ]
-    # I dislike directly calling requests here.
+    fields = []
+    for field in date_fields:
+        fields.append( ("q.field", field["field"]) )
+        fields.append( ("q.op", field["op"]) )
+        fields.append( ("q.value", field["value"]))
+
+    # Combine.
+    url = "&".join((meter.link, urllib.urlencode(fields) ))
+
     r = requests.get(
         meter.link,
         headers={
             "X-Auth-Token": auth,
-            "Content-Type":"application/json"},
-        data=json.dumps({"q": date_fields})
+            "Content-Type":"application/json"}
     )
-    return json.loads(r)
+    return json.loads(r.text)
 
 
 class NotFound(BaseException): pass
@@ -120,6 +130,16 @@ class Artifice(object):
         )
         self._tenancy = None
 
+    def host_to_dc(self, host):
+        """
+        :param host: The name to use.
+        :type host: str.
+        :returns:  str -- The datacenter corresponding to this host.
+        """
+        # :raises: AttributeError, KeyError
+        # How does this get implemented ? Should there be a module injection?
+        return host # For the moment, passthrough
+        # TODO: FIXME.
 
     def tenant(self, name):
         """
@@ -160,10 +180,12 @@ class Tenant(object):
     def __getitem__(self, item):
 
         try:
-            return self.tenant[item]
-        except:
-            print self.tenant
-            raise KeyError("No such key '%s' in tenant" % item)
+            return getattr(self.tenant, item)
+        except AttributeError:
+            try:
+                print self.tenant[item]
+            except KeyError:
+                raise KeyError("No such key '%s' in tenant" % item)
 
     def __getattr__(self, attr):
         if attr not in self.tenant:
@@ -213,13 +235,15 @@ class Tenant(object):
                     "value": self.tenant["id"]
                 },
             ]
+            # Sets up our resources as Ceilometer objects.
+            # That's cool, I think.
             self._resources = self.conn.ceilometer.resources.list(date_fields)
         return self._resources
 
     # def usage(self, start, end, section=None):
     def usage(self, start, end):
         """
-        Contents is the meat of Artifice, returning a dict of location to
+        Usage is the meat of Artifice, returning a dict of location to
         sub-information
         """
         # Returns a usage dict, based on regions.
@@ -239,20 +263,18 @@ class Tenant(object):
         # Object storage is mapped by project_id
 
         for resource in self.resources(start, end):
-            rels = [link["rel"] for link in resource["links"] if link["rel"] != 'self' ]
+            # print dir(resource)
+            rels = [link["rel"] for link in resource.links if link["rel"] != 'self' ]
             if "storage.objects" in rels:
                 # Unknown how this data layout happens yet.
-                resource["_type"] = "object"
                 storage.append(Resource(resource, self.conn))
                 pass
             elif "network" in rels:
                 # Have we seen the VM that owns this yet?
-                resource["_type"] = "network"
                 networks.append(Resource(resource , self.conn))
             elif "volumne" in rels:
                 volumes.append( Resource(resource, self.conn) )
             elif 'instance' in rels:
-                resource["_type"] = "vm"
                 vms.append(Resource(resource, self.conn ))
 
         datacenters = {}
@@ -293,6 +315,8 @@ class Usage(object):
             vms = []
             for vm in self.contents["vms"]:
                 VM = resources.VM(vm, self.start, self.end)
+                md = vm["metadata"]
+                host = md["host"]
                 VM.location = self.conn.host_to_dc( vm["metadata"]["host"] )
                 vms.append(VM)
             self._vms = vms
@@ -354,18 +378,25 @@ class Resource(object):
         self.conn = conn
         self._meters = {}
 
+    # def __getitem__(self, item):
+    #     return self.resource
+
     def meter(self, name, start, end):
         pass # Return a named meter
-        for meter in self.resource["links"]:
+        for meter in self.resource.links:
             if meter["rel"] == name:
-                m = Meter(self, meter, self.conn, start, end)
+                m = Meter(self, meter["href"], self.conn, start, end)
                 self._meters[name] = m
                 return m
         raise AttributeError("no such meter %s" % name)
 
 
     def __getitem__(self, name):
-        return self.resource[name]
+        print name
+        # print self.resource
+        # print self.resource[name]
+        return getattr(self.resource, name)
+        # return self.resource.name
 
     @property
     def meters(self):
@@ -407,6 +438,8 @@ class Meter(object):
         """
         measurements = get_meter(self, start, end, self.conn.auth.auth_token)
         # return measurements
+
+        # print measurements
 
         self.measurements = defaultdict(list)
         self.type = set([a["counter_type"] for a in measurements])
