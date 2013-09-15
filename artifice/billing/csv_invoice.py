@@ -47,7 +47,7 @@ class Csv(object):
                 # We're not storing cost info, apparently.
                 raise RuntimeError("No costing information in CSV layout.")
 
-            print appendee
+            # print appendee
             self.add_line(appendee)
 
     def add_line(self, line):

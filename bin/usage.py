@@ -88,4 +88,4 @@ if __name__ == '__main__':
         invoice.bill(usage.volumes)
         invoice.bill(usage.objects)
 
-        print invoice.total()
+        print "Total invoice value: %s" % invoice.total()

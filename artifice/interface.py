@@ -183,7 +183,7 @@ class Tenant(object):
             return getattr(self.tenant, item)
         except AttributeError:
             try:
-                print self.tenant[item]
+                return self.tenant[item]
             except KeyError:
                 raise KeyError("No such key '%s' in tenant" % item)
 
@@ -392,7 +392,7 @@ class Resource(object):
 
 
     def __getitem__(self, name):
-        print name
+        # print name
         # print self.resource
         # print self.resource[name]
         return getattr(self.resource, name)
