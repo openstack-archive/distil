@@ -18,7 +18,9 @@ invoice_object:
   - end
   - amount
   - cost
-  rates_file: /opt/stack/artifice/etc/artifice/csv_rates.yaml
+  rates: 
+    file: /opt/stack/artifice/etc/artifice/csv_rates.csv
+    names: /opt/stack/artifice/etc/artifice/csv_names.csv
 main:
   invoice:object: billing.csv_invoice:Csv
 openstack:

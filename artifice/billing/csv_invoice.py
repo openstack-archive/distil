@@ -1,8 +1,9 @@
 import os
 from csv import writer
+from artifice import invoice
 import yaml
 
-class Csv(object):
+class Csv(invoice.Invoice):
 
     def __init__(self, tenant, config):
         self.config = config
@@ -11,8 +12,10 @@ class Csv(object):
         self.closed = False
         self.start = None
         self.end = None
+        # Should the rates information be part of the CSV code,
+        # or part of the full run?
         try:
-            fh = open(config["rates_file"])
+            fh = open(config["rates"][ "file" ])
             self.costs = yaml.load( fh.read() )
             fh.close()
         except IOError:
@@ -32,7 +35,13 @@ class Csv(object):
                 if key == "cost":
                     # Ignore costs for now.
                     appendee.append(None)
+                    continue
                 # What do we expect element to be?
+                if key == "type":
+                    # Fetch the 'pretty' name from the mappings, if any
+                    # The default is that this returns the internal name
+                    appendee.append(self.pretty_name(element.get(key)))
+                    continue
                 try:
                     appendee.append( element.get(key) )
                 except AttributeError:
@@ -40,7 +49,8 @@ class Csv(object):
 
             try:
                 x = self.config["row_layout"].index("cost")
-                appendee[ x ] = element.amount.volume() * self.costs.get( element.type, 0 )
+                appendee[ x ] = element.amount.volume() * \
+                        self.costs.get( element.type, 0 )
 
             except ValueError:
                 # Not in this array. Well okay.

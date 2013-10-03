@@ -60,6 +60,14 @@ class Invoice(object):
 
     def close(self):
         raise NotImplementedError("Not implemented in base class")
+    
+    def pretty_name(self, name):
+        return name
+
+    def rate(self, name):
+        """Returns the rate for a given internal name
+        Expected"""
+        return 0
 
     def bill(self, usage):
 
@@ -87,3 +95,60 @@ class Invoice(object):
 
     def total(self):
         raise NotImplementedError("Not implemented in the base class")
+
+import csv
+class RatesFile(object):
+    # Mixin
+    # Adds a rates file loader, expecting various things from the
+    # configuration
+
+    def rate(self, name):
+        if not self.__rates:
+            self.__rates = {}
+            try:
+                fh = open(config["rates"][ "file" ])
+                reader = csv.reader(fh) # Makes no opinions on the file structure
+                for row in reader:
+                    # The default layout is expected to be:
+                    # location | rate name | rate measurement | rate value
+                    self.__rates[row[1]] = {
+                            "cost": row[3],
+                            "region": row[0],
+                            "measures": row[2]
+                    }
+                fh.close()
+            except KeyError:
+                # couldn't actually find the useful info for rateS?
+                print "Couldn't find rates info configuration option!"
+                raise
+            except IOError:
+                print "Couldn't open the file!"
+                raise
+        return self.__rates[name]["cost"] # ignore the regions-ness for now
+
+class NamesFile(object):
+
+    # Mixin
+    # Adds a name prettifier
+    #
+    def pretty_name(self, name):
+        if not self.__names:
+            self.__names = {}
+            try:
+                fh = open(config["rates"][ "file" ])
+                reader = csv.reader(fh) # Makes no opinions on the file structure
+                for row in reader:
+                    # The default layout is expected to be:
+                    # internal name | external name
+                    self.__names[row[0]] = row[1]
+                    
+                fh.close()
+            except KeyError:
+                # couldn't actually find the useful info for rateS?
+                print "Couldn't find rates info configuration option!"
+                raise
+            except IOError:
+                print "Couldn't open the file!"
+                raise
+        return self.__names[name]
+

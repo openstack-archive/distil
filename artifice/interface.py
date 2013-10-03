@@ -39,6 +39,7 @@ from .models import resources, tenants, usage
 # Most of the time we use date_format
 date_format = "%Y-%m-%dT%H:%M:%S"
 # Sometimes things also have milliseconds, so we look for that too.
+# Because why not be annoying in all the ways?
 other_date_format = "%Y-%m-%dT%H:%M:%S.%f"
 
 def get_meter(meter, start, end, auth):
@@ -130,6 +131,7 @@ class Artifice(object):
         )
         self._tenancy = None
 
+        
     def host_to_dc(self, host):
         """
         :param host: The name to use.
@@ -143,7 +145,8 @@ class Artifice(object):
 
     def tenant(self, name):
         """
-        Returns a Tenant object describing the specified Tenant by name, or raises a NotFound error.
+        Returns a Tenant object describing the specified Tenant by
+        name, or raises a NotFound error.
         """
         # Returns a Tenant object for the given name.
         # Uses Keystone API to perform a direct name lookup,
