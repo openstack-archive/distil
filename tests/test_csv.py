@@ -116,8 +116,8 @@ class TestInvoice(test_interface.TestInterface):
         for uvm, cvm in zip(self.usage.vms, rows):
             print cvm
             self.assertEqual(
-                uvm.amount.volume() * r.rate(r.pretty_name(uvm.type)),
-                Decimal( cvm[-1] )
+                uvm.amount.volume(),  #* r.rate(r.pretty_name(uvm.type)),
+                Decimal( cvm[-2] )
             )
 
 
@@ -142,12 +142,48 @@ class TestInvoice(test_interface.TestInterface):
 
     def test_bad_names_file(self):
         """test raising an exception with a malformed names file"""
-        pass
+        test_interface.config["invoice_object"]["rates"]["name"] = \
+            bad_names_file
+        self.assertRaises(IndexError, self.test_creates_csv )
 
     def test_csv_rates_match(self):
         """test rates in output CSV match computed rates"""
-        pass
 
-    def test_names_match(self):
-        """test names in output CSV match pretty names"""
-        pass
+        i = self.test_creates_csv()
+        fh = open(i.filename)
+
+        r = csv.reader(fh)
+        rows = [row for row in r] # slurp
+        fh.close()
+
+        # We need to grab the costing info here
+
+        # fh = open(test_interface.config["invoice_object"]["rates"]["file"])
+        # rates = {}
+        # reader = csv.reader(fh, delimiter = "|")
+        # This is not ideal.
+        class Reader(invoice.RatesFileMixin, invoice.NamesFileMixin):
+            def __init__(self):
+                self.config = {
+                    "rates": {
+                        "file": test_interface.config["invoice_object"]["rates"]["file"],
+                        "name": test_interface.config["invoice_object"]["rates"]["name"]
+                    }
+                }
+        # for row in reader:
+        #     # The default layout is expected to be:
+        #     # location | rate name | rate measurement | rate value
+        #     rates[row[1].strip()] = {
+        #         "cost": row[3].strip(),
+        #         "region": row[0].strip(),
+        #         "measures": row[2].strip()
+        #     }
+        # fh.close()
+        r = Reader()
+
+        for uvm, cvm in zip(self.usage.vms, rows):
+            print cvm
+            self.assertEqual(
+                uvm.amount.volume() * r.rate(r.pretty_name(uvm.type)),
+                Decimal( cvm[-1] )
+            )

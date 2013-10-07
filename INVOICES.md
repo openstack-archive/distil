@@ -81,3 +81,66 @@ add the line:
 
 similar to *paste*-style configuration items.
 
+
+## Rates
+
+Rate information is currently consumed from CSV files, dictated by the
+configuration file in the [invoice_object] section.
+
+This rates information applies solely (at present) to the CSV output module
+for Artifice.
+
+### Rate and Names Mapping files
+
+#### Name mapping file
+
+First, names must be mapped from the internal Ceilometer naming to a
+user-friendly format.
+This allows for a much simpler user interface, allowing for people to easily
+determine what services they are taking advantage of on the Catalyst cloud
+without needing to interpret internal names.
+
+The naming file format is a |-delimited CSV file, consisting of:
+
+    ceilometer name | user-facing name
+
+An example file would be:
+
+    m1.nano                        | VM instance, size nano
+    network.incoming.bytes         | Incoming Network Usage
+    network.outgoing.bytes         | Outgoing Network Usage
+    storage.objects.size           | Object Storage Usage
+    volume.size                    | Disk Volume, Size
+
+Excess whitespace will be trimmed.
+
+#### Rates Mapping File
+
+The other half of the Rates system is the Rates mapping file.
+
+This mapping describes, for a given region, the price multiplier per
+unit per time that should be applied.
+
+The default time range is a 10 minute time slice.
+
+The rates mapping file is in the structure of:
+
+    region | VM instance, size nano  | duration       | 100
+    region | Incoming Network Usage  | bytes          | 120
+    region | Outgoing Network Usage  | bytes          | 240
+    region | Object Storage Usage    | bytes per hour | 300
+    region | Disk Volume, Size       | bytes per hour | 320
+
+The first column is the name of the region this rate should be used for.
+This is **NOT CURRENTLY IMPLEMENTED.**
+
+The second column is the name of the item being rated.
+This is always the prettified name from the Names mapping file.
+
+The third column is what is being measured, per time slice.
+
+The fourth column is an integer or decimal value denoting the cost per time
+slice.
+
+The time slice width will be set in the config file. This is not currently
+implemented.

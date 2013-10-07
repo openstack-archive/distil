@@ -156,6 +156,8 @@ class NamesFileMixin(object):
                     # internal name | external name
                     self.__names[ row[0].strip() ] = row[1].strip()
 
+                if not self.__names:
+                    raise IndexError("Malformed names CSV")
                 fh.close()
             except KeyError:
                 # couldn't actually find the useful info for rateS?

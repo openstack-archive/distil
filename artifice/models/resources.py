@@ -88,7 +88,7 @@ class VM(BaseModelConstruct):
 
     @property
     def type(self):
-        return self._raw["metadata"]["instance_type"]
+        return self._raw["metadata"]["nistance_type"]
 
     @property
     def size(self):
