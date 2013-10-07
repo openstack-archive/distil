@@ -10,6 +10,8 @@ an Invoice interface consists of:
 
 """
 
+from decimal import *
+
 class IntegrityViolation(BaseException): pass
 
 class BillingOverlap(BaseException): pass
@@ -60,7 +62,7 @@ class Invoice(object):
 
     def close(self):
         raise NotImplementedError("Not implemented in base class")
-    
+
     def pretty_name(self, name):
         return name
 
@@ -97,51 +99,63 @@ class Invoice(object):
         raise NotImplementedError("Not implemented in the base class")
 
 import csv
-class RatesFile(object):
+class RatesFileMixin(object):
     # Mixin
     # Adds a rates file loader, expecting various things from the
     # configuration
 
     def rate(self, name):
+        try:
+            self.__rates
+        except AttributeError:
+            self.__rates = {}
         if not self.__rates:
             self.__rates = {}
             try:
-                fh = open(config["rates"][ "file" ])
-                reader = csv.reader(fh) # Makes no opinions on the file structure
+                fh = open(self.config["rates"][ "file" ])
+                reader = csv.reader(fh, delimiter = "|") # Makes no opinions on the file structure
                 for row in reader:
                     # The default layout is expected to be:
                     # location | rate name | rate measurement | rate value
-                    self.__rates[row[1]] = {
-                            "cost": row[3],
-                            "region": row[0],
-                            "measures": row[2]
+                    self.__rates[row[1].strip()] = {
+                            "cost": Decimal(row[3].strip()),
+                            "region": row[0].strip(),
+                            "measures": row[2].strip()
                     }
+                if not self.__rates:
+                    raise IndexError("malformed rates CSV!")
                 fh.close()
             except KeyError:
                 # couldn't actually find the useful info for rateS?
                 print "Couldn't find rates info configuration option!"
                 raise
+            except IndexError:
+                raise IndexError("Malformed rates CSV!")
             except IOError:
                 print "Couldn't open the file!"
                 raise
         return self.__rates[name]["cost"] # ignore the regions-ness for now
 
-class NamesFile(object):
+class NamesFileMixin(object):
 
     # Mixin
     # Adds a name prettifier
     #
     def pretty_name(self, name):
+        try:
+            self.__names
+        except AttributeError:
+            self.__names = {}
         if not self.__names:
             self.__names = {}
             try:
-                fh = open(config["rates"][ "file" ])
-                reader = csv.reader(fh) # Makes no opinions on the file structure
+                fh = open(self.config["rates"][ "name" ])
+                reader = csv.reader(fh, delimiter="|") # Makes no opinions on the file structure
                 for row in reader:
                     # The default layout is expected to be:
                     # internal name | external name
-                    self.__names[row[0]] = row[1]
-                    
+                    self.__names[ row[0].strip() ] = row[1].strip()
+
                 fh.close()
             except KeyError:
                 # couldn't actually find the useful info for rateS?

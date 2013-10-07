@@ -1,9 +1,11 @@
 import unittest
 from . import test_interface
 from artifice.interface import Artifice
+from artifice import invoice
 import os
 import glob
 import mock
+from decimal import *
 
 import csv, yaml
 
@@ -14,13 +16,21 @@ except NameError:
     path = os.getcwd()
 
 
+bad_rates_file = os.path.join( path, "data/csv_bad_rates.csv")
+bad_names_file = os.path.join( path, "data/csv_bad_names.csv")
+
+good_names_file = os.path.join( path, "data/csv_names.csv")
+good_rates_file = os.path.join( path, "data/csv_rates.csv")
 
 test_interface.config["invoice_object"] = {
     "output_path": "./",
     "output_file": "%(tenant)s-%(start)s-%(end)s.csv",
     "delimiter": ",",
     "row_layout": ["location", "type", "start", "end", "amount", "cost"],
-    "rates_file": os.path.join( path, "data/csv_rates.yaml")
+    "rates": {
+        "file": good_rates_file,
+        "name": good_names_file,
+    }
 }
 test_interface.config["main"]["invoice:object"] = "billing.csv_invoice:Csv"
 
@@ -33,6 +43,10 @@ class TestInvoice(test_interface.TestInterface):
         super(TestInvoice, self).tearDown()
 
         [os.unlink(a) for a in glob.glob("./*.csv")]
+
+        # Reset the file paths
+        test_interface.config["invoice_object"]["rates"]["file"] = good_rates_file
+        test_interface.config["invoice_object"]["rates"]["name"] = good_names_file
 
     @mock.patch("artifice.models.Session")
     @mock.patch("artifice.interface.keystone")
@@ -76,9 +90,64 @@ class TestInvoice(test_interface.TestInterface):
 
         # We need to grab the costing info here
 
-        fh = open(test_interface.config["invoice_object"]["rates_file"])
-        y = yaml.load(fh.read())
-        fh.close()
+        # fh = open(test_interface.config["invoice_object"]["rates"]["file"])
+        # rates = {}
+        # reader = csv.reader(fh, delimiter = "|")
+        # This is not ideal.
+        class Reader(invoice.RatesFileMixin, invoice.NamesFileMixin):
+            def __init__(self):
+                self.config = {
+                    "rates": {
+                        "file": test_interface.config["invoice_object"]["rates"]["file"],
+                        "name": test_interface.config["invoice_object"]["rates"]["name"]
+                    }
+                }
+        # for row in reader:
+        #     # The default layout is expected to be:
+        #     # location | rate name | rate measurement | rate value
+        #     rates[row[1].strip()] = {
+        #         "cost": row[3].strip(),
+        #         "region": row[0].strip(),
+        #         "measures": row[2].strip()
+        #     }
+        # fh.close()
+        r = Reader()
 
         for uvm, cvm in zip(self.usage.vms, rows):
-            self.assertEqual( uvm.amount.volume() * y.get(uvm.type, 0) , float(cvm[-2]) )
+            print cvm
+            self.assertEqual(
+                uvm.amount.volume() * r.rate(r.pretty_name(uvm.type)),
+                Decimal( cvm[-1] )
+            )
+
+
+    def test_bad_rates_file(self):
+        """test raising an exception with a malformed rates file"""
+        test_interface.config["invoice_object"]["rates"]["file"] = \
+            bad_rates_file
+        self.assertRaises(IndexError, self.test_creates_csv )
+
+    def test_missing_rates_file(self):
+        """test raising an exception with a missing rates file"""
+        test_interface.config["invoice_object"]["rates"]["file"] = \
+            "Missing_rates_file"
+        self.assertRaises(IOError, self.test_creates_csv )
+
+    def test_missing_names_file(self):
+        """test raising an exception with a missing names file"""
+        """test raising an exception with a missing rates file"""
+        test_interface.config["invoice_object"]["rates"]["name"] = \
+            "Missing_rates_file"
+        self.assertRaises(IOError, self.test_creates_csv )
+
+    def test_bad_names_file(self):
+        """test raising an exception with a malformed names file"""
+        pass
+
+    def test_csv_rates_match(self):
+        """test rates in output CSV match computed rates"""
+        pass
+
+    def test_names_match(self):
+        """test names in output CSV match pretty names"""
+        pass

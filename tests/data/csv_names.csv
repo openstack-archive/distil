@@ -1,0 +1,5 @@
+m1.nano               | VM instance, size nano
+network.incoming.bytes         | Incoming Network Usage
+network.outgoing.bytes         | Outgoing Network Usage
+storage.objects.size           | Object Storage Usage
+volume.size                    | Disk Volume, Size

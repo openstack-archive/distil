@@ -2,6 +2,7 @@ from . import Base
 from sqlalchemy import Column, String, types, schema, ForeignKey
 from sqlalchemy.orm import relationship, backref
 # from .tenants import Tenant
+from decimal import *
 
 class Resource(Base):
 
@@ -78,8 +79,11 @@ class VM(BaseModelConstruct):
     def amount(self):
         class Amount(object):
             def volume(self):
-                return 1.0
-
+                return Decimal(1.0)
+            def __str__(self):
+                return "1.0"
+            def __repr__(self):
+                return str(self)
         return Amount()
 
     @property

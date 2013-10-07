@@ -2,8 +2,9 @@ import os
 from csv import writer
 from artifice import invoice
 import yaml
+from decimal import *
 
-class Csv(invoice.Invoice):
+class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
 
     def __init__(self, tenant, config):
         self.config = config
@@ -12,20 +13,19 @@ class Csv(invoice.Invoice):
         self.closed = False
         self.start = None
         self.end = None
-        # Should the rates information be part of the CSV code,
-        # or part of the full run?
-        try:
-            fh = open(config["rates"][ "file" ])
-            self.costs = yaml.load( fh.read() )
-            fh.close()
-        except IOError:
-            # That's problem
-            print "couldn't load %s" % config["rates_file"]
-            raise
-        except KeyError:
-            # Couldn't find it!
-            print "Missing rates_file in config!"
-            raise
+        # This has been moved to the mixin
+        # try:
+        #     fh = open(config["rates"][ "file" ])
+        #     self.costs = yaml.load( fh.read() )
+        #     fh.close()
+        # except IOError:
+        #     # That's problem
+        #     print "couldn't load %s" % config["rates_file"]
+        #     raise
+        # except KeyError:
+        #     # Couldn't find it!
+        #     print "Missing rates_file in config!"
+        #     raise
 
     def bill(self, usage):
         # Usage is one of VMs, Storage, or Volumes.
@@ -40,17 +40,18 @@ class Csv(invoice.Invoice):
                 if key == "type":
                     # Fetch the 'pretty' name from the mappings, if any
                     # The default is that this returns the internal name
-                    appendee.append(self.pretty_name(element.get(key)))
+                    appendee.append(self.pretty_name( element.get( key ) ) )
                     continue
                 try:
                     appendee.append( element.get(key) )
                 except AttributeError:
                     appendee.append("")
-
             try:
                 x = self.config["row_layout"].index("cost")
                 appendee[ x ] = element.amount.volume() * \
-                        self.costs.get( element.type, 0 )
+                        self.rate( self.pretty_name(element.type) )
+                print self.rate(self.pretty_name(element.type))
+                print appendee
 
             except ValueError:
                 # Not in this array. Well okay.
@@ -90,13 +91,13 @@ class Csv(invoice.Invoice):
         self.closed = True
 
     def total(self):
-        total = 0.0
+        total = Decimal(0.0)
         for line in self.lines:
             # Cheatery
             # Creates a dict on the fly from the row layout and the line value
             v = dict([(k, v) for k, v in zip(self.config["row_layout"], line)])
             try:
-                total += float(v["cost"])
+                total += Decimal(v["cost"])
             except (TypeError, ValueError):
                 total += 0
         return total
