@@ -23,13 +23,12 @@ deb: clean init
 	@mkdir -p ${CONF_DIR}
 	@cp ./examples/conf.yaml ${CONF_DIR}
 	@cp ./examples/csv_rates.yaml ${CONF_DIR}
-	@ln -s ./work${INSTALL_PATH}/bin/${BILLING_PROGRAM} ./work${BINARY_PATH}/artifice-bill
 	@fpm -s dir -t deb -n ${NAME} -v ${VERSION} \
 	--pre-install=packaging/scripts/pre_install.sh   \
 	--post-install=packaging/scripts/post_install.sh  \
-	--deb-pre-depends postgresql-9.2  \
-	--deb-pre-depends postgresql-server-dev-9.2 \
-	--deb-pre-depends postgresql-contrib-9.2 \
+	--depends 'postgresql >= 9.2'  \
+	--depends 'postgresql-contrib >= 9.2' \
+	--depends 'libpq-dev' \
 	--deb-pre-depends pwgen \
 	--deb-pre-depends python2.7 \
 	--deb-pre-depends python-pip \
