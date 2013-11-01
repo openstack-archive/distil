@@ -28,7 +28,6 @@ EOF
 cat > /usr/local/bin/artifice-usage <<EOF
 #!/bin/bash
 <%=install_path%>/env/bin/python <%=install_path%>/bin/usage.py $@
-
 EOF
 
 

@@ -4,7 +4,7 @@ from artifice.interface import Artifice
 import mock
 import random
 import json
-import copy
+# import copy
 
 from sqlalchemy import create_engine
 from artifice.models import Session
@@ -66,7 +66,6 @@ TENANTS = [
 DATACENTRE = "testcenter"
 
 
-# I think three is good
 import os
 try:
     fn = os.path.abspath(__file__)
@@ -360,8 +359,6 @@ class TestInterface(unittest.TestCase):
 
         self.add_element("objects")
 
-    # def test_add_ip(self):
-    #     self.add_element("ips")
 
     def test_save_contents(self):
 

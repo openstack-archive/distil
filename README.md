@@ -2,36 +2,36 @@
 
 ## What
 
-Artifice is a layer sitting on top of Ceilometer to provide easy interactions with ERP systems, by exposing a configurable interface for turning Ceilometer data into a single billable line item.
+Artifice is a prototype of a data aggregation and billing generation layer, intended to tightly couple with the Openstack-Ceilometer 
+project.
 
-Artifice provides hooks to integrate with arbitrary ERP systems, by not imposing logic beyond the concept of a dated invoice that covers a given range.
+The Artifice layer is intended to store computed values for a known date range, and provide an easy, consistent API for injecting
+billing information into arbitrary ERP systems; from CSV through OpenERP.
+Time-series data for a given time period, a month, is compressed into a single billable item for that month, based on datacenter-based
+rates information.
+
+By not imposing logic beyond the concept of a dated invoice that covers a given range, Artifice tries to be unopinionated on how ERP 
+must be handled.
 
 What the ranges are, and how Ceilometer data is aggregated is intended to be configurable.
 
-Artifice enforces its own rigid postgresql-backed data store, used to store what data has been billed, and for what time range. This is used by Artifice to add prevention of repeated billing of a range of data.
+Artifice enforces its own rigid Postgresql-backed data store, used to store what data has been billed, and for what time range. This is used to prevent repeated billing of a range of data.
 
 The Artifice data store will prevent overlapping bills for a given tenant and resource ever being stored, while still allowing for regeneration of a given invoice statement.
 
 ## Requirements:
 
 Artifice requires:
-  * Postgresql 9.1 or greater.
+  * Postgresql >= 9.1.
   * Python >=2.7.5, <3.0
   * Python modules:
     * pyaml
     * mock
     * requests
     *
-  * OpenStack Grizzly or greater
+  * OpenStack Grizzly. *currently untested with Havana*
   * Openstack-Keystone
   * Openstack-Ceilometer
-
-## Installation
-
-Installing Artifice is as simple as:
-    dpkg -i openstack-artifice-<version>.deb
-
-The library will be installed to /opt/stack/artifice, and the command-line tool 'artifice' will be added to the path.
 
 ## Configuration
 
@@ -47,8 +47,9 @@ This is a yaml-format config file, in the format of:
       password: aurynn
       port: '5433'
       username: aurynn
-    # Configuration passed to the invoice system. This is arbitrary and may be
-    # anything that the invoice object may require.
+    # Configuration passed to the invoice system. This is an arbitrary dictionary 
+    # and may be anything that the invoice object may require.
+    # This example is intended for the CSV module
     invoice:config:
       delimiter: ','
       output_file: '%(tenant)s-%(start)s-%(end)s.csv'
@@ -78,7 +79,7 @@ This is a yaml-format config file, in the format of:
 
 A sample configuration is included, but **must** be modified appropriately.
 
-## Setup of Openstack environment
+## Setup of an Openstack environment
 
 As mentioned, Artifice relies entirely on the Ceilometer project for its metering and measurement collection.
 
@@ -95,7 +96,7 @@ Since we need Ceilometer installed, we recommend a DevStack localrc similar to:
     RABBIT_PASSWORD=openstack
     SERVICE_PASSWORD=openstack
 
-    # Enable Quantum
+    # Enable Quantum, on Grizzly
     disable_service n-net
     enable_service q-svc
     enable_service q-agt
@@ -103,6 +104,8 @@ Since we need Ceilometer installed, we recommend a DevStack localrc similar to:
     enable_service q-l3
     enable_service q-meta
     enable_service quantum
+
+    # Enable Neutron
 
     # Enable Swift
     enable_service swift
@@ -120,7 +123,7 @@ Artifices' post-intallation hooks will have set up the Postgres database as expe
 
 ### Production OpenStack
 
-TODO: Fill this out
+FIXME :)
 
 ## Using Artifice
 
@@ -128,7 +131,8 @@ As mentioned, Artifice comes with a command-line tool to provide some simple com
 
 Actions one can perform with Artifice are:
 
- * Bill; Given a date range, generates the current usage bill for a tenant. This will result in a CSV file.
+ * *Bill*; Given a date range, generates the current usage bill for a tenant. This will result in a CSV file.
+ * *usage*
 
 
 ### Future things
@@ -144,4 +148,5 @@ Things we may eventually want include:
  * Listing this months' total usage of a given resource
  * Listing total usage by datacentre
  * Listing all usage ever
- * Etc
+ * A web API for everything
+ * A web API for rates information
