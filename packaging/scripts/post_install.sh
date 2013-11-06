@@ -21,13 +21,19 @@ virtualenv <%= install_path %>/env
 
 cat > /usr/local/bin/artifice-bill <<EOF
 #!/bin/bash
-<%=install_path%>/env/bin/python <%=install_path%>/bin/bill.py $@
+<%=install_path%>/env/bin/python <%=install_path%>/bin/bill.py \$@
 
 EOF
 
 cat > /usr/local/bin/artifice-usage <<EOF
 #!/bin/bash
-<%=install_path%>/env/bin/python <%=install_path%>/bin/usage.py $@
+<%=install_path%>/env/bin/python <%=install_path%>/bin/usage.py \$@
 EOF
 
+chmod 0755 /usr/local/bin/artifice-usage
+chmod 0755 /usr/local/bin/artifice-bill
+
+cp <%=install_path%>/etc/artifice/conf.yaml /etc/artifice/conf.yaml
+cp <%=install_path%>/etc/artifice/database /etc/artifice/database
+# chown 0640 /etc/artifice/database
 

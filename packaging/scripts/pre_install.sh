@@ -3,6 +3,9 @@
 # Loads a SQL script into postgres that creates the artifice DB.
 # Post-install script is going to load all the DB stuff via pythons
 
+if [ ! -e /etc/artifice ]; then
+    mkdir /etc/artifice
+fi
 
 
 if [ -e <%=install_path%>/etc/artifice/database ]; then

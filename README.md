@@ -28,10 +28,13 @@ Artifice requires:
     * pyaml
     * mock
     * requests
-    *
+    * sqlalchemy >= 0.8.0
   * OpenStack Grizzly. *currently untested with Havana*
   * Openstack-Keystone
   * Openstack-Ceilometer
+
+Despite using SQLAlchemy, Artifice does NOT currently support SQLite or MySQL. Instead, it takes advantage of range exclusive 
+columns in Postgres, which is not supported on other systems.
 
 ## Configuration
 
@@ -45,7 +48,7 @@ This is a yaml-format config file, in the format of:
       database: artifice
       host: localhost
       password: aurynn
-      port: '5433'
+      port: '5432'
       username: aurynn
     # Configuration passed to the invoice system. This is an arbitrary dictionary 
     # and may be anything that the invoice object may require.
@@ -133,6 +136,22 @@ Actions one can perform with Artifice are:
 
  * *Bill*; Given a date range, generates the current usage bill for a tenant. This will result in a CSV file.
  * *usage*
+
+
+## Running Tests
+
+The tests are currently expected to run with Nosetests, against a pre-provisioned database.
+
+### Expected environment
+
+The test environment expects that the *DATABASE_URL* envar will be populated.
+*DATABASE_URL* **must** be populated in the form:
+
+    export DATABASE_URL=postgres://user:password@server/database
+
+
+Provisioning the database is handled via:
+
 
 
 ### Future things

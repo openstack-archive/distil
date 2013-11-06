@@ -4,9 +4,9 @@ ceilometer:
 database:
   database: artifice
   host: localhost
-  password: aurynn
-  port: '5433'
-  username: aurynn
+  password_path: /etc/artifice/database
+  port: '5432'
+  username: artifice
 invoice_object:
   delimiter: ','
   output_file: '%(tenant)s-%(start)s-%(end)s.csv'
@@ -19,8 +19,8 @@ invoice_object:
   - amount
   - cost
   rates: 
-    file: /opt/stack/artifice/etc/artifice/csv_rates.csv
-    names: /opt/stack/artifice/etc/artifice/csv_names.csv
+    file: /etc/artifice/csv_rates.csv
+    names: /etc/artifice/csv_names.csv
 main:
   invoice:object: billing.csv_invoice:Csv
 openstack:

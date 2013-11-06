@@ -59,8 +59,12 @@ if __name__ == '__main__':
         # Whoops
         print "couldn't load %s " % args.config
         sys.exit(1)
-
+    
+    fh = open(conf["database"]["password_path"])
+    password = fh.read()
+    fh.close()
     # Make ourselves a nice interaction object
+    conf["database"]["password"] = password
     instance = interface.Artifice(conf)
     tenants = args.tenants
     if not args.tenants:

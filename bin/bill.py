@@ -20,7 +20,7 @@ import yaml
 date_format = "%Y-%m-%dT%H:%M:%S"
 other_date_format = "%Y-%m-%dT%H:%M:%S.%f"
 
-date_fmt_fnc = lambda x: datetime.datetime.strptime(date_fmt)
+date_fmt_fnc = lambda x: datetime.datetime.strptime(date_format)
 
 if __name__ == '__main__':
     import argparse
@@ -54,7 +54,13 @@ if __name__ == '__main__':
 
 
     # Make ourselves a nice interaction object
-    n = interface.Artifice(conf["username"], conf["password"], conf["admin_tenant"])
+    # Password needs to be loaded from /etc/artifice/database
+    fh = open(conf["database"]["password_path"])
+    password = fh.read()
+    fh.close()
+    # Make ourselves a nice interaction object
+    conf["database"]["password"] = password
+    n = interface.Artifice(conf)
     tenants = args.tenants
     if not args.tenants:
         # only parse this list of tenants
