@@ -1,6 +1,6 @@
 import requests
 from decimal import Decimal
-# from artifice import NotFound
+from artifice import NotFound
 
 
 class ClerkNamesMixin(object):
@@ -13,8 +13,8 @@ class ClerkNamesMixin(object):
         if response.status_code == 200:
             return str(response.json()['pretty_name'])
         elif response.status_code == 404:
-            # raise NotFound
             print "not found"
+            raise NotFound
 
 
 class ClerkRatesMixin(object):
@@ -28,5 +28,5 @@ class ClerkRatesMixin(object):
         if response.status_code == 200:
             return Decimal(response.json()['rate'])
         elif response.status_code == 404:
-            # raise NotFound
             print "not found"
+            raise NotFound

@@ -6,13 +6,13 @@ from decimal import *
 
 class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
 
-    def __init__(self, tenant, config):
+    def __init__(self, tenant, start, end, config):
         self.config = config
         self.tenant = tenant
         self.lines = []
         self.closed = False
-        self.start = None
-        self.end = None
+        self.start = start
+        self.end = end
         # This has been moved to the mixin
         # try:
         #     fh = open(config["rates"][ "file" ])
@@ -37,6 +37,8 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
                     appendee.append(None)
                     continue
                 # What do we expect element to be?
+                if key == "rate":
+                    appendee.append(self.rate(self.pretty_name(element.type)))                    
                 if key == "type":
                     # Fetch the 'pretty' name from the mappings, if any
                     # The default is that this returns the internal name
@@ -50,8 +52,17 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
                 x = self.config["row_layout"].index("cost")
                 appendee[ x ] = element.amount.volume() * \
                         self.rate( self.pretty_name(element.type) )
-                print self.rate(self.pretty_name(element.type))
-                print appendee
+                # print (str(appendee[1]) + " - From: " + str(appendee[2]) +
+                #        ", Until: " + str(appendee[3]))
+                print ("type: " + str(self.pretty_name(element.get("type"))))
+                try:
+                    print " - name : " + str(element.get("name")) 
+                except:
+                    # Just means it isn't a VM
+                    pass
+                print "   - usage: " + str(element.amount.volume())
+                print "   - rate: " + str(self.rate(self.pretty_name(element.type)))
+                print " - cost: " + str(appendee[ x ])
 
             except ValueError:
                 # Not in this array. Well okay.
@@ -70,10 +81,11 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
     def filename(self):
         fn = os.path.join(
             self.config["output_path"],
-            self.config["output_file"] % dict(tenant=self.tenant,
+            self.config["output_file"] % dict(tenant=self.tenant.tenant['name'],
                 start=self.start, end=self.end)
         )
         return fn
+
     def close(self):
         try:
             read = open( self.filename )
@@ -81,11 +93,23 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
         except IOError:
             pass
         fh = open(self.filename, "w")
-
         csvwriter = writer(fh, dialect='excel', delimiter=',')
+
+        csvwriter.writerow(["", "from", "until"])
+        csvwriter.writerow(["usage range: ", str(self.start), str(self.end)])
+        csvwriter.writerow([])
+
+        
+        csvwriter.writerow(self.config["row_layout"])
         for line in self.lines:
             # Line is expected to be an iterable row
             csvwriter.writerow(line)
+
+        # write a blank line
+        csvwriter.writerow([])
+        # write total
+        total = ["total: ", self.total()]
+        csvwriter.writerow(total)
 
         fh.close()
         self.closed = True

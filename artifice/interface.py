@@ -140,7 +140,7 @@ class Artifice(object):
         """
         # :raises: AttributeError, KeyError
         # How does this get implemented ? Should there be a module injection?
-        return host # For the moment, passthrough
+        return "Data Center 1" # For the moment, passthrough
         # TODO: FIXME.
 
     def tenant(self, name):
@@ -218,22 +218,12 @@ class Tenant(object):
             funct = getattr(_package, call)
             self.invoice_type = funct
         config = self.conn.config["invoice_object"]
-        invoice = self.invoice_type(self, config)
+        invoice = self.invoice_type(self, start, end, config)
         return invoice
 
     def resources(self, start, end):
         if not self._resources:
-            date_fields = [{
-                "field": "timestamp",
-                    "op": "ge",
-                    "value": start.strftime(date_format)
-                },
-                {
-                    "field": "timestamp",
-                    "op": "lt",
-                    "value": end.strftime(date_format)
-                },
-                {   "field": "project_id",
+            date_fields = [{   "field": "project_id",
                     "op": "eq",
                     "value": self.tenant["id"]
                 },
@@ -553,7 +543,18 @@ class Cumulative(Artifact):
     def volume(self):
         measurements = self.usage
         measurements = sorted( measurements, key= lambda x: x["timestamp"] )
-        total_usage = measurements[-1]["counter_volume"] - measurements[0]["counter_volume"]
+        count = 1
+        usage = 0
+        last_measurement = None
+        for measurement in measurements:
+            if measurement["counter_volume"] <= 0 and last_measurement is not None:
+                usage = usage + last_measurement["counter_volume"]
+            count = count + 1
+            last_measurement = measurement
+
+        usage = usage  + measurements[-1]["counter_volume"]
+
+        total_usage = usage - measurements[0]["counter_volume"]
         return total_usage
 
 
@@ -575,7 +576,7 @@ class Gauge(Artifact):
         except ValueError:
             last["timestamp"] = datetime.datetime.strptime(last["timestamp"], other_date_format)
         except TypeError:
-            pass
+            pass        
 
         for val in usage[1:]:
             try:
@@ -602,6 +603,55 @@ class Gauge(Artifact):
         # totals is now an array of max values per hour for a given month.
         # print totals
         return sum(totals)
+
+    def uptime(self):
+        """THIS IS AN OVERRIDE METHOD FOR A QUICK AND DIRTY DEMO! 
+           DO NOT ACTAULLY USE THIS IN PROD. DELETE IT QUICKLY."""
+        usage = sorted(self.usage, key=lambda x: x["timestamp"])
+
+        blocks = []
+        curr = [usage[0]]
+        last = usage[0]
+        try:
+            last["timestamp"] = datetime.datetime.strptime(last["timestamp"], date_format)
+        except ValueError:
+            last["timestamp"] = datetime.datetime.strptime(last["timestamp"], other_date_format)
+        except TypeError:
+            pass 
+
+        next_hour = True       
+
+        for val in usage[1:]:
+            try:
+                val["timestamp"] = datetime.datetime.strptime(val["timestamp"], date_format)
+            except ValueError:
+                val["timestamp"] = datetime.datetime.strptime(val["timestamp"], other_date_format)
+            except TypeError:
+                pass
+
+            if (val['timestamp'] - last["timestamp"]) > datetime.timedelta(hours=1):
+                blocks.append(curr)
+                curr = [val]
+                last = val
+                next_hour = False
+            else:
+                curr.append(val)
+                next_hour = True
+
+        # We are now sorted into 1-hour blocks
+        totals = []
+        for block in blocks:
+            usage = max( [v["counter_volume"] for v in block])
+            totals.append( usage )
+
+        # totals = [max(x, key=lambda val: val["counter_volume"] ) for x in blocks]
+        # totals is now an array of max values per hour for a given month.
+        # print totals
+        if next_hour:
+            return sum(totals) + 1
+        else:
+            return sum(totals)
+
 
 class Delta(Artifact):
     pass

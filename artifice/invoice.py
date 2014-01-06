@@ -56,7 +56,7 @@ class Invoice(object):
 
     # __metaclass__ = requirements
 
-    def __init__(self, tenant, config):
+    def __init__(self, tenant, start, end, config):
         self.tenant = tenant
         self.config = config
 
@@ -149,7 +149,7 @@ class NamesFileMixin(object):
         if not self.__names:
             self.__names = {}
             try:
-                fh = open(self.config["rates"][ "name" ])
+                fh = open(self.config["rates"][ "names" ])
                 reader = csv.reader(fh, delimiter="|") # Makes no opinions on the file structure
                 for row in reader:
                     # The default layout is expected to be:

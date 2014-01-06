@@ -37,7 +37,13 @@ if __name__ == '__main__':
     # Ranging
     # We want to get stuff from, to.
 
-    parser.add_argument("--from", dest="start", help="When to start our range, date format %s", type=date_fmt_fnc)
+    parser.add_argument(
+        "--from",
+        dest="start",
+        help="When to start our range, date format %s",
+        type=date_fmt_fnc,
+        default=datetime.datetime.now() - datetime.timedelta(days=31)
+    )
     parser.add_argument("--to", dest="end", help="When to end our date range. Defaults to yesterday.",
         type=date_fmt_fnc, default=datetime.datetime.now() - datetime.timedelta(days=1) )
 
@@ -59,12 +65,15 @@ if __name__ == '__main__':
     password = fh.read()
     fh.close()
     # Make ourselves a nice interaction object
-    conf["database"]["password"] = password
+    conf["database"]["password"] = password.replace("\n", "")
     n = interface.Artifice(conf)
     tenants = args.tenants
     if not args.tenants:
         # only parse this list of tenants
         tenants = n.tenants
+
+    print "\n # ----------------- bill summary for: ----------------- # "
+    print "Range: %s -> %s" % (args.start, args.end)
 
     for tenant_name in tenants:
         # artifact = n.tenant(tenant_name).section(section).usage(args.start, args.end)
@@ -75,9 +84,8 @@ if __name__ == '__main__':
         tenant = n.tenant(tenant_name)
         # Makes a new invoice up for this tenant.
         invoice = tenant.invoice(args.start, args.end)
-        print "Tenant: %s" % tenant.name
-        print "Range: %s -> %s" % (args.start, args.end)
-
+        print "\n# ------------------------ Tenant: %s ------------------------ #" % tenant.name
+        
         # usage = tenant.usage(start, end)
         usage = tenant.usage(args.start, args.end)
         # A Usage set is the entirety of time for this Tenant.
@@ -86,10 +94,11 @@ if __name__ == '__main__':
         usage.save()
         invoice.bill(usage.vms)
         invoice.bill(usage.volumes)
-        invoice.bill(usage.objects)
+        # invoice.bill(usage.objects)
         invoice.close()
 
         print invoice.total()
+        print "# --------------------- End of Tenant: %s --------------------- #" % tenant.name
 
         # for datacenter, sections in usage.iteritems():
         #     # DC is the name of the DC/region. Or the internal code. W/E.

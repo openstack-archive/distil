@@ -34,7 +34,6 @@ class BaseModelConstruct(object):
         # Returns a given name value thing?
         # Based on patterning, this is expected to be a dict of usage information
         # based on a meter, I guess?
-
         return getattr(self, name)
 
     def _fetch_meter_name(self, name):
@@ -68,7 +67,7 @@ class VM(BaseModelConstruct):
     # The only relevant meters of interest are the type of the interest
     # and the amount of network we care about.
     # Oh, and floating IPs.
-    relevant_meters = ["instance:<type>", "network.incoming.bytes", "network.outgoing.bytes"]
+    relevant_meters = [ "instance", "cpu", "instance:<type>", "network.incoming.bytes", "network.outgoing.bytes"]
 
     def _fetch_meter_name(self, name):
         if name == "instance:<type>":
@@ -76,19 +75,44 @@ class VM(BaseModelConstruct):
         return name
 
     @property
+    def uptime(self):
+        return self.amount
+
+    @property
     def amount(self):
+        # cpu_usage = self.usage()['cpu'].volume()
+        # cpu_usage_in_s = Decimal(cpu_usage / 1000000000)
+
+        # class Amount(object):
+        #     def volume(self):
+        #         return Decimal(cpu_usage_in_s)
+        #     def __str__(self):
+        #         return str(cpu_usage_in_s) + " s"
+        #     def __repr__(self):
+        #         return str(self)
+
+
+        uptime = self.usage()['instance'].uptime()
         class Amount(object):
             def volume(self):
-                return Decimal(1.0)
+                return Decimal(uptime)
             def __str__(self):
-                return "1.0"
+                return str(uptime) + " hr"
             def __repr__(self):
                 return str(self)
         return Amount()
 
     @property
     def type(self):
-        return self._raw["metadata"]["nistance_type"]
+        # TODO FIgure out what the hell is going on with ceilometer here, 
+        # and why flavor.name isn't always there, and why sometimes instance_type
+        # is needed instead....
+        try:             
+            # print "\"flavor.name\" was used"
+            return self._raw["metadata"]["flavor.name"]
+        except KeyError:
+            # print "\"instance_type\" was used"
+            return self._raw["metadata"]["instance_type"]
 
     @property
     def size(self):
