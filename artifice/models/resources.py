@@ -3,6 +3,7 @@ from sqlalchemy import Column, String, types, schema, ForeignKey
 from sqlalchemy.orm import relationship, backref
 # from .tenants import Tenant
 from decimal import *
+import math
 
 class Resource(Base):
 
@@ -67,7 +68,7 @@ class VM(BaseModelConstruct):
     # The only relevant meters of interest are the type of the interest
     # and the amount of network we care about.
     # Oh, and floating IPs.
-    relevant_meters = [ "instance", "cpu", "instance:<type>", "network.incoming.bytes", "network.outgoing.bytes"]
+    relevant_meters = ["state", "instance", "cpu", "instance:<type>", "network.incoming.bytes", "network.outgoing.bytes"]
 
     def _fetch_meter_name(self, name):
         if name == "instance:<type>":
@@ -80,24 +81,18 @@ class VM(BaseModelConstruct):
 
     @property
     def amount(self):
-        # cpu_usage = self.usage()['cpu'].volume()
-        # cpu_usage_in_s = Decimal(cpu_usage / 1000000000)
+        seconds = self.usage()['state'].uptime()
 
-        # class Amount(object):
-        #     def volume(self):
-        #         return Decimal(cpu_usage_in_s)
-        #     def __str__(self):
-        #         return str(cpu_usage_in_s) + " s"
-        #     def __repr__(self):
-        #         return str(self)
-
-
-        uptime = self.usage()['instance'].uptime()
+        # in hours, rounded up:
+        uptime = math.ceil((seconds/60.0)/60.0)
+        
         class Amount(object):
             def volume(self):
                 return Decimal(uptime)
+
             def __str__(self):
                 return str(uptime) + " hr"
+
             def __repr__(self):
                 return str(self)
         return Amount()

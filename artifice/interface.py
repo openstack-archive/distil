@@ -6,7 +6,6 @@ import requests
 import json
 import urllib
 
-
 from copy import copy
 from collections import defaultdict
 
@@ -542,17 +541,18 @@ class Cumulative(Artifact):
 
     def volume(self):
         measurements = self.usage
-        measurements = sorted( measurements, key= lambda x: x["timestamp"] )
+        measurements = sorted(measurements, key=lambda x: x["timestamp"])
         count = 1
         usage = 0
-        last_measurement = None
-        for measurement in measurements:
-            if measurement["counter_volume"] <= 0 and last_measurement is not None:
-                usage = usage + last_measurement["counter_volume"]
+        last_measure = None
+        for measure in measurements:
+            if last_measure is not None and (measure["counter_volume"] <
+                                             last_measure["counter_volume"]):
+                usage = usage + last_measure["counter_volume"]
             count = count + 1
-            last_measurement = measurement
+            last_measure = measure
 
-        usage = usage  + measurements[-1]["counter_volume"]
+        usage = usage + measurements[-1]["counter_volume"]
 
         total_usage = usage - measurements[0]["counter_volume"]
         return total_usage
@@ -576,7 +576,7 @@ class Gauge(Artifact):
         except ValueError:
             last["timestamp"] = datetime.datetime.strptime(last["timestamp"], other_date_format)
         except TypeError:
-            pass        
+            pass
 
         for val in usage[1:]:
             try:
@@ -605,21 +605,24 @@ class Gauge(Artifact):
         return sum(totals)
 
     def uptime(self):
-        """THIS IS AN OVERRIDE METHOD FOR A QUICK AND DIRTY DEMO! 
-           DO NOT ACTAULLY USE THIS IN PROD. DELETE IT QUICKLY."""
+        """Calculates uptime accurately for the given 'billable' states.
+        Will ignore all other states.
+        - Relies heavily on the existence of a state meter."""
+
+        # this NEEDS to be moved to a config file
+        billable = [1, 2, 3, 6, 7]
+
         usage = sorted(self.usage, key=lambda x: x["timestamp"])
 
-        blocks = []
-        curr = [usage[0]]
         last = usage[0]
         try:
             last["timestamp"] = datetime.datetime.strptime(last["timestamp"], date_format)
         except ValueError:
             last["timestamp"] = datetime.datetime.strptime(last["timestamp"], other_date_format)
         except TypeError:
-            pass 
+            pass
 
-        next_hour = True       
+        uptime = 0.0
 
         for val in usage[1:]:
             try:
@@ -629,28 +632,13 @@ class Gauge(Artifact):
             except TypeError:
                 pass
 
-            if (val['timestamp'] - last["timestamp"]) > datetime.timedelta(hours=1):
-                blocks.append(curr)
-                curr = [val]
-                last = val
-                next_hour = False
-            else:
-                curr.append(val)
-                next_hour = True
+            if val["counter_volume"] in billable:
+                difference = val["timestamp"] - last["timestamp"]
+                uptime = uptime + difference.seconds
+            
+            last = val
 
-        # We are now sorted into 1-hour blocks
-        totals = []
-        for block in blocks:
-            usage = max( [v["counter_volume"] for v in block])
-            totals.append( usage )
-
-        # totals = [max(x, key=lambda val: val["counter_volume"] ) for x in blocks]
-        # totals is now an array of max values per hour for a given month.
-        # print totals
-        if next_hour:
-            return sum(totals) + 1
-        else:
-            return sum(totals)
+        return uptime
 
 
 class Delta(Artifact):
