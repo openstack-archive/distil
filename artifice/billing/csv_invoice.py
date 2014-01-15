@@ -4,6 +4,7 @@ from artifice import invoice
 import yaml
 from decimal import *
 
+
 class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
 
     def __init__(self, tenant, start, end, config):
@@ -38,31 +39,32 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
                     continue
                 # What do we expect element to be?
                 if key == "rate":
-                    appendee.append(self.rate(self.pretty_name(element.type)))                    
+                    appendee.append(self.rate(self.pretty_name(element.type)))
                 if key == "type":
                     # Fetch the 'pretty' name from the mappings, if any
                     # The default is that this returns the internal name
-                    appendee.append(self.pretty_name( element.get( key ) ) )
+                    appendee.append(self.pretty_name(element.get(key)))
                     continue
                 try:
-                    appendee.append( element.get(key) )
+                    appendee.append(element.get(key))
                 except AttributeError:
                     appendee.append("")
             try:
                 x = self.config["row_layout"].index("cost")
-                appendee[ x ] = element.amount.volume() * \
-                        self.rate( self.pretty_name(element.type) )
+                appendee[x] = (element.amount.volume() *
+                               self.rate(self.pretty_name(element.type)))
                 # print (str(appendee[1]) + " - From: " + str(appendee[2]) +
                 #        ", Until: " + str(appendee[3]))
                 print ("type: " + str(self.pretty_name(element.get("type"))))
                 try:
-                    print " - name : " + str(element.get("name")) 
+                    print " - name : " + str(element.get("name"))
                 except:
                     # Just means it isn't a VM
                     pass
                 print "   - usage: " + str(element.amount.volume())
-                print "   - rate: " + str(self.rate(self.pretty_name(element.type)))
-                print " - cost: " + str(appendee[ x ])
+                print ("   - rate: " +
+                       str(self.rate(self.pretty_name(element.type))))
+                print " - cost: " + str(appendee[x])
 
             except ValueError:
                 # Not in this array. Well okay.
@@ -79,16 +81,18 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
 
     @property
     def filename(self):
+        fn_dict = dict(tenant=self.tenant.tenant['name'], start=self.start,
+                       end=self.end)
+
         fn = os.path.join(
             self.config["output_path"],
-            self.config["output_file"] % dict(tenant=self.tenant.tenant['name'],
-                start=self.start, end=self.end)
+            self.config["output_file"] % fn_dict
         )
         return fn
 
     def close(self):
         try:
-            read = open( self.filename )
+            open(self.filename)
             raise RuntimeError("Can't write to an existing file!")
         except IOError:
             pass
@@ -99,7 +103,6 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
         csvwriter.writerow(["usage range: ", str(self.start), str(self.end)])
         csvwriter.writerow([])
 
-        
         csvwriter.writerow(self.config["row_layout"])
         for line in self.lines:
             # Line is expected to be an iterable row

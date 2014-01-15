@@ -18,13 +18,10 @@ from keystoneclient.v2_0 import client as KeystoneClient
 # Provides hooks to ceilometer, which we need for data.
 from ceilometerclient.v2.client import Client as ceilometer
 
-# from .models import usage
-from .models import Session, usage
-
 from sqlalchemy import create_engine
 
 # from .models.usage import Usage
-from .models import resources, tenants, usage
+from .models import Session, resources, tenants, usage
 
 # from .models.tenants import Tenant
 
@@ -40,6 +37,7 @@ date_format = "%Y-%m-%dT%H:%M:%S"
 # Sometimes things also have milliseconds, so we look for that too.
 # Because why not be annoying in all the ways?
 other_date_format = "%Y-%m-%dT%H:%M:%S.%f"
+
 
 def get_meter(meter, start, end, auth):
     # Meter is a href; in this case, it has a set of fields with it already.
@@ -58,23 +56,25 @@ def get_meter(meter, start, end, auth):
     ]
     fields = []
     for field in date_fields:
-        fields.append( ("q.field", field["field"]) )
-        fields.append( ("q.op", field["op"]) )
-        fields.append( ("q.value", field["value"]))
+        fields.append(("q.field", field["field"]))
+        fields.append(("q.op", field["op"]))
+        fields.append(("q.value", field["value"]))
 
     # Combine.
-    url = "&".join((meter.link, urllib.urlencode(fields) ))
+    url = "&".join((meter.link, urllib.urlencode(fields)))
 
     r = requests.get(
         meter.link,
         headers={
             "X-Auth-Token": auth,
-            "Content-Type":"application/json"}
+            "Content-Type": "application/json"}
     )
     return json.loads(r.text)
 
 
-class NotFound(BaseException): pass
+class NotFound(BaseException):
+    pass
+
 
 class keystone(KeystoneClient.Client):
 
@@ -82,7 +82,7 @@ class keystone(KeystoneClient.Client):
         authenticator = self.auth_url
         url = "%(url)s/tenants?%(query)s" % {
             "url": authenticator,
-            "query": urllib.urlencode({"name":name})
+            "query": urllib.urlencode({"name": name})
             }
         r = requests.get(url, headers={
             "X-Auth-Token": self.auth_token,
@@ -96,6 +96,7 @@ class keystone(KeystoneClient.Client):
             if r.status_code == 404:
                 # couldn't find it
                 raise NotFound
+
 
 class Artifice(object):
     """Produces billable artifacts"""
@@ -125,12 +126,12 @@ class Artifice(object):
 
         self.ceilometer = ceilometer(
             self.config["ceilometer"]["host"],
-            # Uses a lambda as ceilometer apparently wants to use it as a callable?
+            # Uses a lambda as ceilometer apparently wants
+            # to use it as a callable?
             token=lambda: self.auth.auth_token
         )
         self._tenancy = None
 
-        
     def host_to_dc(self, host):
         """
         :param host: The name to use.
@@ -139,7 +140,7 @@ class Artifice(object):
         """
         # :raises: AttributeError, KeyError
         # How does this get implemented ? Should there be a module injection?
-        return "Data Center 1" # For the moment, passthrough
+        return "Data Center 1"  # For the moment, passthrough
         # TODO: FIXME.
 
     def tenant(self, name):
@@ -165,6 +166,7 @@ class Artifice(object):
                 t = Tenant(tenant, self)
                 self._tenancy[t["name"]] = t
         return self._tenancy
+
 
 class Tenant(object):
 
@@ -195,7 +197,6 @@ class Tenant(object):
             # return super(Tenant, self).__getattr__(attr)
         return self.tenant[attr]
 
-
     def invoice(self, start, end):
 
         """
@@ -212,7 +213,7 @@ class Tenant(object):
             if ":" not in invoice_type:
                 raise AttributeError("Invoice configuration incorrect! %s" % invoice_type)
             module, call = invoice_type.split(":")
-            _package = __import__(module, globals(), locals(), [ call ])
+            _package = __import__(module, globals(), locals(), [call])
 
             funct = getattr(_package, call)
             self.invoice_type = funct
@@ -222,7 +223,7 @@ class Tenant(object):
 
     def resources(self, start, end):
         if not self._resources:
-            date_fields = [{   "field": "project_id",
+            date_fields = [{"field": "project_id",
                     "op": "eq",
                     "value": self.tenant["id"]
                 },
@@ -256,18 +257,18 @@ class Tenant(object):
 
         for resource in self.resources(start, end):
             # print dir(resource)
-            rels = [link["rel"] for link in resource.links if link["rel"] != 'self' ]
+            rels = [link["rel"] for link in resource.links if link["rel"] != 'self']
             if "storage.objects" in rels:
                 # Unknown how this data layout happens yet.
                 storage.append(Resource(resource, self.conn))
                 pass
             elif "network" in rels:
                 # Have we seen the VM that owns this yet?
-                networks.append(Resource(resource , self.conn))
+                networks.append(Resource(resource, self.conn))
             elif "volumne" in rels:
-                volumes.append( Resource(resource, self.conn) )
+                volumes.append(Resource(resource, self.conn))
             elif 'instance' in rels:
-                vms.append(Resource(resource, self.conn ))
+                vms.append(Resource(resource, self.conn))
 
         datacenters = {}
         region_tmpl = {
@@ -296,7 +297,6 @@ class Usage(object):
         self._objects = []
         self._volumes = []
 
-
         # Replaces all the internal references with better references to
         # actual metered values.
         # self._replace()
@@ -309,7 +309,7 @@ class Usage(object):
                 VM = resources.VM(vm, self.start, self.end)
                 md = vm["metadata"]
                 host = md["host"]
-                VM.location = self.conn.host_to_dc( vm["metadata"]["host"] )
+                VM.location = self.conn.host_to_dc(vm["metadata"]["host"])
                 vms.append(VM)
             self._vms = vms
         return self._vms
@@ -374,14 +374,13 @@ class Resource(object):
     #     return self.resource
 
     def meter(self, name, start, end):
-        pass # Return a named meter
+        pass  # Return a named meter
         for meter in self.resource.links:
             if meter["rel"] == name:
                 m = Meter(self, meter["href"], self.conn, start, end)
                 self._meters[name] = m
                 return m
         raise AttributeError("no such meter %s" % name)
-
 
     def __getitem__(self, name):
         # print name
@@ -401,6 +400,7 @@ class Resource(object):
                 meters.append(meter)
             self._meters = meters
         return self._meters
+
 
 class Meter(object):
 
@@ -528,14 +528,14 @@ class Artifact(object):
             self.end,
         )
         session.add(this_usage)
-        session.commit() # Persist to Postgres
-
+        session.commit()  # Persist to Postgres
 
     def volume(self):
         """
         Default billable number for this volume
         """
         return sum([x["counter_volume"] for x in self.usage])
+
 
 class Cumulative(Artifact):
 
@@ -596,8 +596,8 @@ class Gauge(Artifact):
         # We are now sorted into 1-hour blocks
         totals = []
         for block in blocks:
-            usage = max( [v["counter_volume"] for v in block])
-            totals.append( usage )
+            usage = max([v["counter_volume"] for v in block])
+            totals.append(usage)
 
         # totals = [max(x, key=lambda val: val["counter_volume"] ) for x in blocks]
         # totals is now an array of max values per hour for a given month.
@@ -639,8 +639,8 @@ class Gauge(Artifact):
             if val["counter_volume"] in billable:
                 difference = val["timestamp"] - last["timestamp"]
 
-                # TODO:
-                # possibly might need to account for sudden jumps
+                # TODO: rethink this:
+                # might need to account for sudden jumps
                 # caused due to ceilometer down time:
                 if difference > datetime.timedelta(hours=1):
                     # the timedelta should be the ceilometer interval.
@@ -650,7 +650,7 @@ class Gauge(Artifact):
                 else:
                     # otherwise just add difference.
                     uptime = uptime + difference.seconds
-            
+
             last = val
 
         return uptime
