@@ -35,5 +35,5 @@ chmod 0755 /usr/local/bin/artifice-bill
 
 cp <%=install_path%>/etc/artifice/conf.yaml /etc/artifice/conf.yaml
 cp <%=install_path%>/etc/artifice/database /etc/artifice/database
-# chown 0640 /etc/artifice/database
+ chown 0644 /etc/artifice/database
 

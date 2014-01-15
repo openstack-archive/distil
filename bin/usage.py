@@ -48,9 +48,9 @@ if __name__ == '__main__':
     parser.add_argument(
         "--from",
         dest="start",
-        help="When to start our range, date format %s",
+        help="When to start our range, date format %s" % ( date_fmt.replace("%","%%") ),
         type=date_fmt_fnc,
-        default=datetime.datetime.now() - datetime.timedelta(days=31)
+        default= datetime.datetime.now() - datetime.timedelta(days=31) 
     )
     parser.add_argument(
         "--to", dest="end",

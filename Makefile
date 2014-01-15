@@ -26,8 +26,8 @@ deb: clean init
 	@fpm -s dir -t deb -n ${NAME} -v ${VERSION} \
 	--pre-install=packaging/scripts/pre_install.sh   \
 	--post-install=packaging/scripts/post_install.sh  \
-	--depends 'postgresql >= 9.2'  \
-	--depends 'postgresql-contrib >= 9.2' \
+	--depends 'postgresql >= 9.3'  \
+	--depends 'postgresql-contrib >= 9.3' \
 	--depends 'libpq-dev' \
 	--deb-pre-depends pwgen \
 	--deb-pre-depends python2.7 \
