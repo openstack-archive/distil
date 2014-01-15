@@ -1,6 +1,7 @@
 from . import Base
 from sqlalchemy import Column, types, String
 
+
 class Tenant(Base):
 
     __tablename__ = 'tenants'

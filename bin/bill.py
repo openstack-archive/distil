@@ -7,7 +7,7 @@ try:
 except ImportError:
     loc, fn = os.path.split(__file__)
     print loc
-    here =  os.path.abspath(os.path.join(loc +"/../"))
+    here = os.path.abspath(os.path.join(loc + "/../"))
     sys.path.insert(0, here)
     # # Are we potentially in a virtualenv? Add that in.
     # if os.path.exists( os.path.join(here, "lib/python2.7" ) ):
@@ -27,12 +27,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # Takes names to display.
     # none means display them all.
-    parser.add_argument("-t", "--tenant", dest="tenants", help='Tenant to display', action="append", default=[])
+    parser.add_argument("-t", "--tenant", dest="tenants",
+                        help='Tenant to display', action="append", default=[])
 
     # Add some sections to show data from.
     # Empty is display all
-    parser.add_argument("-s", "--section", dest="sections", help="Sections to display", action="append")
-
+    parser.add_argument("-s", "--section", dest="sections",
+                        help="Sections to display", action="append")
 
     # Ranging
     # We want to get stuff from, to.
@@ -44,10 +45,14 @@ if __name__ == '__main__':
         type=date_fmt_fnc,
         default=datetime.datetime.now() - datetime.timedelta(days=31)
     )
-    parser.add_argument("--to", dest="end", help="When to end our date range. Defaults to yesterday.",
-        type=date_fmt_fnc, default=datetime.datetime.now() - datetime.timedelta(days=1) )
+    parser.add_argument(
+        "--to", dest="end",
+        help="When to end our date range. Defaults to yesterday.",
+        type=date_fmt_fnc,
+        default=datetime.datetime.now() - datetime.timedelta(days=1))
 
-    parser.add_argument("--config", dest="config", help="Config file", default="/opt/stack/artifice/etc/artifice/conf.yaml")
+    parser.add_argument("--config", dest="config", help="Config file",
+                        default="/opt/stack/artifice/etc/artifice/conf.yaml")
 
     args = parser.parse_args()
 
@@ -57,7 +62,6 @@ if __name__ == '__main__':
         # Whoops
         print "couldn't load %s " % args.config
         sys.exit(1)
-
 
     # Make ourselves a nice interaction object
     # Password needs to be loaded from /etc/artifice/database

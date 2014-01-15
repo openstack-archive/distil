@@ -43,16 +43,17 @@ def get_meter(meter, start, end, auth):
     # Meter is a href; in this case, it has a set of fields with it already.
     # print meter.link
     # print dir(meter)
-    date_fields = [{
-        "field": "timestamp",
-        "op": "ge",
-        "value": start.strftime(date_format)
-    },
-    {
-        "field": "timestamp",
-        "op": "lt",
-        "value": end.strftime(date_format)
-    }
+    date_fields = [
+        {
+            "field": "timestamp",
+            "op": "ge",
+            "value": start.strftime(date_format)
+        },
+        {
+            "field": "timestamp",
+            "op": "lt",
+            "value": end.strftime(date_format)
+        }
     ]
     fields = []
     for field in date_fields:
@@ -83,7 +84,7 @@ class keystone(KeystoneClient.Client):
         url = "%(url)s/tenants?%(query)s" % {
             "url": authenticator,
             "query": urllib.urlencode({"name": name})
-            }
+        }
         r = requests.get(url, headers={
             "X-Auth-Token": self.auth_token,
             "Content-Type": "application/json"
@@ -107,18 +108,22 @@ class Artifice(object):
         # This is the Keystone client connection, which provides our
         # OpenStack authentication
         self.auth = keystone(
-            username=        config["openstack"]["username"],
-            password=        config["openstack"]["password"],
-            tenant_name=     config["openstack"]["default_tenant"],
-            auth_url=        config["openstack"]["authentication_url"]
+            username=config["openstack"]["username"],
+            password=config["openstack"]["password"],
+            tenant_name=config["openstack"]["default_tenant"],
+            auth_url=config["openstack"]["authentication_url"]
         )
-        conn_string = 'postgresql://%(username)s:%(password)s@%(host)s:%(port)s/%(database)s' % {
+
+        conn_dict = {
             "username": config["database"]["username"],
             "password": config["database"]["password"],
-            "host":     config["database"]["host"],
-            "port":     config["database"]["port"],
+            "host": config["database"]["host"],
+            "port": config["database"]["port"],
             "database": config["database"]["database"]
         }
+        conn_string = ('postgresql://%(username)s:%(password)s@' +
+                       '%(host)s:%(port)s/%(database)s') % conn_dict
+
         engine = create_engine(conn_string)
         Session.configure(bind=engine)
         self.session = Session()
@@ -211,7 +216,8 @@ class Tenant(object):
         if self.invoice_type is None:
             invoice_type = self.conn.config["main"]["invoice:object"]
             if ":" not in invoice_type:
-                raise AttributeError("Invoice configuration incorrect! %s" % invoice_type)
+                raise AttributeError("Invoice configuration incorrect! %s" %
+                                     invoice_type)
             module, call = invoice_type.split(":")
             _package = __import__(module, globals(), locals(), [call])
 
@@ -223,10 +229,11 @@ class Tenant(object):
 
     def resources(self, start, end):
         if not self._resources:
-            date_fields = [{"field": "project_id",
-                    "op": "eq",
-                    "value": self.tenant["id"]
-                },
+            date_fields = [
+                {"field": "project_id",
+                 "op": "eq",
+                 "value": self.tenant["id"]
+                 },
             ]
             # Sets up our resources as Ceilometer objects.
             # That's cool, I think.
@@ -485,7 +492,8 @@ class Artifact(object):
 
     def save(self):
         """
-        Persists to our database backend. Opinionatedly this is a sql datastore.
+        Persists to our database backend.
+        Opinionatedly this is a sql datastore.
         """
         value = self.volume()
         session = self.resource.conn.session
@@ -509,7 +517,8 @@ class Artifact(object):
             session.add(tenant)
         else:
             try:
-                res = session.query(resources.Resource).filter(resources.Resource.id == resource_id)[0]
+                matching = resources.Resource.id == resource_id
+                res = session.query(resources.Resource).filter(matching)[0]
                 tenant = res.tenant
             except IndexError:
                 res = resources.Resource()
@@ -572,21 +581,26 @@ class Gauge(Artifact):
         curr = [usage[0]]
         last = usage[0]
         try:
-            last["timestamp"] = datetime.datetime.strptime(last["timestamp"], date_format)
+            last["timestamp"] = datetime.datetime.strptime(last["timestamp"],
+                                                           date_format)
         except ValueError:
-            last["timestamp"] = datetime.datetime.strptime(last["timestamp"], other_date_format)
+            last["timestamp"] = datetime.datetime.strptime(last["timestamp"],
+                                                           other_date_format)
         except TypeError:
             pass
 
         for val in usage[1:]:
             try:
-                val["timestamp"] = datetime.datetime.strptime(val["timestamp"], date_format)
+                val["timestamp"] = datetime.datetime.strptime(val["timestamp"],
+                                                              date_format)
             except ValueError:
-                val["timestamp"] = datetime.datetime.strptime(val["timestamp"], other_date_format)
+                val["timestamp"] = datetime.datetime.strptime(val["timestamp"],
+                                                              other_date_format)
             except TypeError:
                 pass
 
-            if (val['timestamp'] - last["timestamp"]) > datetime.timedelta(hours=1):
+            difference = (val['timestamp'] - last["timestamp"])
+            if difference > datetime.timedelta(hours=1):
                 blocks.append(curr)
                 curr = [val]
                 last = val

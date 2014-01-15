@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
-import os, sys
+import os
+import sys
 
 try:
     from artifice import interface
 except ImportError:
     loc, fn = os.path.split(__file__)
     print loc
-    here =  os.path.abspath(os.path.join(loc +"/../"))
+    here = os.path.abspath(os.path.join(loc + "/../"))
     sys.path.insert(0, here)
     # # Are we potentially in a virtualenv? Add that in.
     # if os.path.exists( os.path.join(here, "lib/python2.7" ) ):
@@ -21,6 +22,7 @@ date_format = "%Y-%m-%dT%H:%M:%S"
 other_date_format = "%Y-%m-%dT%H:%M:%S.%f"
 date_fmt = "%Y-%m-%d"
 
+
 def date_fmt_fnc(val):
     return datetime.datetime.strptime(val, date_fmt)
 
@@ -29,12 +31,16 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # Takes names to display.
     # none means display them all.
-    parser.add_argument("-t", "--tenant", dest="tenants", help='Tenant to display', action="append", default=[])
+    parser.add_argument(
+        "-t", "--tenant", dest="tenants",
+        help='Tenant to display',
+        action="append", default=[])
 
     # Add some sections to show data from.
     # Empty is display all
-    parser.add_argument("-s", "--section", dest="sections", help="Sections to display", action="append")
-
+    parser.add_argument(
+        "-s", "--section", dest="sections",
+        help="Sections to display", action="append")
 
     # Ranging
     # We want to get stuff from, to.
@@ -46,13 +52,34 @@ if __name__ == '__main__':
         type=date_fmt_fnc,
         default=datetime.datetime.now() - datetime.timedelta(days=31)
     )
-    parser.add_argument("--to", dest="end", help="When to end our date range. Defaults to yesterday.",
-        type=date_fmt_fnc, default=datetime.datetime.now() - datetime.timedelta(days=1) )
+    parser.add_argument(
+        "--to", dest="end",
+        help="When to end our date range. Defaults to yesterday.",
+        type=date_fmt_fnc,
+        default=datetime.datetime.now() - datetime.timedelta(days=1))
 
-    parser.add_argument("-c", "--config", dest="config", help="Config file", default="/opt/stack/artifice/etc/artifice/conf.yaml")
+    parser.add_argument(
+        "-c", "--config", dest="config",
+        help="Config file",
+        default="/opt/stack/artifice/etc/artifice/conf.yaml")
 
     args = parser.parse_args()
-    print "\n # ----------------- usage summary for: ----------------- # "
+
+    def format_title(name, max_length):
+        numb_lines = (max_length - len(name)) / 2
+        lines = ""
+        for i in range(numb_lines):
+            lines = lines + "-"
+        if (max_length - len(name)) % 2 == 0:
+            lines2 = lines
+        else:
+            lines2 = lines + "-"
+        title = "\n # " + lines + " " + name + " " + lines2 + " # "
+        return title
+
+    max_len = 60
+
+    print format_title("usage summary for:", max_len)
     print "Range: %s -> %s" % (args.start, args.end)
     try:
         conf = yaml.load(open(args.config).read())
@@ -60,7 +87,7 @@ if __name__ == '__main__':
         # Whoops
         print "couldn't load %s " % args.config
         sys.exit(1)
-    
+
     fh = open(conf["database"]["password_path"])
     password = fh.read()
     fh.close()
@@ -81,8 +108,7 @@ if __name__ == '__main__':
         tenant = instance.tenant(tenant_name)
         # Makes a new invoice up for this tenant.
         invoice = tenant.invoice(args.start, args.end)
-        print "\n# ------------------------ Tenant: %s ------------------------ #" % tenant.name
-
+        print format_title("Tenant: %s" % tenant.name, max_len)
 
         # usage = tenant.usage(start, end)
         usage = tenant.usage(args.start, args.end)
@@ -94,4 +120,4 @@ if __name__ == '__main__':
         # invoice.bill(usage.objects)
 
         print "Total invoice value: %s" % invoice.total()
-        print "# --------------------- End of Tenant: %s --------------------- #" % tenant.name
+        print format_title("End of Tenant: %s" % tenant.name, max_len)

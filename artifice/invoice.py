@@ -12,17 +12,29 @@ an Invoice interface consists of:
 
 from decimal import *
 
-class IntegrityViolation(BaseException): pass
+import csv
 
-class BillingOverlap(BaseException): pass
 
-class NoSuchType(KeyError): pass
+class IntegrityViolation(BaseException):
+    pass
 
-class NoSuchLocation(KeyError): pass
+
+class BillingOverlap(BaseException):
+    pass
+
+
+class NoSuchType(KeyError):
+    pass
+
+
+class NoSuchLocation(KeyError):
+    pass
+
 
 costs = {
-    "cpu_util" : { "nova": "1" }
+    "cpu_util": {"nova": "1"}
 }
+
 
 class Costs(object):
 
@@ -39,6 +51,7 @@ class Costs(object):
 
 required = ["add_line", "close"]
 
+
 def requirements(name, parents, attrs):
     for attr_name in required:
         try:
@@ -51,6 +64,7 @@ def requirements(name, parents, attrs):
         except AssertionError:
             raise RuntimeError("%s is not callable" % (attr_name))
     return type(name, parents, attrs)
+
 
 class Invoice(object):
 
@@ -77,17 +91,17 @@ class Invoice(object):
             # DC is the name of the DC/region. Or the internal code. W/E.
             # print datacenter
             self.subheading(dc["name"])
-            for section in dc["sections"]: # will be vm, network, storage
-                self.add_section( section )
+            for section in dc["sections"]:  # will be vm, network, storage
+                self.add_section(section)
 
                 meters = dc["sections"][section]
 
                 for usage in meters:
-                    cost = self.cost( dc["name"], meter["name"] )
+                    cost = self.cost(dc["name"], meter["name"])
 
-                    self.add_line( "%s per unit " % cost, usage.volume, cost * usage.volume )
-        self.commit() # Writes to OpenERP? Closes the invoice? Something.
-
+                    self.add_line("%s per unit " % (cost, usage.volume,
+                                                    cost * usage.volume))
+        self.commit()  # Writes to OpenERP? Closes the invoice? Something.
 
     def add_line(self, item):
         raise NotImplementedError("Not implemented in base class")
@@ -98,7 +112,7 @@ class Invoice(object):
     def total(self):
         raise NotImplementedError("Not implemented in the base class")
 
-import csv
+
 class RatesFileMixin(object):
     # Mixin
     # Adds a rates file loader, expecting various things from the
@@ -112,15 +126,16 @@ class RatesFileMixin(object):
         if not self.__rates:
             self.__rates = {}
             try:
-                fh = open(self.config["rates"][ "file" ])
-                reader = csv.reader(fh, delimiter = "|") # Makes no opinions on the file structure
+                fh = open(self.config["rates"]["file"])
+                # Makes no opinions on the file structure
+                reader = csv.reader(fh, delimiter="|")
                 for row in reader:
                     # The default layout is expected to be:
                     # location | rate name | rate measurement | rate value
                     self.__rates[row[1].strip()] = {
-                            "cost": Decimal(row[3].strip()),
-                            "region": row[0].strip(),
-                            "measures": row[2].strip()
+                        "cost": Decimal(row[3].strip()),
+                        "region": row[0].strip(),
+                        "measures": row[2].strip()
                     }
                 if not self.__rates:
                     raise IndexError("malformed rates CSV!")
@@ -134,7 +149,8 @@ class RatesFileMixin(object):
             except IOError:
                 print "Couldn't open the file!"
                 raise
-        return self.__rates[name]["cost"] # ignore the regions-ness for now
+        return self.__rates[name]["cost"]  # ignore the regions-ness for now
+
 
 class NamesFileMixin(object):
 
@@ -149,12 +165,13 @@ class NamesFileMixin(object):
         if not self.__names:
             self.__names = {}
             try:
-                fh = open(self.config["rates"][ "names" ])
-                reader = csv.reader(fh, delimiter="|") # Makes no opinions on the file structure
+                fh = open(self.config["rates"]["names"])
+                # Makes no opinions on the file structure
+                reader = csv.reader(fh, delimiter="|")
                 for row in reader:
                     # The default layout is expected to be:
                     # internal name | external name
-                    self.__names[ row[0].strip() ] = row[1].strip()
+                    self.__names[row[0].strip()] = row[1].strip()
 
                 if not self.__names:
                     raise IndexError("Malformed names CSV")
@@ -167,4 +184,3 @@ class NamesFileMixin(object):
                 print "Couldn't open the file!"
                 raise
         return self.__names[name]
-

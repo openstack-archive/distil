@@ -1,11 +1,13 @@
 from . import Base
 from .resources import Resource
-from sqlalchemy import Column, types, ForeignKey, CheckConstraint, String, Integer, type_coerce, func, Sequence
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy import (Column, types, String, Integer, type_coerce,
+                        func, Sequence)
+from sqlalchemy.orm import relationship
 from sqlalchemy.schema import ForeignKeyConstraint
 import datetime
 
-from sqlalchemy.dialects.postgresql import ExcludeConstraint, TSRANGE, ARRAY
+from sqlalchemy.dialects.postgresql import ExcludeConstraint, TSRANGE
+
 
 class TSRange(TSRANGE):
 
@@ -45,15 +47,13 @@ class Usage(Base):
         ),
     )
 
-    resource = relationship(Resource, primaryjoin=
-                                    resource_id == Resource.id)
-    tenant = relationship(Resource, primaryjoin=
-                                    tenant_id== Resource.tenant_id)
+    resource = relationship(Resource,
+                            primaryjoin=(resource_id == Resource.id))
+    tenant = relationship(Resource,
+                          primaryjoin=(tenant_id == Resource.tenant_id))
 
     # resource = relationship("Resource", backref=backref("resources", order_by=created))
     # tenant = relationship("Tenant", backref=backref("usage", order_by=created))
-
-
 
     def __init__(self, resource, tenant, value, start, end):
 
@@ -67,7 +67,7 @@ class Usage(Base):
         assert resource.tenant.id == tenant.id
 
         self.resource = resource
-        self.tenant = resource # Same resource
+        self.tenant = resource  # Same resource
         self.time = "[%s,%s]" % (start, end)
         self.created = datetime.datetime.now()
         self.volume = value
