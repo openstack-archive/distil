@@ -618,8 +618,8 @@ class Gauge(Artifact):
         # print totals
         return sum(totals)
 
-    def uptime(self, billable):
-        """Calculates uptime accurately for the given 'billable' states.
+    def uptime(self, tracked):
+        """Calculates uptime accurately for the given 'tracked' states.
         - Will ignore all other states.
         - Relies heavily on the existence of a state meter, and
           should only ever be called on the state meter.
@@ -650,7 +650,7 @@ class Gauge(Artifact):
             except TypeError:
                 pass
 
-            if val["counter_volume"] in billable:
+            if val["counter_volume"] in tracked:
                 difference = val["timestamp"] - last["timestamp"]
 
                 # TODO: rethink this:

@@ -86,9 +86,9 @@ class VM(BaseModelConstruct):
 
         # this NEEDS to be moved to a config file or
         # possibly be queried from Clerk?
-        billable = [1, 2, 3, 6, 7]
+        tracked = [1, 2, 3, 6, 7]
 
-        seconds = self.usage()['state'].uptime(billable)
+        seconds = self.usage()['state'].uptime(tracked)
 
         # in hours, rounded up:
         uptime = math.ceil((seconds / 60.0) / 60.0)
