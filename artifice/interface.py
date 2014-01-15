@@ -604,21 +604,23 @@ class Gauge(Artifact):
         # print totals
         return sum(totals)
 
-    def uptime(self):
+    def uptime(self, billable):
         """Calculates uptime accurately for the given 'billable' states.
-        Will ignore all other states.
-        - Relies heavily on the existence of a state meter."""
+        - Will ignore all other states.
+        - Relies heavily on the existence of a state meter, and
+          should only ever be called on the state meter.
 
-        # this NEEDS to be moved to a config file
-        billable = [1, 2, 3, 6, 7]
+        Returns: uptime in seconds"""
 
         usage = sorted(self.usage, key=lambda x: x["timestamp"])
 
         last = usage[0]
         try:
-            last["timestamp"] = datetime.datetime.strptime(last["timestamp"], date_format)
+            last["timestamp"] = datetime.datetime.strptime(last["timestamp"],
+                                                           date_format)
         except ValueError:
-            last["timestamp"] = datetime.datetime.strptime(last["timestamp"], other_date_format)
+            last["timestamp"] = datetime.datetime.strptime(last["timestamp"],
+                                                           other_date_format)
         except TypeError:
             pass
 
@@ -626,15 +628,28 @@ class Gauge(Artifact):
 
         for val in usage[1:]:
             try:
-                val["timestamp"] = datetime.datetime.strptime(val["timestamp"], date_format)
+                val["timestamp"] = datetime.datetime.strptime(val["timestamp"],
+                                                              date_format)
             except ValueError:
-                val["timestamp"] = datetime.datetime.strptime(val["timestamp"], other_date_format)
+                val["timestamp"] = datetime.datetime.strptime(val["timestamp"],
+                                                              other_date_format)
             except TypeError:
                 pass
 
             if val["counter_volume"] in billable:
                 difference = val["timestamp"] - last["timestamp"]
-                uptime = uptime + difference.seconds
+
+                # TODO:
+                # possibly might need to account for sudden jumps
+                # caused due to ceilometer down time:
+                if difference > datetime.timedelta(hours=1):
+                    # the timedelta should be the ceilometer interval.
+                    # do nothing if different greater than twice interval?
+                    # or just add interval length to uptime.
+                    pass
+                else:
+                    # otherwise just add difference.
+                    uptime = uptime + difference.seconds
             
             last = val
 

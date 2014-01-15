@@ -5,6 +5,7 @@ from sqlalchemy.orm import relationship, backref
 from decimal import *
 import math
 
+
 class Resource(Base):
 
     __tablename__ = "resources"
@@ -33,8 +34,8 @@ class BaseModelConstruct(object):
 
     def get(self, name):
         # Returns a given name value thing?
-        # Based on patterning, this is expected to be a dict of usage information
-        # based on a meter, I guess?
+        # Based on patterning, this is expected to be a dict of usage
+        # information based on a meter, I guess?
         return getattr(self, name)
 
     def _fetch_meter_name(self, name):
@@ -68,7 +69,8 @@ class VM(BaseModelConstruct):
     # The only relevant meters of interest are the type of the interest
     # and the amount of network we care about.
     # Oh, and floating IPs.
-    relevant_meters = ["state", "instance", "cpu", "instance:<type>", "network.incoming.bytes", "network.outgoing.bytes"]
+    relevant_meters = ["state", "instance", "cpu", "instance:<type>",
+                       "network.incoming.bytes", "network.outgoing.bytes"]
 
     def _fetch_meter_name(self, name):
         if name == "instance:<type>":
@@ -81,11 +83,16 @@ class VM(BaseModelConstruct):
 
     @property
     def amount(self):
-        seconds = self.usage()['state'].uptime()
+
+        # this NEEDS to be moved to a config file or
+        # possibly be queried from Clerk?
+        billable = [1, 2, 3, 6, 7]
+
+        seconds = self.usage()['state'].uptime(billable)
 
         # in hours, rounded up:
-        uptime = math.ceil((seconds/60.0)/60.0)
-        
+        uptime = math.ceil((seconds / 60.0) / 60.0)
+
         class Amount(object):
             def volume(self):
                 return Decimal(uptime)
@@ -99,10 +106,10 @@ class VM(BaseModelConstruct):
 
     @property
     def type(self):
-        # TODO FIgure out what the hell is going on with ceilometer here, 
-        # and why flavor.name isn't always there, and why sometimes instance_type
-        # is needed instead....
-        try:             
+        # TODO FIgure out what the hell is going on with ceilometer here,
+        # and why flavor.name isn't always there, and why
+        # sometimes instance_type is needed instead....
+        try:
             # print "\"flavor.name\" was used"
             return self._raw["metadata"]["flavor.name"]
         except KeyError:
@@ -139,19 +146,20 @@ class VM(BaseModelConstruct):
     def name(self):
         return self._raw["metadata"]["display_name"]
 
+
 class Object(BaseModelConstruct):
 
     relevant_meters = ["storage.objects.size"]
 
-    type = "object" # object storage
+    type = "object"  # object storage
 
     @property
     def size(self):
         # How much use this had.
-        return self._raw.meter("storage.objects.size", self.start, self.end).volume()
+        return self._raw.meter("storage.objects.size",
+                               self.start, self.end).volume()
         # Size is a gauge measured every 10 minutes.
         # So that needs to be compressed to 60-minute intervals
-
 
 
 class Volume(BaseModelConstruct):
@@ -166,6 +174,7 @@ class Volume(BaseModelConstruct):
     def size(self):
         # Size of the thing over time.
         return self._raw.meter("volume.size", self.start, self.end).volume()
+
 
 class Network(BaseModelConstruct):
     relevant_meters = ["ip.floating"]
