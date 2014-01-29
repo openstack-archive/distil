@@ -69,8 +69,9 @@ class VM(BaseModelConstruct):
     # The only relevant meters of interest are the type of the interest
     # and the amount of network we care about.
     # Oh, and floating IPs.
-    relevant_meters = ["state", "instance", "cpu", "instance:<type>",
-                       "network.incoming.bytes", "network.outgoing.bytes"]
+    relevant_meters = ["state"]
+
+    type = "vm"
 
     def _fetch_meter_name(self, name):
         if name == "instance:<type>":
@@ -79,10 +80,6 @@ class VM(BaseModelConstruct):
 
     @property
     def uptime(self):
-        return self.amount
-
-    @property
-    def amount(self):
 
         # this NEEDS to be moved to a config file or
         # possibly be queried from Clerk?
@@ -105,7 +102,7 @@ class VM(BaseModelConstruct):
         return Amount()
 
     @property
-    def type(self):
+    def flavor(self):
         # TODO FIgure out what the hell is going on with ceilometer here,
         # and why flavor.name isn't always there, and why
         # sometimes instance_type is needed instead....
@@ -133,18 +130,22 @@ class VM(BaseModelConstruct):
         return self._raw["metadata"]["state"]
 
     @property
-    def bandwidth(self):
-        # This is a metered value
-        return 0
-
-    @property
-    def ips(self):
-        """floating IPs; this is a metered value"""
-        return 0
-
-    @property
     def name(self):
         return self._raw["metadata"]["display_name"]
+
+
+class FloatingIP(BaseModelConstruct):
+
+    relevant_meters = ["ip.floating"]
+
+    type = "ip"  # object storage
+
+    @property
+    def duration(self):
+        # How much use this had.
+        return Decimal(self.usage()["ip.floating"].volume())
+        # Size is a gauge measured every 10 minutes.
+        # So that needs to be compressed to 60-minute intervals
 
 
 class Object(BaseModelConstruct):
@@ -156,8 +157,7 @@ class Object(BaseModelConstruct):
     @property
     def size(self):
         # How much use this had.
-        return self._raw.meter("storage.objects.size",
-                               self.start, self.end).volume()
+        return Decimal(self.usage()["storage.objects.size"].volume())
         # Size is a gauge measured every 10 minutes.
         # So that needs to be compressed to 60-minute intervals
 
@@ -166,15 +166,25 @@ class Volume(BaseModelConstruct):
 
     relevant_meters = ["volume.size"]
 
-    @property
-    def location(self):
-        return self._location
+    type = "volume"
 
     @property
     def size(self):
         # Size of the thing over time.
-        return self._raw.meter("volume.size", self.start, self.end).volume()
+        return Decimal(self.usage()["volume.size"].volume())
 
 
 class Network(BaseModelConstruct):
-    relevant_meters = ["ip.floating"]
+    relevant_meters = ["network.outgoing.bytes", "network.incoming.bytes"]
+
+    type = "network"
+
+    @property
+    def outgoing(self):
+        # Size of the thing over time.
+        return Decimal(self.usage()["network.outgoing.bytes"].volume())
+
+    @property
+    def incoming(self):
+        # Size of the thing over time.
+        return Decimal(self.usage()["network.incoming.bytes"].volume())

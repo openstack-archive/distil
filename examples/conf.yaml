@@ -12,12 +12,38 @@ invoice_object:
   output_file: '%(tenant)s-%(start)s-%(end)s.csv'
   output_path: ./
   row_layout:
-  - location
-  - type
-  - start
-  - end
-  - amount
-  - cost
+    vm:
+    - name
+    - id
+    - location
+    - flavor
+    - start
+    - end
+    - uptime
+    - rate
+    - cost
+    object:
+    - id
+    - size
+    - rate
+    - cost
+    volume:
+    - id
+    - size
+    - rate
+    - cost
+    network:
+    - id
+    - incoming
+    - outgoing
+    - incoming_rate
+    - outgoing_rate
+    - cost
+    ip:
+    - id
+    - duration
+    - rate
+    - cost
   rates: 
     file: /etc/artifice/csv_rates.csv
     names: /etc/artifice/csv_names.csv
