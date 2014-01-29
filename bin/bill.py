@@ -98,7 +98,8 @@ if __name__ == '__main__':
         usage.save()
         invoice.bill(usage.vms)
         invoice.bill(usage.volumes)
-        # invoice.bill(usage.objects)
+        invoice.bill(usage.objects)
+        invoice.bill(usage.networks)
         invoice.close()
 
         print invoice.total()

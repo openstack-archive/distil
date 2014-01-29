@@ -115,9 +115,16 @@ if __name__ == '__main__':
         # A Usage set is the entirety of time for this Tenant.
         # It's not time-limited at all.
 
+        print "# Virtual Machines #"
         invoice.bill(usage.vms)
+        print "# Volumes #"
         invoice.bill(usage.volumes)
-        # invoice.bill(usage.objects)
+        print "# Objects #"
+        invoice.bill(usage.objects)
+        print "# Networks #"
+        invoice.bill(usage.networks)
+        print "# Floating IPs #"
+        invoice.bill(usage.ips)
 
         print "Total invoice value: %s" % invoice.total()
         print format_title("End of Tenant: %s" % tenant.name, max_len)

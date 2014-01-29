@@ -257,32 +257,35 @@ class Tenant(object):
 
         vms = []
         networks = []
+        ips = []
         storage = []
         volumes = []
 
         # Object storage is mapped by project_id
 
         for resource in self.resources(start, end):
-            # print dir(resource)
             rels = [link["rel"] for link in resource.links if link["rel"] != 'self']
             if "storage.objects" in rels:
                 # Unknown how this data layout happens yet.
                 storage.append(Resource(resource, self.conn))
                 pass
-            elif "network" in rels:
+            elif "network.incoming.bytes" in rels:
                 # Have we seen the VM that owns this yet?
                 networks.append(Resource(resource, self.conn))
-            elif "volumne" in rels:
+            elif "volume" in rels:
                 volumes.append(Resource(resource, self.conn))
             elif 'instance' in rels:
                 vms.append(Resource(resource, self.conn))
+            elif 'ip.floating' in rels:
+                ips.append(Resource(resource, self.conn))
 
         datacenters = {}
         region_tmpl = {
             "vms": vms,
-            "network": networks,
+            "networks": networks,
             "objects": storage,
-            "volumes": volumes
+            "volumes": volumes,
+            "ips": ips
         }
 
         return Usage(region_tmpl, start, end, self.conn)
@@ -303,6 +306,8 @@ class Usage(object):
         self._vms = []
         self._objects = []
         self._volumes = []
+        self._networks = []
+        self._ips = []
 
         # Replaces all the internal references with better references to
         # actual metered values.
@@ -330,6 +335,26 @@ class Usage(object):
                 objs.append(obj)
             self._objs = objs
         return self._objs
+
+    @property
+    def networks(self):
+        if not self._networks:
+            networks = []
+            for obj in self.contents["networks"]:
+                obj = resources.Network(obj, self.start, self.end)
+                networks.append(obj)
+            self._networks = networks
+        return self._networks
+    
+    @property
+    def ips(self):
+        if not self._ips:
+            ips = []
+            for obj in self.contents["ips"]:
+                obj = resources.FloatingIP(obj, self.start, self.end)
+                ips.append(obj)
+            self._ips = ips
+        return self._ips
 
     @property
     def volumes(self):
@@ -551,7 +576,7 @@ class Cumulative(Artifact):
     def volume(self):
         measurements = self.usage
         measurements = sorted(measurements, key=lambda x: x["timestamp"])
-        count = 1
+        count = 0
         usage = 0
         last_measure = None
         for measure in measurements:
@@ -563,13 +588,15 @@ class Cumulative(Artifact):
 
         usage = usage + measurements[-1]["counter_volume"]
 
-        total_usage = usage - measurements[0]["counter_volume"]
+        if count > 1:
+            total_usage = usage - measurements[0]["counter_volume"]
         return total_usage
 
 
 # Gauge and Delta have very little to do: They are expected only to
 # exist as "not a cumulative" sort of artifact.
 class Gauge(Artifact):
+
     def volume(self):
         """
         Default billable number for this volume
@@ -607,6 +634,12 @@ class Gauge(Artifact):
             else:
                 curr.append(val)
 
+        # this adds the last remaining values as a block of their own on exit
+        # might mean people are billed twice for an hour at times...
+        # but solves the issue of not billing if there isn't enough data for
+        # full hour.
+        blocks.append(curr)
+
         # We are now sorted into 1-hour blocks
         totals = []
         for block in blocks:
@@ -615,7 +648,6 @@ class Gauge(Artifact):
 
         # totals = [max(x, key=lambda val: val["counter_volume"] ) for x in blocks]
         # totals is now an array of max values per hour for a given month.
-        # print totals
         return sum(totals)
 
     def uptime(self, tracked):
@@ -660,6 +692,7 @@ class Gauge(Artifact):
                     # the timedelta should be the ceilometer interval.
                     # do nothing if different greater than twice interval?
                     # or just add interval length to uptime.
+                    # FLAGS! logs these events so sys ops can doulbe check them
                     pass
                 else:
                     # otherwise just add difference.

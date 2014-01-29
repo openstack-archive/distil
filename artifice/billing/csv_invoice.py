@@ -32,44 +32,95 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
         # Usage is one of VMs, Storage, or Volumes.
         for element in usage:
             appendee = []
-            for key in self.config["row_layout"]:
-                if key == "cost":
-                    # Ignore costs for now.
-                    appendee.append(None)
-                    continue
-                # What do we expect element to be?
-                if key == "rate":
-                    appendee.append(self.rate(self.pretty_name(element.type)))
-                if key == "type":
-                    # Fetch the 'pretty' name from the mappings, if any
-                    # The default is that this returns the internal name
-                    appendee.append(self.pretty_name(element.get(key)))
-                    continue
+            for key in self.config["row_layout"][element.type]:
+                if element.type is "vm":
+                    if key == "flavor":
+                        appendee.append(element.get(key))
+                        continue
+                    if key == "cost":
+                        cost = (element.uptime.volume() *
+                                self.rate(element.flavor))
+                        appendee.append(cost)
+                        print ("flavor: " + element.get("flavor"))
+                        print " - name : " + str(element.get("name"))
+                        print "   - usage: " + str(element.uptime.volume())
+                        print ("   - rate: " +
+                               str(self.rate(element.flavor)))
+                        print " - cost: " + str(cost)
+                        continue
+                    if key == "rate":
+                        appendee.append(self.rate(element.flavor))
+                        continue
+
+                if element.type is "ip":
+                    if key == "cost":
+                        cost = element.duration * self.rate("ip.floating")
+                        appendee.append(cost)
+                        print "id: "
+                        print " - usage: " + str(element.duration)
+                        print ("   - rate: " +
+                               str(self.rate("ip.floating")))
+                        print " - cost: " + str(cost)
+                        continue
+                    if key == "rate":
+                        appendee.append(self.rate("ip.floating"))
+                        continue
+
+                if element.type is "object":
+                    if key == "cost":
+                        cost = element.size * self.rate("storage.objects.size")
+                        appendee.append(cost)
+                        print "id:"
+                        print " - usage: " + str(element.size)
+                        print ("   - rate: " +
+                               str(self.rate("storage.objects.size")))
+                        print " - cost: " + str(cost)
+                        continue
+                    if key == "rate":
+                        appendee.append(self.rate("storage.objects.size"))
+                        continue
+
+                if element.type is "volume":
+                    if key == "cost":
+                        cost = element.size * self.rate("volume.size")
+                        appendee.append(cost)
+                        print "id:"
+                        print " - usage: " + str(element.size)
+                        print ("   - rate: " +
+                               str(self.rate("volume.size")))
+                        print " - cost: " + str(cost)
+                        continue
+                    if key == "rate":
+                        appendee.append(self.rate("volume.size"))
+                        continue
+
+                if element.type is "network":
+                    if key == "cost":
+                        cost_in = (element.incoming *
+                                   self.rate("network.outgoing.bytes"))
+                        cost_out = (element.outgoing *
+                                    self.rate("network.outgoing.bytes"))
+                        print "id:"
+                        print " - incoming: " + str(element.incoming)
+                        print ("   - rate: " +
+                               str(self.rate("network.incoming.bytes")))
+                        print " - outgoing: " + str(element.outgoing)
+                        print ("   - rate: " +
+                               str(self.rate("network.outgoing.bytes")))
+                        print " - cost: " + str(cost_in + cost_out)
+                        appendee.append(cost_in + cost_out)
+                        continue
+                    if key == "incoming_rate":
+                        appendee.append(self.rate("network.incoming.bytes"))
+                        continue
+                    if key == "outgoing_rate":
+                        appendee.append(self.rate("network.outgoing.bytes"))
+                        continue
+
                 try:
                     appendee.append(element.get(key))
                 except AttributeError:
                     appendee.append("")
-            try:
-                x = self.config["row_layout"].index("cost")
-                appendee[x] = (element.amount.volume() *
-                               self.rate(self.pretty_name(element.type)))
-                # print (str(appendee[1]) + " - From: " + str(appendee[2]) +
-                #        ", Until: " + str(appendee[3]))
-                print ("type: " + str(self.pretty_name(element.get("type"))))
-                try:
-                    print " - name : " + str(element.get("name"))
-                except:
-                    # Just means it isn't a VM
-                    pass
-                print "   - usage: " + str(element.amount.volume())
-                print ("   - rate: " +
-                       str(self.rate(self.pretty_name(element.type))))
-                print " - cost: " + str(appendee[x])
-
-            except ValueError:
-                # Not in this array. Well okay.
-                # We're not storing cost info, apparently.
-                raise RuntimeError("No costing information in CSV layout.")
 
             # print appendee
             self.add_line(appendee)
@@ -103,7 +154,7 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
         csvwriter.writerow(["usage range: ", str(self.start), str(self.end)])
         csvwriter.writerow([])
 
-        csvwriter.writerow(self.config["row_layout"])
+        # csvwriter.writerow(self.config["row_layout"])
         for line in self.lines:
             # Line is expected to be an iterable row
             csvwriter.writerow(line)
@@ -120,11 +171,8 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
     def total(self):
         total = Decimal(0.0)
         for line in self.lines:
-            # Cheatery
-            # Creates a dict on the fly from the row layout and the line value
-            v = dict([(k, v) for k, v in zip(self.config["row_layout"], line)])
             try:
-                total += Decimal(v["cost"])
+                total += line[len(line) - 1]
             except (TypeError, ValueError):
                 total += 0
         return total
