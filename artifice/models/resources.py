@@ -71,12 +71,18 @@ class VM(BaseModelConstruct):
     # Oh, and floating IPs.
     relevant_meters = ["state"]
 
-    type = "vm"
+    usage_strategies = {"uptime": {"usage": "uptime", "rate": "flavor"}}
+
+    type = "virtual_machine"
 
     def _fetch_meter_name(self, name):
         if name == "instance:<type>":
             return "instance:%s" % self.type
         return name
+
+    @property
+    def id(self):
+        return self._raw.resource.resource_id
 
     @property
     def uptime(self):
@@ -90,16 +96,7 @@ class VM(BaseModelConstruct):
         # in hours, rounded up:
         uptime = math.ceil((seconds / 60.0) / 60.0)
 
-        class Amount(object):
-            def volume(self):
-                return Decimal(uptime)
-
-            def __str__(self):
-                return str(uptime) + " hr"
-
-            def __repr__(self):
-                return str(self)
-        return Amount()
+        return Decimal(uptime)
 
     @property
     def flavor(self):
@@ -112,10 +109,6 @@ class VM(BaseModelConstruct):
         except KeyError:
             # print "\"instance_type\" was used"
             return self._raw["metadata"]["instance_type"]
-
-    @property
-    def size(self):
-        return self.type
 
     @property
     def memory(self):
@@ -138,7 +131,13 @@ class FloatingIP(BaseModelConstruct):
 
     relevant_meters = ["ip.floating"]
 
-    type = "ip"  # object storage
+    usage_strategies = {"duration": {"usage": "duration", "rate": "type"}}
+
+    type = "floating_ip"  # object storage
+
+    @property
+    def id(self):
+        return self._raw.resource.resource_id
 
     @property
     def duration(self):
@@ -152,7 +151,13 @@ class Object(BaseModelConstruct):
 
     relevant_meters = ["storage.objects.size"]
 
+    usage_strategies = {"size": {"usage": "size", "rate": "object_size"}}
+
     type = "object"  # object storage
+
+    @property
+    def id(self):
+        return self._raw.resource.resource_id
 
     @property
     def size(self):
@@ -166,7 +171,13 @@ class Volume(BaseModelConstruct):
 
     relevant_meters = ["volume.size"]
 
+    usage_strategies = {"size": {"usage": "size", "rate": "volume_size"}}
+
     type = "volume"
+
+    @property
+    def id(self):
+        return self._raw.resource.resource_id
 
     @property
     def size(self):
@@ -177,7 +188,14 @@ class Volume(BaseModelConstruct):
 class Network(BaseModelConstruct):
     relevant_meters = ["network.outgoing.bytes", "network.incoming.bytes"]
 
+    usage_strategies = {"outgoing": {"usage": "outgoing", "rate": "outgoing_bytes"},
+                        "incoming": {"usage": "incoming", "rate": "incoming_bytes"}}
+
     type = "network"
+
+    @property
+    def id(self):
+        return self._raw.resource.resource_id
 
     @property
     def outgoing(self):

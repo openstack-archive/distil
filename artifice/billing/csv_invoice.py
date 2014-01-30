@@ -10,124 +10,51 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
     def __init__(self, tenant, start, end, config):
         self.config = config
         self.tenant = tenant
-        self.lines = []
+        self.lines = {}
         self.closed = False
         self.start = start
         self.end = end
-        # This has been moved to the mixin
-        # try:
-        #     fh = open(config["rates"][ "file" ])
-        #     self.costs = yaml.load( fh.read() )
-        #     fh.close()
-        # except IOError:
-        #     # That's problem
-        #     print "couldn't load %s" % config["rates_file"]
-        #     raise
-        # except KeyError:
-        #     # Couldn't find it!
-        #     print "Missing rates_file in config!"
-        #     raise
 
     def bill(self, usage):
         # Usage is one of VMs, Storage, or Volumes.
         for element in usage:
             appendee = []
-            for key in self.config["row_layout"][element.type]:
-                if element.type is "vm":
-                    if key == "flavor":
-                        appendee.append(element.get(key))
-                        continue
-                    if key == "cost":
-                        cost = (element.uptime.volume() *
-                                self.rate(element.flavor))
-                        appendee.append(cost)
-                        print ("flavor: " + element.get("flavor"))
-                        print " - name : " + str(element.get("name"))
-                        print "   - usage: " + str(element.uptime.volume())
-                        print ("   - rate: " +
-                               str(self.rate(element.flavor)))
-                        print " - cost: " + str(cost)
-                        continue
-                    if key == "rate":
-                        appendee.append(self.rate(element.flavor))
-                        continue
+            print " * " + element.type
 
-                if element.type is "ip":
-                    if key == "cost":
-                        cost = element.duration * self.rate("ip.floating")
-                        appendee.append(cost)
-                        print "id: "
-                        print " - usage: " + str(element.duration)
-                        print ("   - rate: " +
-                               str(self.rate("ip.floating")))
-                        print " - cost: " + str(cost)
-                        continue
-                    if key == "rate":
-                        appendee.append(self.rate("ip.floating"))
-                        continue
-
-                if element.type is "object":
-                    if key == "cost":
-                        cost = element.size * self.rate("storage.objects.size")
-                        appendee.append(cost)
-                        print "id:"
-                        print " - usage: " + str(element.size)
-                        print ("   - rate: " +
-                               str(self.rate("storage.objects.size")))
-                        print " - cost: " + str(cost)
-                        continue
-                    if key == "rate":
-                        appendee.append(self.rate("storage.objects.size"))
-                        continue
-
-                if element.type is "volume":
-                    if key == "cost":
-                        cost = element.size * self.rate("volume.size")
-                        appendee.append(cost)
-                        print "id:"
-                        print " - usage: " + str(element.size)
-                        print ("   - rate: " +
-                               str(self.rate("volume.size")))
-                        print " - cost: " + str(cost)
-                        continue
-                    if key == "rate":
-                        appendee.append(self.rate("volume.size"))
-                        continue
-
-                if element.type is "network":
-                    if key == "cost":
-                        cost_in = (element.incoming *
-                                   self.rate("network.outgoing.bytes"))
-                        cost_out = (element.outgoing *
-                                    self.rate("network.outgoing.bytes"))
-                        print "id:"
-                        print " - incoming: " + str(element.incoming)
-                        print ("   - rate: " +
-                               str(self.rate("network.incoming.bytes")))
-                        print " - outgoing: " + str(element.outgoing)
-                        print ("   - rate: " +
-                               str(self.rate("network.outgoing.bytes")))
-                        print " - cost: " + str(cost_in + cost_out)
-                        appendee.append(cost_in + cost_out)
-                        continue
-                    if key == "incoming_rate":
-                        appendee.append(self.rate("network.incoming.bytes"))
-                        continue
-                    if key == "outgoing_rate":
-                        appendee.append(self.rate("network.outgoing.bytes"))
-                        continue
-
+            for field in self.config["models"][element.type]["info_fields"]:
                 try:
-                    appendee.append(element.get(key))
+                    value = element.get(field)
+                    print "   - " + field + ": " + str(value)
+                    appendee.append(value)
                 except AttributeError:
                     appendee.append("")
 
-            # print appendee
-            self.add_line(appendee)
+            cost = Decimal(0.0)
+            for key in self.config["models"][element.type]["strategies"]:
+                strategy = element.usage_strategies[key]
+                usage = element.get(strategy['usage'])
+                try:
+                    rate = self.rate(element.get(strategy['rate']))
+                except AttributeError:
+                    rate = self.rate(strategy['rate'])
+                cost += usage * rate
+                appendee.append(usage)
+                appendee.append(rate)
+                print "   - " + key + ": " + str(usage)
+                print "     - rate: " + str(rate)
+            appendee.append(cost)
+            print "   - cost: " + str(cost)
 
-    def add_line(self, line):
+            # print appendee
+            self.add_line(element.type, appendee)
+
+    def add_line(self, el_type, line):
         if not self.closed:
-            return self.lines.append(line)
+            try:
+                self.lines[el_type].append(line)
+            except KeyError:
+                self.lines[el_type] = [line]
+            return
         raise AttributeError("Can't add to a closed invoice")
 
     @property
@@ -154,25 +81,36 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
         csvwriter.writerow(["usage range: ", str(self.start), str(self.end)])
         csvwriter.writerow([])
 
-        # csvwriter.writerow(self.config["row_layout"])
-        for line in self.lines:
-            # Line is expected to be an iterable row
-            csvwriter.writerow(line)
+        for key in self.lines:
+            csvwriter.writerow([key + ":"])
+            csvwriter.writerow(self.build_headers(key))
+            for line in self.lines[key]:
+                csvwriter.writerow(line)
+            csvwriter.writerow([])
 
         # write a blank line
         csvwriter.writerow([])
         # write total
-        total = ["total: ", self.total()]
-        csvwriter.writerow(total)
+        csvwriter.writerow(["total cost: ", self.total()])
 
         fh.close()
         self.closed = True
 
+    def build_headers(self, el_type):
+        headers = list(self.config["models"][el_type]["info_fields"])
+        for strat in self.config["models"][el_type]["strategies"]:
+            headers.append(strat)
+            headers.append(strat + " rate")
+        headers.append("cost")
+        return headers
+
     def total(self):
         total = Decimal(0.0)
-        for line in self.lines:
-            try:
-                total += line[len(line) - 1]
-            except (TypeError, ValueError):
-                total += 0
+        for key in self.lines:
+            for line in self.lines[key]:
+                try:
+                    # cost will always be the final value in the line.
+                    total += Decimal(line[len(line) - 1])
+                except (TypeError, ValueError):
+                    total += 0
         return total

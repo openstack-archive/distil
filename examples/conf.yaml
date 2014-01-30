@@ -11,39 +11,36 @@ invoice_object:
   delimiter: ','
   output_file: '%(tenant)s-%(start)s-%(end)s.csv'
   output_path: ./
-  row_layout:
-    vm:
-    - name
-    - id
-    - location
-    - flavor
-    - start
-    - end
-    - uptime
-    - rate
-    - cost
+  models:
+    virtual_machine:
+      info_fields:
+        - name
+        - id 
+        - location
+        - flavor
+      strategies:
+        - uptime
     object:
-    - id
-    - size
-    - rate
-    - cost
+      info_fields:
+        - id
+      strategies:
+        - size
     volume:
-    - id
-    - size
-    - rate
-    - cost
+      info_fields:
+        - id
+      strategies:
+        - size
     network:
-    - id
-    - incoming
-    - outgoing
-    - incoming_rate
-    - outgoing_rate
-    - cost
-    ip:
-    - id
-    - duration
-    - rate
-    - cost
+      info_fields:
+        - id
+      strategies:
+        - incoming
+        - outgoing
+    floating_ip:
+      info_fields:
+        - id
+      strategies:
+        - duration
   rates: 
     file: /etc/artifice/csv_rates.csv
     names: /etc/artifice/csv_names.csv
