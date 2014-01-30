@@ -21,6 +21,48 @@ class TSRange(TSRANGE):
         # return "'%s::tsrange'" % bindvalue
 
 
+class Billed(Base):
+
+    """
+    Stores a fully-qualified billable entry. 
+    Is expected to cover a full date range (a month), store the volume
+    of use for a given resource, the rate it's billed at, and the total billable
+    value.
+    Uses postgres' TSRange to assert that there are no overlapping regions in the
+    billable range.
+    """
+    
+    __tablename__ = 'billable'
+
+    id_ = Column(Integer, Sequence('billable_id_seq'), primary_key=True)
+    resource_id = Column(String)
+    tenant_id = Column(String)
+
+    volume = Column(String, nullable=False)
+    time = Column(TSRange, nullable=False)
+    created = Column(types.DateTime, nullable=False)
+    rate = Column(types.Numeric, nullable=False)
+    total = Column(Types.Numeric, nullable=False)
+
+    __table_args__ = (
+        ExcludeConstraint(
+            ('tenant_id', '='),
+            ('resource_id', '='),
+            ('time', '&&')
+        ),
+        ForeignKeyConstraint(
+            ["resource_id", "tenant_id"],
+            ["resources.id", "resources.tenant_id"],
+            name="fk_resource", use_alter=True
+        ),
+    )
+
+    resource = relationship(Resource,
+                            primaryjoin=(resource_id == Resource.id))
+    tenant = relationship(Resource,
+                          primaryjoin=(tenant_id == Resource.tenant_id)) 
+
+
 class Usage(Base):
 
     __tablename__ = 'usage'

@@ -506,7 +506,7 @@ class Artifact(object):
     def __init__(self, resource, usage, start, end):
 
         self.resource = resource
-        self.usage = usage
+        self.usage = usage # Raw meter data from Ceilometer
         self.start = start
         self.end = end
 
