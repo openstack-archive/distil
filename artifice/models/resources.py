@@ -65,6 +65,11 @@ class BaseModelConstruct(object):
                 pass
 
 
+def to_megabytes(bytes):
+    # function to make code easier to understand elsewhere.
+    return bytes / 1000
+
+
 class VM(BaseModelConstruct):
     # The only relevant meters of interest are the type of the interest
     # and the amount of network we care about.
@@ -162,7 +167,7 @@ class Object(BaseModelConstruct):
     @property
     def size(self):
         # How much use this had.
-        return Decimal(self.usage()["storage.objects.size"].volume())
+        return Decimal(to_megabytes(self.usage()["storage.objects.size"].volume()))
         # Size is a gauge measured every 10 minutes.
         # So that needs to be compressed to 60-minute intervals
 
@@ -182,7 +187,7 @@ class Volume(BaseModelConstruct):
     @property
     def size(self):
         # Size of the thing over time.
-        return Decimal(self.usage()["volume.size"].volume())
+        return Decimal(to_megabytes(self.usage()["volume.size"].volume()))
 
 
 class Network(BaseModelConstruct):
@@ -200,9 +205,9 @@ class Network(BaseModelConstruct):
     @property
     def outgoing(self):
         # Size of the thing over time.
-        return Decimal(self.usage()["network.outgoing.bytes"].volume())
+        return Decimal(to_megabytes(self.usage()["network.outgoing.bytes"].volume()))
 
     @property
     def incoming(self):
         # Size of the thing over time.
-        return Decimal(self.usage()["network.incoming.bytes"].volume())
+        return Decimal(to_megabytes(self.usage()["network.incoming.bytes"].volume()))
