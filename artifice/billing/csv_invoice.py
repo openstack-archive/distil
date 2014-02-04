@@ -34,9 +34,9 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
                 strategy = element.usage_strategies[key]
                 usage = element.get(strategy['usage'])
                 try:
-                    rate = self.rate(element.get(strategy['rate']))
+                    rate = self.rate(element.get(strategy['service']))
                 except AttributeError:
-                    rate = self.rate(strategy['rate'])
+                    rate = self.rate(strategy['service'])
                 cost += usage * rate
                 appendee.append(usage)
                 appendee.append(rate)

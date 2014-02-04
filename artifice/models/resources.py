@@ -1,5 +1,5 @@
 from . import Base
-from sqlalchemy import Column, String, types, schema, ForeignKey
+from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.orm import relationship, backref
 # from .tenants import Tenant
 from decimal import *
@@ -26,8 +26,12 @@ class BaseModelConstruct(object):
         self.end = end
 
     @property
-    def amount(self):
-        return self.size
+    def resource_id(self):
+        return self._raw.resource.resource_id
+
+    @property
+    def tenant_id(self):
+        return self._raw.resource.project_id
 
     def __getitem__(self, item):
         return self._raw[item]
@@ -38,13 +42,9 @@ class BaseModelConstruct(object):
         # information based on a meter, I guess?
         return getattr(self, name)
 
-    def _fetch_meter_name(self, name):
-        return name
-
     def usage(self):
         dct = {}
         for meter in self.relevant_meters:
-            meter = self._fetch_meter_name(meter)
             try:
                 vol = self._raw.meter(meter, self.start, self.end).volume()
                 dct[meter] = vol
@@ -56,7 +56,6 @@ class BaseModelConstruct(object):
 
     def save(self):
         for meter in self.relevant_meters:
-            meter = self._fetch_meter_name(meter)
             try:
                 self._raw.meter(meter, self.start, self.end).save()
             except AttributeError:
@@ -65,7 +64,7 @@ class BaseModelConstruct(object):
                 pass
 
 
-def to_megabytes(bytes):
+def to_mb(bytes):
     # function to make code easier to understand elsewhere.
     return bytes / 1000
 
@@ -76,18 +75,9 @@ class VM(BaseModelConstruct):
     # Oh, and floating IPs.
     relevant_meters = ["state"]
 
-    usage_strategies = {"uptime": {"usage": "uptime", "rate": "flavor"}}
+    usage_strategies = {"uptime": {"usage": "uptime", "service": "flavor"}}
 
     type = "virtual_machine"
-
-    def _fetch_meter_name(self, name):
-        if name == "instance:<type>":
-            return "instance:%s" % self.type
-        return name
-
-    @property
-    def id(self):
-        return self._raw.resource.resource_id
 
     @property
     def uptime(self):
@@ -131,18 +121,18 @@ class VM(BaseModelConstruct):
     def name(self):
         return self._raw["metadata"]["display_name"]
 
+    @property
+    def region(self):
+        return self._raw["metadata"]["OS-EXT-AZ:availability_zone"]
+
 
 class FloatingIP(BaseModelConstruct):
 
     relevant_meters = ["ip.floating"]
 
-    usage_strategies = {"duration": {"usage": "duration", "rate": "type"}}
+    usage_strategies = {"duration": {"usage": "duration", "service": "type"}}
 
     type = "floating_ip"  # object storage
-
-    @property
-    def id(self):
-        return self._raw.resource.resource_id
 
     @property
     def duration(self):
@@ -156,18 +146,14 @@ class Object(BaseModelConstruct):
 
     relevant_meters = ["storage.objects.size"]
 
-    usage_strategies = {"size": {"usage": "size", "rate": "object_size"}}
+    usage_strategies = {"size": {"usage": "size", "service": "object_size"}}
 
     type = "object"  # object storage
 
     @property
-    def id(self):
-        return self._raw.resource.resource_id
-
-    @property
     def size(self):
         # How much use this had.
-        return Decimal(to_megabytes(self.usage()["storage.objects.size"].volume()))
+        return Decimal(to_mb(self.usage()["storage.objects.size"].volume()))
         # Size is a gauge measured every 10 minutes.
         # So that needs to be compressed to 60-minute intervals
 
@@ -176,38 +162,32 @@ class Volume(BaseModelConstruct):
 
     relevant_meters = ["volume.size"]
 
-    usage_strategies = {"size": {"usage": "size", "rate": "volume_size"}}
+    usage_strategies = {"size": {"usage": "size", "service": "volume_size"}}
 
     type = "volume"
 
     @property
-    def id(self):
-        return self._raw.resource.resource_id
-
-    @property
     def size(self):
         # Size of the thing over time.
-        return Decimal(to_megabytes(self.usage()["volume.size"].volume()))
+        return Decimal(to_mb(self.usage()["volume.size"].volume()))
 
 
 class Network(BaseModelConstruct):
     relevant_meters = ["network.outgoing.bytes", "network.incoming.bytes"]
 
-    usage_strategies = {"outgoing": {"usage": "outgoing", "rate": "outgoing_bytes"},
-                        "incoming": {"usage": "incoming", "rate": "incoming_bytes"}}
+    usage_strategies = {"outgoing": {"usage": "outgoing",
+                                     "service": "outgoing_bytes"},
+                        "incoming": {"usage": "incoming",
+                                     "service": "incoming_bytes"}}
 
     type = "network"
 
     @property
-    def id(self):
-        return self._raw.resource.resource_id
-
-    @property
     def outgoing(self):
         # Size of the thing over time.
-        return Decimal(to_megabytes(self.usage()["network.outgoing.bytes"].volume()))
+        return Decimal(to_mb(self.usage()["network.outgoing.bytes"].volume()))
 
     @property
     def incoming(self):
         # Size of the thing over time.
-        return Decimal(to_megabytes(self.usage()["network.incoming.bytes"].volume()))
+        return Decimal(to_mb(self.usage()["network.incoming.bytes"].volume()))

@@ -15,30 +15,29 @@ invoice_object:
     virtual_machine:
       info_fields:
         - name
-        - id 
-        - location
+        - resource_id
         - flavor
       strategies:
         - uptime
     object:
       info_fields:
-        - id
+        - resource_id
       strategies:
         - size
     volume:
       info_fields:
-        - id
+        - resource_id
       strategies:
         - size
     network:
       info_fields:
-        - id
+        - resource_id
       strategies:
         - incoming
         - outgoing
     floating_ip:
       info_fields:
-        - id
+        - resource_id
       strategies:
         - duration
   rates: 
