@@ -1,19 +1,5 @@
-from . import Base
-from sqlalchemy import Column, String, ForeignKey
-from sqlalchemy.orm import relationship, backref
-# from .tenants import Tenant
 from decimal import *
 import math
-
-
-class Resource(Base):
-
-    __tablename__ = "resources"
-
-    id = Column(String, primary_key=True)
-    type_ = Column(String)
-    tenant_id = Column(String, ForeignKey("tenants.id"), primary_key=True)
-    tenant = relationship("Tenant", backref=backref("tenants"))
 
 
 class BaseModelConstruct(object):
