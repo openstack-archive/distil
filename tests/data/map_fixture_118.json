@@ -1,0 +1,270 @@
+{
+ "http://localhost:8777/v2/meters/network.outgoing.packets?q.field=resource_id&q.value=nova-instance-instance-00000004-fa163e99f87f": [
+  {
+   "counter_name": "network.outgoing.packets", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+   "timestamp": "2014-02-11T03:35:46", 
+   "message_id": "97b851dc-92cd-11e3-853e-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "packet", 
+   "counter_volume": 145.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+    "instance_type": "84", 
+    "mac": "fa:16:3e:99:f8:7f", 
+    "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+    "name": "tap25b2490c-34"
+   }, 
+   "counter_type": "cumulative"
+  }, 
+  {
+   "counter_name": "network.outgoing.packets", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+   "timestamp": "2014-02-11T03:34:46", 
+   "message_id": "73fbbce8-92cd-11e3-853e-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "packet", 
+   "counter_volume": 144.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+    "instance_type": "84", 
+    "mac": "fa:16:3e:99:f8:7f", 
+    "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+    "name": "tap25b2490c-34"
+   }, 
+   "counter_type": "cumulative"
+  }, 
+  {
+   "counter_name": "network.outgoing.packets", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+   "timestamp": "2014-02-11T03:33:46", 
+   "message_id": "504cf118-92cd-11e3-853e-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "packet", 
+   "counter_volume": 144.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+    "instance_type": "84", 
+    "mac": "fa:16:3e:99:f8:7f", 
+    "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+    "name": "tap25b2490c-34"
+   }, 
+   "counter_type": "cumulative"
+  }, 
+  {
+   "counter_name": "network.outgoing.packets", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+   "timestamp": "2014-02-11T03:32:46", 
+   "message_id": "2c5a6f60-92cd-11e3-853e-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "packet", 
+   "counter_volume": 143.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+    "instance_type": "84", 
+    "mac": "fa:16:3e:99:f8:7f", 
+    "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+    "name": "tap25b2490c-34"
+   }, 
+   "counter_type": "cumulative"
+  }, 
+  {
+   "counter_name": "network.outgoing.packets", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+   "timestamp": "2014-02-11T03:31:46", 
+   "message_id": "08982d74-92cd-11e3-853e-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "packet", 
+   "counter_volume": 143.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+    "instance_type": "84", 
+    "mac": "fa:16:3e:99:f8:7f", 
+    "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+    "name": "tap25b2490c-34"
+   }, 
+   "counter_type": "cumulative"
+  }, 
+  {
+   "counter_name": "network.outgoing.packets", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+   "timestamp": "2014-02-11T03:30:45", 
+   "message_id": "e4b56cf0-92cc-11e3-853e-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "packet", 
+   "counter_volume": 142.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+    "instance_type": "84", 
+    "mac": "fa:16:3e:99:f8:7f", 
+    "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+    "name": "tap25b2490c-34"
+   }, 
+   "counter_type": "cumulative"
+  }, 
+  {
+   "counter_name": "network.outgoing.packets", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+   "timestamp": "2014-02-11T03:29:45", 
+   "message_id": "c0fae1d2-92cc-11e3-853e-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "packet", 
+   "counter_volume": 142.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+    "instance_type": "84", 
+    "mac": "fa:16:3e:99:f8:7f", 
+    "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+    "name": "tap25b2490c-34"
+   }, 
+   "counter_type": "cumulative"
+  }, 
+  {
+   "counter_name": "network.outgoing.packets", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+   "timestamp": "2014-02-11T03:28:46", 
+   "message_id": "9d49936e-92cc-11e3-853e-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "packet", 
+   "counter_volume": 142.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+    "instance_type": "84", 
+    "mac": "fa:16:3e:99:f8:7f", 
+    "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+    "name": "tap25b2490c-34"
+   }, 
+   "counter_type": "cumulative"
+  }, 
+  {
+   "counter_name": "network.outgoing.packets", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+   "timestamp": "2014-02-11T03:27:46", 
+   "message_id": "799fcf8c-92cc-11e3-853e-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "packet", 
+   "counter_volume": 141.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+    "instance_type": "84", 
+    "mac": "fa:16:3e:99:f8:7f", 
+    "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+    "name": "tap25b2490c-34"
+   }, 
+   "counter_type": "cumulative"
+  }, 
+  {
+   "counter_name": "network.outgoing.packets", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+   "timestamp": "2014-02-11T03:26:45", 
+   "message_id": "55842a08-92cc-11e3-853e-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "packet", 
+   "counter_volume": 141.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+    "instance_type": "84", 
+    "mac": "fa:16:3e:99:f8:7f", 
+    "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+    "name": "tap25b2490c-34"
+   }, 
+   "counter_type": "cumulative"
+  }, 
+  {
+   "counter_name": "network.outgoing.packets", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+   "timestamp": "2014-02-11T03:25:45", 
+   "message_id": "31b9b6c4-92cc-11e3-853e-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "packet", 
+   "counter_volume": 140.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+    "instance_type": "84", 
+    "mac": "fa:16:3e:99:f8:7f", 
+    "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+    "name": "tap25b2490c-34"
+   }, 
+   "counter_type": "cumulative"
+  }, 
+  {
+   "counter_name": "network.outgoing.packets", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+   "timestamp": "2014-02-11T03:24:45", 
+   "message_id": "0e01b128-92cc-11e3-853e-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "packet", 
+   "counter_volume": 140.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+    "instance_type": "84", 
+    "mac": "fa:16:3e:99:f8:7f", 
+    "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+    "name": "tap25b2490c-34"
+   }, 
+   "counter_type": "cumulative"
+  }, 
+  {
+   "counter_name": "network.outgoing.packets", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+   "timestamp": "2014-02-11T03:23:45", 
+   "message_id": "ea516dd6-92cb-11e3-853e-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "packet", 
+   "counter_volume": 139.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+    "instance_type": "84", 
+    "mac": "fa:16:3e:99:f8:7f", 
+    "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+    "name": "tap25b2490c-34"
+   }, 
+   "counter_type": "cumulative"
+  }, 
+  {
+   "counter_name": "network.outgoing.packets", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+   "timestamp": "2014-02-11T03:22:47", 
+   "message_id": "c7cd17e2-92cb-11e3-853e-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "packet", 
+   "counter_volume": 55.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+    "instance_type": "84", 
+    "mac": "fa:16:3e:99:f8:7f", 
+    "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+    "name": "tap25b2490c-34"
+   }, 
+   "counter_type": "cumulative"
+  }
+ ]
+}

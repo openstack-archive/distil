@@ -1,0 +1,38 @@
+{
+ "http://localhost:8777/v2/resources/nova-instance-instance-00000004-fa163e99f87f": {
+  "user_id": "17436482eed94689874219299ea82bc0", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/nova-instance-instance-00000004-fa163e99f87f", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.incoming.bytes?q.field=resource_id&q.value=nova-instance-instance-00000004-fa163e99f87f", 
+    "rel": "network.incoming.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.incoming.packets?q.field=resource_id&q.value=nova-instance-instance-00000004-fa163e99f87f", 
+    "rel": "network.incoming.packets"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.outgoing.bytes?q.field=resource_id&q.value=nova-instance-instance-00000004-fa163e99f87f", 
+    "rel": "network.outgoing.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.outgoing.packets?q.field=resource_id&q.value=nova-instance-instance-00000004-fa163e99f87f", 
+    "rel": "network.outgoing.packets"
+   }
+  ], 
+  "resource_id": "nova-instance-instance-00000004-fa163e99f87f", 
+  "last_sample_timestamp": "2014-02-11T03:35:46", 
+  "first_sample_timestamp": "2014-02-11T03:22:47", 
+  "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+  "metadata": {
+   "instance_id": "388b3939-8854-4a1b-a133-e738f1ffbb0a", 
+   "instance_type": "84", 
+   "mac": "fa:16:3e:99:f8:7f", 
+   "fref": "nova-instance-instance-00000004-fa163e99f87f", 
+   "name": "tap25b2490c-34"
+  }
+ }
+}

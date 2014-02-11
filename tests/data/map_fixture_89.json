@@ -1,0 +1,220 @@
+{
+ "http://localhost:8777/v2/meters/storage.objects.outgoing.bytes?q.field=resource_id&q.value=8a78fa56de8846cb89c7cf3f37d251d5": [
+  {
+   "counter_name": "storage.objects.outgoing.bytes", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "timestamp": "2014-02-11T03:22:46.221022", 
+   "message_id": "c6c74854-92cb-11e3-9596-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 2.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "path": "/v1/AUTH_8a78fa56de8846cb89c7cf3f37d251d5/sdfdsfds", 
+    "object": "None", 
+    "container": "sdfdsfds", 
+    "version": "v1"
+   }, 
+   "counter_type": "delta"
+  }, 
+  {
+   "counter_name": "storage.objects.outgoing.bytes", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "timestamp": "2014-02-11T03:22:46.114825", 
+   "message_id": "c6b714ac-92cb-11e3-9596-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 348.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "path": "/v1/AUTH_8a78fa56de8846cb89c7cf3f37d251d5/sdfdsfds", 
+    "object": "None", 
+    "container": "sdfdsfds", 
+    "version": "v1"
+   }, 
+   "counter_type": "delta"
+  }, 
+  {
+   "counter_name": "storage.objects.outgoing.bytes", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "timestamp": "2014-02-11T03:22:46.033492", 
+   "message_id": "c6aaab54-92cb-11e3-9596-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 2.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "path": "/v1/AUTH_8a78fa56de8846cb89c7cf3f37d251d5", 
+    "object": "None", 
+    "container": "None", 
+    "version": "v1"
+   }, 
+   "counter_type": "delta"
+  }, 
+  {
+   "counter_name": "storage.objects.outgoing.bytes", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "timestamp": "2014-02-11T03:22:45.982731", 
+   "message_id": "c6a2f08a-92cb-11e3-9596-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 46.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "path": "/v1/AUTH_8a78fa56de8846cb89c7cf3f37d251d5", 
+    "object": "None", 
+    "container": "None", 
+    "version": "v1"
+   }, 
+   "counter_type": "delta"
+  }, 
+  {
+   "counter_name": "storage.objects.outgoing.bytes", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "timestamp": "2014-02-11T03:22:22.671583", 
+   "message_id": "b8bdeb50-92cb-11e3-9596-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 2.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "path": "/v1/AUTH_8a78fa56de8846cb89c7cf3f37d251d5/sdfdsfds", 
+    "object": "None", 
+    "container": "sdfdsfds", 
+    "version": "v1"
+   }, 
+   "counter_type": "delta"
+  }, 
+  {
+   "counter_name": "storage.objects.outgoing.bytes", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "timestamp": "2014-02-11T03:22:22.647456", 
+   "message_id": "b8ba3d02-92cb-11e3-9596-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 173.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "path": "/v1/AUTH_8a78fa56de8846cb89c7cf3f37d251d5/sdfdsfds", 
+    "object": "None", 
+    "container": "sdfdsfds", 
+    "version": "v1"
+   }, 
+   "counter_type": "delta"
+  }, 
+  {
+   "counter_name": "storage.objects.outgoing.bytes", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "timestamp": "2014-02-11T03:22:22.608202", 
+   "message_id": "b8b43f92-92cb-11e3-9596-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 2.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "path": "/v1/AUTH_8a78fa56de8846cb89c7cf3f37d251d5", 
+    "object": "None", 
+    "container": "None", 
+    "version": "v1"
+   }, 
+   "counter_type": "delta"
+  }, 
+  {
+   "counter_name": "storage.objects.outgoing.bytes", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "timestamp": "2014-02-11T03:22:22.559488", 
+   "message_id": "b8acd6ee-92cb-11e3-9596-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 46.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "path": "/v1/AUTH_8a78fa56de8846cb89c7cf3f37d251d5", 
+    "object": "None", 
+    "container": "None", 
+    "version": "v1"
+   }, 
+   "counter_type": "delta"
+  }, 
+  {
+   "counter_name": "storage.objects.outgoing.bytes", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "timestamp": "2014-02-11T03:22:02.190656", 
+   "message_id": "ac88c7b0-92cb-11e3-9596-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 2.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "path": "/v1/AUTH_8a78fa56de8846cb89c7cf3f37d251d5/sdfdsfds", 
+    "object": "None", 
+    "container": "sdfdsfds", 
+    "version": "v1"
+   }, 
+   "counter_type": "delta"
+  }, 
+  {
+   "counter_name": "storage.objects.outgoing.bytes", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "timestamp": "2014-02-11T03:22:02.143553", 
+   "message_id": "ac819c24-92cb-11e3-9596-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 2.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "path": "/v1/AUTH_8a78fa56de8846cb89c7cf3f37d251d5", 
+    "object": "None", 
+    "container": "None", 
+    "version": "v1"
+   }, 
+   "counter_type": "delta"
+  }, 
+  {
+   "counter_name": "storage.objects.outgoing.bytes", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "timestamp": "2014-02-11T03:22:02.098303", 
+   "message_id": "ac7ab030-92cb-11e3-9596-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 46.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "path": "/v1/AUTH_8a78fa56de8846cb89c7cf3f37d251d5", 
+    "object": "None", 
+    "container": "None", 
+    "version": "v1"
+   }, 
+   "counter_type": "delta"
+  }, 
+  {
+   "counter_name": "storage.objects.outgoing.bytes", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "timestamp": "2014-02-11T03:21:57.367873", 
+   "message_id": "a9a8e55c-92cb-11e3-9596-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 2.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "path": "/v1/AUTH_8a78fa56de8846cb89c7cf3f37d251d5", 
+    "object": "None", 
+    "container": "None", 
+    "version": "v1"
+   }, 
+   "counter_type": "delta"
+  }
+ ]
+}

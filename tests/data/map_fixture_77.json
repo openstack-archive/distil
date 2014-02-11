@@ -1,0 +1,38 @@
+{
+ "http://localhost:8777/v2/resources/79e7bfdd-1235-4971-be9f-51d12cf94286": {
+  "user_id": "17436482eed94689874219299ea82bc0", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/79e7bfdd-1235-4971-be9f-51d12cf94286", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/router?q.field=resource_id&q.value=79e7bfdd-1235-4971-be9f-51d12cf94286", 
+    "rel": "router"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/router.create?q.field=resource_id&q.value=79e7bfdd-1235-4971-be9f-51d12cf94286", 
+    "rel": "router.create"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/router.update?q.field=resource_id&q.value=79e7bfdd-1235-4971-be9f-51d12cf94286", 
+    "rel": "router.update"
+   }
+  ], 
+  "resource_id": "79e7bfdd-1235-4971-be9f-51d12cf94286", 
+  "last_sample_timestamp": "2014-02-10T22:03:58.830333", 
+  "first_sample_timestamp": "2014-02-10T22:03:55.311177", 
+  "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+  "metadata": {
+   "status": "ACTIVE", 
+   "event_type": "router.update.end", 
+   "external_gateway_info.enable_snat": "True", 
+   "admin_state_up": "True", 
+   "tenant_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "host": "network.vagrant-ubuntu-precise-64", 
+   "external_gateway_info.network_id": "af83bfe4-5dd0-4393-aea4-995ffae39c45", 
+   "id": "79e7bfdd-1235-4971-be9f-51d12cf94286", 
+   "name": "router1"
+  }
+ }
+}

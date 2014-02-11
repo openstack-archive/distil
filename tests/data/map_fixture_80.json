@@ -1,0 +1,27 @@
+{
+ "http://localhost:8777/v2/meters/router.update?q.field=resource_id&q.value=79e7bfdd-1235-4971-be9f-51d12cf94286": [
+  {
+   "counter_name": "router.update", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "79e7bfdd-1235-4971-be9f-51d12cf94286", 
+   "timestamp": "2014-02-10T22:03:58.830333", 
+   "message_id": "510370a6-929f-11e3-bca2-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "router", 
+   "counter_volume": 1.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "status": "ACTIVE", 
+    "event_type": "router.update.end", 
+    "external_gateway_info.enable_snat": "True", 
+    "admin_state_up": "True", 
+    "tenant_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+    "host": "network.vagrant-ubuntu-precise-64", 
+    "external_gateway_info.network_id": "af83bfe4-5dd0-4393-aea4-995ffae39c45", 
+    "id": "79e7bfdd-1235-4971-be9f-51d12cf94286", 
+    "name": "router1"
+   }, 
+   "counter_type": "delta"
+  }
+ ]
+}

@@ -1,5 +1,5 @@
 import unittest
-from artifice import interface
+from artifice import interface, database
 from artifice.interface import Artifice
 import mock
 import random
@@ -8,10 +8,12 @@ import json
 
 from sqlalchemy import create_engine
 from artifice.models import Session
-from artifice.models import usage, tenants
-from artifice.models.resources import Resource, VM
 
 from datetime import datetime, timedelta
+
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 
 """
@@ -43,7 +45,7 @@ config = {
     "openstack": {
         "username": "foo",
         "password": "bar",
-        "default_tenant":"asdf",
+        "default_tenant": "asdf",
         "authentication_url": "http://foo"
     },
     "ceilometer": {
@@ -104,7 +106,7 @@ networks = []
 
 # res = {"vms": [], "net": [], 'storage': [], "ports":[], "ips": []}
 # res = {"vms": [], "network": [], 'storage': [], "ports":[]}
-res = {"vms": [], "volumes": [], 'objects': [], "network": []}
+res = {"vms": [], "volumes": [], 'objects': [], "networks": []}
 
 class InternalResource(object):
 
@@ -146,15 +148,15 @@ for resource in resources:
     rels = [link.rel for link in resource.links if link.rel != 'self' ]
     if "image" in rels:
         continue
-    elif "storage.objects" in rels:
+    elif "storage.objects.size" in rels:
         # Unknown how this data layout happens yet.
         # resource["_type"] = "storage"
         res["objects"].append(resource)
     elif "volume" in rels:
         res["volumes"].append(resource)
-    elif "network" in rels:
-        res["network"].append(resource)
-    elif "instance" in rels:
+    elif "network.outgoing.bytes" in rels:
+        res["networks"].append(resource)
+    elif "state" in rels:
         res["vms"].append(resource)
     # elif "port" in rels:
     #     res["ports"].append(resource)
@@ -178,19 +180,17 @@ class TestInterface(unittest.TestCase):
         self.session.rollback()
         self.called_replacement_resources = False
 
-        num = random.randrange(len(res["vms"]))
+        num = random.randrange(len(res["networks"]))
+        print num
         # Only one vm for this
-        self.resources = [ res["vms"][ num ] ]
+        self.resources = res["networks"] + res["vms"] + res["objects"]
 
         self.start = datetime.now() - timedelta(days=30)
         self.end = datetime.now()
 
     def tearDown(self):
 
-        self.session.query(usage.Usage).delete()
-        self.session.query(Resource).delete()
-        self.session.query(tenants.Tenant).delete()
-
+        self.session.query(database.UsageEntry).delete()
         self.session.commit()
         self.contents = None
         self.resources = []
@@ -215,8 +215,7 @@ class TestInterface(unittest.TestCase):
         def get_meter(self, start, end, auth):
             # Returns meter data from our data up above
             global mappings
-            # print self.link
-            data = mappings[self.link.link]
+            data = mappings[self.link]
             return data
 
         interface.get_meter = get_meter
@@ -290,6 +289,7 @@ class TestInterface(unittest.TestCase):
         # self.assertEqual( len(usage.volumes), 0)
 
         # This is a fully qualified Usage object.
+        print "usage" + str(usage.objects)
         self.usage = usage
 
     # @mock.patch("artifice.models.Session")
@@ -331,12 +331,12 @@ class TestInterface(unittest.TestCase):
         except AttributeError:
             self.fail ("No property vms")
 
-        lens = { "vms": 1 }
+        lens = { "vms": 4 }
 
         if from_ == "vms":
-            lens["vms"] = 2
+            lens["vms"] = 5
         else:
-            lens[from_] = 1
+            lens[from_] = 2
 
         self.assertEqual(len(usage.vms), lens["vms"])
         self.assertEqual(len( getattr(usage, from_) ), lens[from_])
@@ -353,23 +353,13 @@ class TestInterface(unittest.TestCase):
 
         self.add_element("vms")
         self.usage._vms = []
-        self.assertTrue(len(self.usage.vms) == 2)
+        self.assertTrue(len(self.usage.vms) == 5)
 
     def test_add_storage(self):
 
         self.add_element("objects")
 
 
-    def test_save_contents(self):
-
-        self.test_get_usage()
-
-        usage = self.usage
-        # try:
-        usage.save()
-        # except Exception as e:
-
-        # Now examine the database
 
     def test_correct_usage_values(self):
         """Usage data matches expected results:
@@ -383,56 +373,21 @@ class TestInterface(unittest.TestCase):
         usage = self.usage
 
         for vm in usage.vms:
-            volume = vm.usage()
-            # print "vm is %s" % vm
-            # print vm.size
-            # print "Volume is: %s" % volume
-            # VM here is a resource object, not an underlying meter object.
-            id_ = vm["project_id"]
-
-            for rvm in self.resources:
-                if not getattr(rvm, "project_id") == id_:
-                    continue
-                for meter in getattr(rvm, "links"):
-                    if not meter["rel"] in volume:
-                        continue
-                    data = mappings[ meter["href"] ]
-                    vol = volume[ meter["rel"] ]
-
-                    type_ = data[0]["counter_type"]
-                    if type_ == "cumulative":
-                        v = interface.Cumulative(rvm, data, self.start, self.end)
-                    elif type_ == "gauge":
-                        v = interface.Gauge(rvm, data, self.start, self.end)
-                    elif type_ == "delta":
-                        v = interface.Delta(rvm, data, self.start, self.end)
-                    # Same type of data
-                    self.assertEqual( v.__class__, vol.__class__ )
-                    self.assertEqual( v.volume(), vol.volume() )
-
-
-    def test_use_a_bunch_of_data(self):
-        pass
-
-
-    def test_usage_vms(self):
-        """
-        Tests the usage.vms by using a non-mock resource object
-
-        """
-
-        self.test_get_usage()
-
-        u = self.usage
-        u.contents = {"vms":[]}
-
-        r = interface.Resource(self.resources[0], self.artifice)
-        u.contents["vms"].append(r)
-
-        # Wipe it
-        # self.assertTrue( bool(getattr(u, '_vms')) )
-        self.assertEqual( u._vms, [] )
-
-        u._vms = []
-
-        self.assertEqual( len(u.vms), 1 )
+            if vm.resource_id == "23dd6f29-754f-41a8-b488-6c0113af272b":
+                self.assertEqual(vm.uptime, 6)
+            if vm.resource_id == "3d736ab0-3429-43bb-86ef-bba41fffd6ef":
+                self.assertEqual(vm.uptime, 1)
+            if vm.resource_id == "3e3da06d-9a0e-4412-984a-c189dde81377":
+                self.assertEqual(vm.uptime, 1)
+            if vm.resource_id == "388b3939-8854-4a1b-a133-e738f1ffbb0a":
+                self.assertEqual(vm.uptime, 1)
+        for obj in usage.objects:
+            if obj.resource_id == "388b3939-8854-4a1b-a133-e738f1ffbb0a":
+                self.assertEqual(obj.object_size, 180667.463)
+        for net in usage.networks:
+            if net.resource_id == "nova-instance-instance-00000001-fa163e915745":
+                self.assertEqual(net.outgoing, 26.134)
+                self.assertEqual(net.incoming, 30.499)
+            if net.resource_id == "nova-instance-instance-00000004-fa163e99f87f":
+                self.assertEqual(net.outgoing, 8.355)
+                self.assertEqual(net.incoming, 7.275)

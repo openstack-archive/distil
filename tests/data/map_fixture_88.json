@@ -1,0 +1,40 @@
+{
+ "http://localhost:8777/v2/meters/storage.objects.incoming.bytes?q.field=resource_id&q.value=8a78fa56de8846cb89c7cf3f37d251d5": [
+  {
+   "counter_name": "storage.objects.incoming.bytes", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "timestamp": "2014-02-11T03:22:45.867811", 
+   "message_id": "c69164fa-92cb-11e3-9596-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 138094686.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "path": "/v1/AUTH_8a78fa56de8846cb89c7cf3f37d251d5/sdfdsfds/thing2", 
+    "object": "thing2", 
+    "container": "sdfdsfds", 
+    "version": "v1"
+   }, 
+   "counter_type": "delta"
+  }, 
+  {
+   "counter_name": "storage.objects.incoming.bytes", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "timestamp": "2014-02-11T03:22:22.513063", 
+   "message_id": "b8a5bdd2-92cb-11e3-9596-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 42572777.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "path": "/v1/AUTH_8a78fa56de8846cb89c7cf3f37d251d5/sdfdsfds/thing", 
+    "object": "thing", 
+    "container": "sdfdsfds", 
+    "version": "v1"
+   }, 
+   "counter_type": "delta"
+  }
+ ]
+}

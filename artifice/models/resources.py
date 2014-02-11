@@ -72,7 +72,7 @@ class VM(BaseModelConstruct):
         # possibly be queried from Clerk?
         tracked = [1, 2, 3, 6, 7]
 
-        seconds = self.usage()['state'].uptime(tracked)
+        seconds = self.usage()["state"].uptime(tracked)
 
         # in hours, rounded up:
         uptime = math.ceil((seconds / 60.0) / 60.0)
@@ -162,9 +162,9 @@ class Network(BaseModelConstruct):
     relevant_meters = ["network.outgoing.bytes", "network.incoming.bytes"]
 
     usage_strategies = {"outgoing": {"usage": "outgoing",
-                                     "service": "outgoing_bytes"},
+                                     "service": "outgoing_megabytes"},
                         "incoming": {"usage": "incoming",
-                                     "service": "incoming_bytes"}}
+                                     "service": "incoming_megabytes"}}
 
     type = "network"
 

@@ -1,0 +1,35 @@
+{
+ "http://localhost:8777/v2/resources/873f5ddc-b833-4d92-9aee-cc62b03afd63": {
+  "user_id": "17436482eed94689874219299ea82bc0", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/873f5ddc-b833-4d92-9aee-cc62b03afd63", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/subnet?q.field=resource_id&q.value=873f5ddc-b833-4d92-9aee-cc62b03afd63", 
+    "rel": "subnet"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/subnet.create?q.field=resource_id&q.value=873f5ddc-b833-4d92-9aee-cc62b03afd63", 
+    "rel": "subnet.create"
+   }
+  ], 
+  "resource_id": "873f5ddc-b833-4d92-9aee-cc62b03afd63", 
+  "last_sample_timestamp": "2014-02-10T22:03:54.568293", 
+  "first_sample_timestamp": "2014-02-10T22:03:54.568293", 
+  "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+  "metadata": {
+   "event_type": "subnet.create.end", 
+   "enable_dhcp": "True", 
+   "network_id": "d17613a8-9e67-451e-98c5-520cbac9f18c", 
+   "tenant_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "host": "network.vagrant-ubuntu-precise-64", 
+   "gateway_ip": "10.0.0.1", 
+   "ip_version": "4", 
+   "cidr": "10.0.0.0/24", 
+   "id": "873f5ddc-b833-4d92-9aee-cc62b03afd63", 
+   "name": "private-subnet"
+  }
+ }
+}

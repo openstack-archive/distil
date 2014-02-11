@@ -1,0 +1,92 @@
+{
+ "http://localhost:8777/v2/resources/3d736ab0-3429-43bb-86ef-bba41fffd6ef": {
+  "user_id": "17436482eed94689874219299ea82bc0", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/3d736ab0-3429-43bb-86ef-bba41fffd6ef", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.ephemeral.size?q.field=resource_id&q.value=3d736ab0-3429-43bb-86ef-bba41fffd6ef", 
+    "rel": "disk.ephemeral.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.value=3d736ab0-3429-43bb-86ef-bba41fffd6ef", 
+    "rel": "disk.root.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance?q.field=resource_id&q.value=3d736ab0-3429-43bb-86ef-bba41fffd6ef", 
+    "rel": "instance"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance.scheduled?q.field=resource_id&q.value=3d736ab0-3429-43bb-86ef-bba41fffd6ef", 
+    "rel": "instance.scheduled"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance:m1.medium?q.field=resource_id&q.value=3d736ab0-3429-43bb-86ef-bba41fffd6ef", 
+    "rel": "instance:m1.medium"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/memory?q.field=resource_id&q.value=3d736ab0-3429-43bb-86ef-bba41fffd6ef", 
+    "rel": "memory"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/state?q.field=resource_id&q.value=3d736ab0-3429-43bb-86ef-bba41fffd6ef", 
+    "rel": "state"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/vcpus?q.field=resource_id&q.value=3d736ab0-3429-43bb-86ef-bba41fffd6ef", 
+    "rel": "vcpus"
+   }
+  ], 
+  "resource_id": "3d736ab0-3429-43bb-86ef-bba41fffd6ef", 
+  "last_sample_timestamp": "2014-02-11T03:21:33.260388", 
+  "first_sample_timestamp": "2014-02-11T03:21:17.059038", 
+  "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+  "metadata": {
+   "state_description": "", 
+   "image_meta.base_image_ref": "2f754fcd-0b26-47fc-87a9-1502324d8ec6", 
+   "event_type": "compute.instance.update", 
+   "availability_zone": "nova", 
+   "terminated_at": "", 
+   "ephemeral_gb": "0", 
+   "instance_type_id": "1", 
+   "image_meta.ramdisk_id": "64763910-c690-4190-8c65-693953232791", 
+   "deleted_at": "", 
+   "reservation_id": "r-tqwwvo29", 
+   "instance_id": "3d736ab0-3429-43bb-86ef-bba41fffd6ef", 
+   "display_name": "sdfdsf", 
+   "hostname": "sdfdsf", 
+   "state": "error", 
+   "image_ref_url": "http://10.0.2.15:9292/images/2f754fcd-0b26-47fc-87a9-1502324d8ec6", 
+   "image_meta.kernel_id": "8cbde3c5-db33-4043-93ca-2e4b2f58095b", 
+   "old_state": "building", 
+   "launched_at": "", 
+   "node": "vagrant-ubuntu-precise-64", 
+   "ramdisk_id": "64763910-c690-4190-8c65-693953232791", 
+   "access_ip_v6": "None", 
+   "disk_gb": "40", 
+   "access_ip_v4": "None", 
+   "kernel_id": "8cbde3c5-db33-4043-93ca-2e4b2f58095b", 
+   "image_meta.disk_format": "ami", 
+   "image_meta.container_format": "ami", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "image_meta.min_disk": "40", 
+   "audit_period_beginning": "2014-02-11T03:00:00.000000", 
+   "root_gb": "40", 
+   "tenant_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "created_at": "2014-02-11 03:21:17", 
+   "image_meta.min_ram": "0", 
+   "host": "scheduler.vagrant-ubuntu-precise-64", 
+   "old_task_state": "scheduling", 
+   "memory_mb": "4096", 
+   "instance_type": "m1.medium", 
+   "vcpus": "2", 
+   "architecture": "None", 
+   "new_task_state": "None", 
+   "audit_period_ending": "2014-02-11T03:21:33.254252", 
+   "os_type": "None", 
+   "instance_flavor_id": "3"
+  }
+ }
+}

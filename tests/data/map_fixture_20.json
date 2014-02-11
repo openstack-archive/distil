@@ -1,1 +1,26 @@
-{"http://localhost:8777/v2/meters/subnet.create?q.field=resource_id&q.value=a2777ed6-7442-42b8-bb86-5b554aad7f08": [{"counter_name": "subnet.create", "user_id": "2b8fbe55863d4dfab5310796202b2019", "resource_id": "a2777ed6-7442-42b8-bb86-5b554aad7f08", "timestamp": "2013-08-05T21:56:01.107000", "message_id": "d126f9da-fe19-11e2-a072-080027880ca6", "source": "openstack", "counter_unit": "subnet", "counter_volume": 1.0, "project_id": "931dc699f9934021bb4a2b1088ba4d3b", "resource_metadata": {"name": "two", "enable_dhcp": "True", "network_id": "79b5e163-496c-4ab6-9c21-3b597ed632dc", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "gateway_ip": "192.168.0.1", "ip_version": "4", "cidr": "192.168.0.0/24", "id": "a2777ed6-7442-42b8-bb86-5b554aad7f08", "event_type": "subnet.create.end"}, "counter_type": "delta"}], "http://localhost:8777/v2/meters/subnet?q.field=resource_id&q.value=a2777ed6-7442-42b8-bb86-5b554aad7f08": [{"counter_name": "subnet", "user_id": "2b8fbe55863d4dfab5310796202b2019", "resource_id": "a2777ed6-7442-42b8-bb86-5b554aad7f08", "timestamp": "2013-08-05T21:56:01.107000", "message_id": "d1264c1a-fe19-11e2-a072-080027880ca6", "source": "openstack", "counter_unit": "subnet", "counter_volume": 1.0, "project_id": "931dc699f9934021bb4a2b1088ba4d3b", "resource_metadata": {"name": "two", "enable_dhcp": "True", "network_id": "79b5e163-496c-4ab6-9c21-3b597ed632dc", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "gateway_ip": "192.168.0.1", "ip_version": "4", "cidr": "192.168.0.0/24", "id": "a2777ed6-7442-42b8-bb86-5b554aad7f08", "event_type": "subnet.create.end"}, "counter_type": "gauge"}]}
+{
+ "http://localhost:8777/v2/meters/image.download?q.field=resource_id&q.value=2f754fcd-0b26-47fc-87a9-1502324d8ec6": [
+  {
+   "counter_name": "image.download", 
+   "user_id": "17436482eed94689874219299ea82bc0", 
+   "resource_id": "2f754fcd-0b26-47fc-87a9-1502324d8ec6", 
+   "timestamp": "2014-02-10T22:13:10.607611", 
+   "message_id": "86e2f15a-92a0-11e3-bca2-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 25165824.0, 
+   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+   "resource_metadata": {
+    "receiver_tenant_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+    "destination_ip": "10.0.2.15", 
+    "event_type": "image.send", 
+    "bytes_sent": "25165824", 
+    "image_id": "2f754fcd-0b26-47fc-87a9-1502324d8ec6", 
+    "host": "vagrant-ubuntu-precise-64", 
+    "receiver_user_id": "17436482eed94689874219299ea82bc0", 
+    "owner_id": "552572036def4148ab99b771b0d96507"
+   }, 
+   "counter_type": "delta"
+  }
+ ]
+}

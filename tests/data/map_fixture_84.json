@@ -1,0 +1,40 @@
+{
+ "http://localhost:8777/v2/resources/8a78fa56de8846cb89c7cf3f37d251d5": {
+  "user_id": null, 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/8a78fa56de8846cb89c7cf3f37d251d5", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.api.request?q.field=resource_id&q.value=8a78fa56de8846cb89c7cf3f37d251d5", 
+    "rel": "storage.api.request"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects?q.field=resource_id&q.value=8a78fa56de8846cb89c7cf3f37d251d5", 
+    "rel": "storage.objects"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects.containers?q.field=resource_id&q.value=8a78fa56de8846cb89c7cf3f37d251d5", 
+    "rel": "storage.objects.containers"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects.incoming.bytes?q.field=resource_id&q.value=8a78fa56de8846cb89c7cf3f37d251d5", 
+    "rel": "storage.objects.incoming.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects.outgoing.bytes?q.field=resource_id&q.value=8a78fa56de8846cb89c7cf3f37d251d5", 
+    "rel": "storage.objects.outgoing.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects.size?q.field=resource_id&q.value=8a78fa56de8846cb89c7cf3f37d251d5", 
+    "rel": "storage.objects.size"
+   }
+  ], 
+  "resource_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+  "last_sample_timestamp": "2014-02-11T03:35:37", 
+  "first_sample_timestamp": "2014-02-10T22:04:30", 
+  "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+  "metadata": {}
+ }
+}
