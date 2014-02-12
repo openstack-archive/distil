@@ -1,34 +1,36 @@
 {
- "http://localhost:8777/v2/meters/image.update?q.field=resource_id&q.value=64763910-c690-4190-8c65-693953232791": [
+ "http://localhost:8777/v2/meters/image.update?q.field=resource_id&q.value=ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9": [
   {
    "counter_name": "image.update", 
    "user_id": null, 
-   "resource_id": "64763910-c690-4190-8c65-693953232791", 
-   "timestamp": "2014-02-10T22:05:13.684830", 
-   "message_id": "6ab7441e-929f-11e3-bca2-08002705114b", 
+   "resource_id": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+   "timestamp": "2014-02-11T22:54:13.439637", 
+   "message_id": "6d58fbba-936f-11e3-b65d-08002705114b", 
    "source": "openstack", 
    "counter_unit": "image", 
    "counter_volume": 1.0, 
-   "project_id": "552572036def4148ab99b771b0d96507", 
+   "project_id": "5f836e56b51747e080f3442cb1b8035a", 
    "resource_metadata": {
     "status": "active", 
     "event_type": "image.update", 
-    "name": "cirros-0.3.1-x86_64-uec-ramdisk", 
-    "deleted": "False", 
-    "checksum": "69c33642f44ca552ba4bb8b66ad97e85", 
-    "created_at": "2014-02-10T22:05:13", 
-    "disk_format": "ari", 
-    "updated_at": "2014-02-10T22:05:13", 
-    "id": "64763910-c690-4190-8c65-693953232791", 
+    "name": "cirros-0.3.1-x86_64-uec", 
     "min_disk": "0", 
+    "deleted": "False", 
+    "checksum": "f8a2eeee2dc65b3d9b6e63678955bd83", 
+    "created_at": "2014-02-11T22:54:12", 
+    "disk_format": "ami", 
+    "updated_at": "2014-02-11T22:54:13", 
+    "properties.ramdisk_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "properties.kernel_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
     "host": "vagrant-ubuntu-precise-64", 
     "protected": "False", 
-    "container_format": "ari", 
-    "owner": "552572036def4148ab99b771b0d96507", 
+    "id": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+    "container_format": "ami", 
+    "owner": "5f836e56b51747e080f3442cb1b8035a", 
     "is_public": "True", 
     "deleted_at": "None", 
     "min_ram": "0", 
-    "size": "3714968"
+    "size": "25165824"
    }, 
    "counter_type": "delta"
   }

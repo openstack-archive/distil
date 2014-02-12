@@ -1,38 +1,55 @@
 {
- "http://localhost:8777/v2/resources/79e7bfdd-1235-4971-be9f-51d12cf94286": {
-  "user_id": "17436482eed94689874219299ea82bc0", 
+ "http://localhost:8777/v2/resources/cf66da87-d3e4-4c20-9739-7b8a8852cb78": {
+  "user_id": null, 
   "links": [
    {
-    "href": "http://localhost:8777/v2/resources/79e7bfdd-1235-4971-be9f-51d12cf94286", 
+    "href": "http://localhost:8777/v2/resources/cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
     "rel": "self"
    }, 
    {
-    "href": "http://localhost:8777/v2/meters/router?q.field=resource_id&q.value=79e7bfdd-1235-4971-be9f-51d12cf94286", 
-    "rel": "router"
+    "href": "http://localhost:8777/v2/meters/image?q.field=resource_id&q.value=cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+    "rel": "image"
    }, 
    {
-    "href": "http://localhost:8777/v2/meters/router.create?q.field=resource_id&q.value=79e7bfdd-1235-4971-be9f-51d12cf94286", 
-    "rel": "router.create"
+    "href": "http://localhost:8777/v2/meters/image.download?q.field=resource_id&q.value=cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+    "rel": "image.download"
    }, 
    {
-    "href": "http://localhost:8777/v2/meters/router.update?q.field=resource_id&q.value=79e7bfdd-1235-4971-be9f-51d12cf94286", 
-    "rel": "router.update"
+    "href": "http://localhost:8777/v2/meters/image.serve?q.field=resource_id&q.value=cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+    "rel": "image.serve"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.size?q.field=resource_id&q.value=cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+    "rel": "image.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.update?q.field=resource_id&q.value=cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+    "rel": "image.update"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.upload?q.field=resource_id&q.value=cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+    "rel": "image.upload"
    }
   ], 
-  "resource_id": "79e7bfdd-1235-4971-be9f-51d12cf94286", 
-  "last_sample_timestamp": "2014-02-10T22:03:58.830333", 
-  "first_sample_timestamp": "2014-02-10T22:03:55.311177", 
-  "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+  "resource_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+  "last_sample_timestamp": "2014-02-12T02:56:32", 
+  "first_sample_timestamp": "2014-02-11T22:54:10.529944", 
+  "project_id": "5f836e56b51747e080f3442cb1b8035a", 
   "metadata": {
-   "status": "ACTIVE", 
-   "event_type": "router.update.end", 
-   "external_gateway_info.enable_snat": "True", 
-   "admin_state_up": "True", 
-   "tenant_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
-   "host": "network.vagrant-ubuntu-precise-64", 
-   "external_gateway_info.network_id": "af83bfe4-5dd0-4393-aea4-995ffae39c45", 
-   "id": "79e7bfdd-1235-4971-be9f-51d12cf94286", 
-   "name": "router1"
+   "status": "active", 
+   "name": "cirros-0.3.1-x86_64-uec-kernel", 
+   "deleted": "False", 
+   "checksum": "c352f4e7121c6eae958bc1570324f17e", 
+   "created_at": "2014-02-11T22:54:09", 
+   "disk_format": "aki", 
+   "updated_at": "2014-02-11T22:54:10", 
+   "protected": "False", 
+   "container_format": "aki", 
+   "min_disk": "0", 
+   "is_public": "True", 
+   "deleted_at": "None", 
+   "min_ram": "0", 
+   "size": "4955792"
   }
  }
 }

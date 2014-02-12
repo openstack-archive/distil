@@ -1,39 +1,95 @@
 {
- "http://localhost:8777/v2/resources/3b71598b-1acd-422e-bc10-57aa61f07590": {
-  "user_id": "0d31b3a505b04cc9a4a302429edf7014", 
+ "http://localhost:8777/v2/resources/9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a": {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
   "links": [
    {
-    "href": "http://localhost:8777/v2/resources/3b71598b-1acd-422e-bc10-57aa61f07590", 
+    "href": "http://localhost:8777/v2/resources/9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
     "rel": "self"
    }, 
    {
-    "href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=3b71598b-1acd-422e-bc10-57aa61f07590", 
-    "rel": "port"
+    "href": "http://localhost:8777/v2/meters/cpu?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "cpu"
    }, 
    {
-    "href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=3b71598b-1acd-422e-bc10-57aa61f07590", 
-    "rel": "port.create"
+    "href": "http://localhost:8777/v2/meters/cpu_util?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "cpu_util"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.ephemeral.size?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "disk.ephemeral.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.read.bytes?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "disk.read.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.read.requests?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "disk.read.requests"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "disk.root.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.write.bytes?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "disk.write.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.write.requests?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "disk.write.requests"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "instance"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance.scheduled?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "instance.scheduled"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance:m1.micro?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "instance:m1.micro"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/memory?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "memory"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/state?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "state"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/vcpus?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "vcpus"
    }
   ], 
-  "resource_id": "3b71598b-1acd-422e-bc10-57aa61f07590", 
-  "last_sample_timestamp": "2014-02-10T22:13:07.328122", 
-  "first_sample_timestamp": "2014-02-10T22:13:07.328122", 
-  "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
+  "resource_id": "9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+  "last_sample_timestamp": "2014-02-12T02:56:40", 
+  "first_sample_timestamp": "2014-02-12T02:48:11.320441", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
   "metadata": {
-   "status": "DOWN", 
-   "binding:host_id": "vagrant-ubuntu-precise-64", 
-   "binding:capabilities.port_filter": "True", 
-   "admin_state_up": "True", 
-   "network_id": "d17613a8-9e67-451e-98c5-520cbac9f18c", 
-   "tenant_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
-   "device_owner": "compute:None", 
-   "binding:vif_type": "ovs", 
-   "host": "network.vagrant-ubuntu-precise-64", 
-   "mac_address": "fa:16:3e:91:57:45", 
-   "event_type": "port.create.end", 
-   "device_id": "23dd6f29-754f-41a8-b488-6c0113af272b", 
-   "id": "3b71598b-1acd-422e-bc10-57aa61f07590", 
-   "name": ""
+   "ephemeral_gb": "0", 
+   "flavor.vcpus": "1", 
+   "flavor.ephemeral": "0", 
+   "display_name": "This is a VM", 
+   "flavor.id": "84", 
+   "OS-EXT-AZ:availability_zone": "nova", 
+   "ramdisk_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+   "flavor.name": "m1.micro", 
+   "disk_gb": "0", 
+   "kernel_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+   "image.id": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+   "flavor.ram": "128", 
+   "host": "dfe0a168f3dd9ba097dc1520a46a00984436342bdbf6522e9796d6b2", 
+   "image.name": "cirros-0.3.1-x86_64-uec", 
+   "image_ref_url": "http://10.0.2.15:8774/c7c724d04e734e3688f8e7276aecec9c/images/ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+   "flavor.disk": "0", 
+   "root_gb": "0", 
+   "name": "instance-00000002", 
+   "memory_mb": "128", 
+   "instance_type": "84", 
+   "vcpus": "1", 
+   "image_ref": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9"
   }
  }
 }

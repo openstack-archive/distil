@@ -37,6 +37,7 @@ class TestInvoice(test_interface.TestInterface):
         db.enter(self.usage.objects, self.start, self.end)
         db.enter(self.usage.networks, self.start, self.end)
         db.enter(self.usage.volumes, self.start, self.end)
+        db.enter(self.usage.ips, self.start, self.end)
 
     def test_get_from_db_1(self):
         """Test to return a list of billable tenant objects,
@@ -49,9 +50,10 @@ class TestInvoice(test_interface.TestInterface):
         db.enter(self.usage.objects, self.start, self.end)
         db.enter(self.usage.networks, self.start, self.end)
         db.enter(self.usage.volumes, self.start, self.end)
+        db.enter(self.usage.ips, self.start, self.end)
 
         # add a tenant to the tenants table
-        db.session.add(Tenant(tenant_id="8a78fa56de8846cb89c7cf3f37d251d5",
+        db.session.add(Tenant(tenant_id="3f7b702e4ca14cd99aebf4c4320e00ec",
                               name="demo", info=""))
 
         tenants = db.tenants(self.start, self.end)
@@ -67,33 +69,65 @@ class TestInvoice(test_interface.TestInterface):
                 print "    " + str(resource.metadata)
                 print "    " + resource.id
 
-                if resource.id == "23dd6f29-754f-41a8-b488-6c0113af272b":
-                    strat = resource.usage_strategies["m1.tiny"]
-                    self.assertEqual(strat.volume, 6)
-                if resource.id == "3d736ab0-3429-43bb-86ef-bba41fffd6ef":
-                    strat = resource.usage_strategies["m1.medium"]
+                if resource.id == "db8037b2-9f1c-4dd2-94dd-ea72f49a21d7":
+                    strat = resource.usage_strategies["m1.nano"]
                     self.assertEqual(strat.volume, 1)
-                if resource.id == "3e3da06d-9a0e-4412-984a-c189dde81377":
-                    strat = resource.usage_strategies["m1.tiny"]
+                if resource.id == "9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a":
+                    strat = resource.usage_strategies["m1.micro"]
+                    self.assertEqual(strat.volume, 1)
+                if resource.id == "0a57e3da-9e85-4690-8ba9-ee7573619ec3":
+                    strat = resource.usage_strategies["m1.small"]
                     self.assertEqual(strat.volume, 1)
                 if resource.id == "388b3939-8854-4a1b-a133-e738f1ffbb0a":
                     strat = resource.usage_strategies["m1.micro"]
                     self.assertEqual(strat.volume, 1)
-                if resource.id == "8a78fa56de8846cb89c7cf3f37d251d5":
+                if resource.id == "de35c688-5a82-4ce5-a7e0-36245d2448bc":
+                    strat = resource.usage_strategies["m1.tiny"]
+                    self.assertEqual(strat.volume, 1)
+                if resource.id == "e404920f-cfc8-40ba-bc53-a5c610714bd":
+                    strat = resource.usage_strategies["m1.medium"]
+                    self.assertEqual(strat.volume, 0)
+
+                if resource.id == "3f7b702e4ca14cd99aebf4c4320e00ec":
                     strat = resource.usage_strategies["storage_size"]
-                    self.assertEqual(strat.volume, 180667.463)
+                    self.assertEqual(strat.volume, 276189.372)
+
                 if (resource.id ==
-                        "nova-instance-instance-00000001-fa163e915745"):
+                        "nova-instance-instance-00000002-fa163ee2d5f6"):
                     strat = resource.usage_strategies["outgoing_megabytes"]
-                    self.assertEqual(strat.volume, 26.134)
+                    self.assertEqual(strat.volume, 11.822)
                     strat = resource.usage_strategies["incoming_megabytes"]
-                    self.assertEqual(strat.volume, 30.499)
+                    self.assertEqual(strat.volume, 9.734)
                 if (resource.id ==
-                        "nova-instance-instance-00000004-fa163e99f87f"):
+                        "nova-instance-instance-00000001-fa163edf2e3c"):
                     strat = resource.usage_strategies["outgoing_megabytes"]
-                    self.assertEqual(strat.volume, 8.355)
+                    self.assertEqual(strat.volume, 6.306)
                     strat = resource.usage_strategies["incoming_megabytes"]
-                    self.assertEqual(strat.volume, 7.275)
+                    self.assertEqual(strat.volume, 5.84)
+                if (resource.id ==
+                        "nova-instance-instance-00000005-fa163ee2fde1"):
+                    strat = resource.usage_strategies["outgoing_megabytes"]
+                    self.assertEqual(strat.volume, 13.406)
+                    strat = resource.usage_strategies["incoming_megabytes"]
+                    self.assertEqual(strat.volume, 10.795)
+
+                if (resource.id ==
+                        "e788c617-01e9-405b-823f-803f44fb3483"):
+                    strat = resource.usage_strategies["volume_size"]
+                    self.assertEqual(strat.volume, 0.045)
+                if (resource.id ==
+                        "6af83f4f-1f4f-40cf-810e-e3262dec718f"):
+                    strat = resource.usage_strategies["volume_size"]
+                    self.assertEqual(strat.volume, 0.003)
+
+                if (resource.id ==
+                        "84326068-5ccd-4a32-bcd2-c6c3af84d862"):
+                    strat = resource.usage_strategies["floating_ip"]
+                    self.assertEqual(strat.volume, 1)
+                if (resource.id ==
+                        "2155db5c-4c7b-4787-90ff-7b8ded741c75"):
+                    strat = resource.usage_strategies["floating_ip"]
+                    self.assertEqual(strat.volume, 1)
 
                 for usage in resource.usage_strategies.values():
                     print "      " + usage.service
@@ -111,10 +145,10 @@ class TestInvoice(test_interface.TestInterface):
             db.enter(self.usage.networks, self.start, self.end)
             db.enter(self.usage.volumes, self.start, self.end)
 
-            db.session.add(Tenant(tenant_id="8a78fa56de8846cb89c7cf3f37d251d5",
+            db.session.add(Tenant(tenant_id="3f7b702e4ca14cd99aebf4c4320e00ec",
                                   name="demo"))
 
             tenants = db.tenants(self.start, self.end,
-                                 ("8a78fa56de8846cb89c7cf3f37d251d5",))
+                                 ("3f7b702e4ca14cd99aebf4c4320e00ec",))
 
             self.assertEqual(len(tenants), 1)

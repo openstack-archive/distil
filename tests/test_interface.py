@@ -109,7 +109,7 @@ networks = []
 
 # res = {"vms": [], "net": [], 'storage': [], "ports":[], "ips": []}
 # res = {"vms": [], "network": [], 'storage': [], "ports":[]}
-res = {"vms": [], "volumes": [], 'objects': [], "networks": []}
+res = {"vms": [], "volumes": [], 'objects': [], "networks": [], "ips": []}
 
 
 class InternalResource(object):
@@ -163,10 +163,8 @@ for resource in resources:
         res["networks"].append(resource)
     elif "state" in rels:
         res["vms"].append(resource)
-    # elif "port" in rels:
-    #     res["ports"].append(resource)
-    # elif "ip.floating" in rels:
-    #     res["ips"].append(resource)
+    elif "ip.floating" in rels:
+        res["ips"].append(resource)
 
 
 def resources_replacement(tester):
@@ -188,7 +186,8 @@ class TestInterface(unittest.TestCase):
         self.session.rollback()
         self.called_replacement_resources = False
 
-        self.resources = res["networks"] + res["vms"] + res["objects"]
+        self.resources = (res["networks"] + res["vms"] + res["objects"] +
+                          res["volumes"] + res["ips"])
 
         self.start = datetime.now() - timedelta(days=30)
         self.end = datetime.now()
@@ -317,10 +316,10 @@ class TestInterface(unittest.TestCase):
         except AttributeError:
             self.fail("No property vms")
 
-        lens = {"vms": 4}
+        lens = {"vms": 5}
 
         if from_ == "vms":
-            lens["vms"] = 5
+            lens["vms"] = 6
         else:
             lens[from_] = 2
 
@@ -339,7 +338,7 @@ class TestInterface(unittest.TestCase):
 
         self.add_element("vms")
         self.usage._vms = []
-        self.assertTrue(len(self.usage.vms) == 5)
+        self.assertTrue(len(self.usage.vms) == 6)
 
     def test_add_storage(self):
 
@@ -357,23 +356,39 @@ class TestInterface(unittest.TestCase):
         usage = self.usage
 
         for vm in usage.vms:
-            if vm.resource_id == "23dd6f29-754f-41a8-b488-6c0113af272b":
-                self.assertEqual(vm.uptime, 6)
-            if vm.resource_id == "3d736ab0-3429-43bb-86ef-bba41fffd6ef":
+            if vm.resource_id == "db8037b2-9f1c-4dd2-94dd-ea72f49a21d7":
                 self.assertEqual(vm.uptime, 1)
-            if vm.resource_id == "3e3da06d-9a0e-4412-984a-c189dde81377":
+            if vm.resource_id == "9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a":
                 self.assertEqual(vm.uptime, 1)
-            if vm.resource_id == "388b3939-8854-4a1b-a133-e738f1ffbb0a":
+            if vm.resource_id == "0a57e3da-9e85-4690-8ba9-ee7573619ec3":
                 self.assertEqual(vm.uptime, 1)
+            if vm.resource_id == "de35c688-5a82-4ce5-a7e0-36245d2448bc":
+                self.assertEqual(vm.uptime, 1)
+            if vm.resource_id == "e404920f-cfc8-40ba-bc53-a5c610714bd9":
+                self.assertEqual(vm.uptime, 0)
         for obj in usage.objects:
-            if obj.resource_id == "388b3939-8854-4a1b-a133-e738f1ffbb0a":
-                self.assertEqual(obj.object_size, 180667.463)
+            if obj.resource_id == "3f7b702e4ca14cd99aebf4c4320e00ec":
+                self.assertEqual(obj.size, 276189.372)
+        for vol in usage.volumes:
+            if vol.resource_id == "e788c617-01e9-405b-823f-803f44fb3483":
+                self.assertEqual(vol.size, 0.045)
+            if vol.resource_id == "6af83f4f-1f4f-40cf-810e-e3262dec718f":
+                self.assertEqual(vol.size, 0.003)
         for net in usage.networks:
             if (net.resource_id ==
-                    "nova-instance-instance-00000001-fa163e915745"):
-                self.assertEqual(net.outgoing, 26.134)
-                self.assertEqual(net.incoming, 30.499)
+                    "nova-instance-instance-00000002-fa163ee2d5f6"):
+                self.assertEqual(net.outgoing, 11.822)
+                self.assertEqual(net.incoming, 9.734)
             if (net.resource_id ==
-                    "nova-instance-instance-00000004-fa163e99f87f"):
-                self.assertEqual(net.outgoing, 8.355)
-                self.assertEqual(net.incoming, 7.275)
+                    "nova-instance-instance-00000001-fa163edf2e3c"):
+                self.assertEqual(net.outgoing, 6.306)
+                self.assertEqual(net.incoming, 5.84)
+            if (net.resource_id ==
+                    "nova-instance-instance-00000005-fa163ee2fde1"):
+                self.assertEqual(net.outgoing, 13.406)
+                self.assertEqual(net.incoming, 10.795)
+        for ip in usage.ips:
+            if ip.resource_id == "84326068-5ccd-4a32-bcd2-c6c3af84d862":
+                self.assertEqual(ip.duration, 1)
+            if ip.resource_id == "2155db5c-4c7b-4787-90ff-7b8ded741c75":
+                self.assertEqual(ip.duration, 1)

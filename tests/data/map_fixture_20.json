@@ -1,26 +1,39 @@
 {
- "http://localhost:8777/v2/meters/image.download?q.field=resource_id&q.value=2f754fcd-0b26-47fc-87a9-1502324d8ec6": [
-  {
-   "counter_name": "image.download", 
-   "user_id": "17436482eed94689874219299ea82bc0", 
-   "resource_id": "2f754fcd-0b26-47fc-87a9-1502324d8ec6", 
-   "timestamp": "2014-02-10T22:13:10.607611", 
-   "message_id": "86e2f15a-92a0-11e3-bca2-08002705114b", 
-   "source": "openstack", 
-   "counter_unit": "B", 
-   "counter_volume": 25165824.0, 
-   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
-   "resource_metadata": {
-    "receiver_tenant_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
-    "destination_ip": "10.0.2.15", 
-    "event_type": "image.send", 
-    "bytes_sent": "25165824", 
-    "image_id": "2f754fcd-0b26-47fc-87a9-1502324d8ec6", 
-    "host": "vagrant-ubuntu-precise-64", 
-    "receiver_user_id": "17436482eed94689874219299ea82bc0", 
-    "owner_id": "552572036def4148ab99b771b0d96507"
+ "http://localhost:8777/v2/resources/619767ba-0275-4220-8c4a-b2196c394df0": {
+  "user_id": "376b44e5683549288cfc7620b3dd2694", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/619767ba-0275-4220-8c4a-b2196c394df0", 
+    "rel": "self"
    }, 
-   "counter_type": "delta"
+   {
+    "href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=619767ba-0275-4220-8c4a-b2196c394df0", 
+    "rel": "port"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=619767ba-0275-4220-8c4a-b2196c394df0", 
+    "rel": "port.create"
+   }
+  ], 
+  "resource_id": "619767ba-0275-4220-8c4a-b2196c394df0", 
+  "last_sample_timestamp": "2014-02-12T02:52:21.088311", 
+  "first_sample_timestamp": "2014-02-12T02:52:21.088311", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "status": "DOWN", 
+   "binding:host_id": "vagrant-ubuntu-precise-64", 
+   "binding:capabilities.port_filter": "True", 
+   "admin_state_up": "True", 
+   "network_id": "a52ff971-8a62-433b-9092-19c0d5a54304", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "device_owner": "compute:nova", 
+   "binding:vif_type": "ovs", 
+   "host": "network.vagrant-ubuntu-precise-64", 
+   "mac_address": "fa:16:3e:e2:fd:e1", 
+   "event_type": "port.create.end", 
+   "device_id": "de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+   "id": "619767ba-0275-4220-8c4a-b2196c394df0", 
+   "name": ""
   }
- ]
+ }
 }

@@ -1,29 +1,38 @@
 {
- "http://localhost:8777/v2/meters/network?q.field=resource_id&q.value=d17613a8-9e67-451e-98c5-520cbac9f18c": [
-  {
-   "counter_name": "network", 
-   "user_id": "17436482eed94689874219299ea82bc0", 
-   "resource_id": "d17613a8-9e67-451e-98c5-520cbac9f18c", 
-   "timestamp": "2014-02-10T22:03:53.919499", 
-   "message_id": "50b10c1c-929f-11e3-bca2-08002705114b", 
-   "source": "openstack", 
-   "counter_unit": "network", 
-   "counter_volume": 1.0, 
-   "project_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
-   "resource_metadata": {
-    "status": "ACTIVE", 
-    "event_type": "network.create.end", 
-    "provider:physical_network": "None", 
-    "admin_state_up": "True", 
-    "tenant_id": "8a78fa56de8846cb89c7cf3f37d251d5", 
-    "provider:network_type": "local", 
-    "host": "network.vagrant-ubuntu-precise-64", 
-    "shared": "False", 
-    "name": "private", 
-    "id": "d17613a8-9e67-451e-98c5-520cbac9f18c", 
-    "provider:segmentation_id": "None"
+ "http://localhost:8777/v2/resources/dc6391f1-aeb7-4b2c-963f-33319a2680a4": {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
+    "rel": "self"
    }, 
-   "counter_type": "gauge"
+   {
+    "href": "http://localhost:8777/v2/meters/router?q.field=resource_id&q.value=dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
+    "rel": "router"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/router.create?q.field=resource_id&q.value=dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
+    "rel": "router.create"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/router.update?q.field=resource_id&q.value=dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
+    "rel": "router.update"
+   }
+  ], 
+  "resource_id": "dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
+  "last_sample_timestamp": "2014-02-11T22:52:57.680649", 
+  "first_sample_timestamp": "2014-02-11T22:52:54.598593", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "status": "ACTIVE", 
+   "event_type": "router.update.end", 
+   "external_gateway_info.enable_snat": "True", 
+   "admin_state_up": "True", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "host": "network.vagrant-ubuntu-precise-64", 
+   "external_gateway_info.network_id": "48a95728-51ac-4e13-864c-8659499db368", 
+   "id": "dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
+   "name": "router1"
   }
- ]
+ }
 }
