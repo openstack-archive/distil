@@ -1,9 +1,11 @@
 import unittest
-from artifice import interface, database
+from artifice import interface
 from artifice.interface import Artifice
 import mock
 import random
 import json
+from artifice.models.db_models import Tenant as tenant_model
+from artifice.models.db_models import UsageEntry, Resource
 # import copy
 
 from sqlalchemy import create_engine
@@ -76,19 +78,20 @@ except NameError:
     path = os.getcwd()
 
 
-fh = open( os.path.join( path, "data/resources.json") )
-resources = json.loads(fh.read () )
+fh = open(os.path.join(path, "data/resources.json"))
+resources = json.loads(fh.read())
 fh.close()
 
 i = 0
 
 mappings = {}
 
-hosts = set([resource["metadata"]["host"] for resource in resources if resource["metadata"].get("host")])
+hosts = set([resource["metadata"]["host"] for resource
+             in resources if resource["metadata"].get("host")])
 
 while True:
     try:
-        fh = open(  os.path.join( path, "data/map_fixture_%s.json" % i ) )
+        fh = open(os.path.join(path, "data/map_fixture_%s.json" % i))
         d = json.loads(fh.read())
         fh.close()
         mappings.update(d)
@@ -108,6 +111,7 @@ networks = []
 # res = {"vms": [], "network": [], 'storage': [], "ports":[]}
 res = {"vms": [], "volumes": [], 'objects': [], "networks": []}
 
+
 class InternalResource(object):
 
     def __init__(self, resource):
@@ -124,6 +128,7 @@ class InternalResource(object):
     @property
     def links(self):
         return [MiniMeter(i) for i in self.resource['links']]
+
 
 class MiniMeter(object):
 
@@ -145,7 +150,7 @@ class MiniMeter(object):
 resources = [InternalResource(r) for r in resources]
 
 for resource in resources:
-    rels = [link.rel for link in resource.links if link.rel != 'self' ]
+    rels = [link.rel for link in resource.links if link.rel != 'self']
     if "image" in rels:
         continue
     elif "storage.objects.size" in rels:
@@ -163,11 +168,13 @@ for resource in resources:
     # elif "ip.floating" in rels:
     #     res["ips"].append(resource)
 
+
 def resources_replacement(tester):
     #
     def repl(self, start, end):
         tester.called_replacement_resources = True
         return resources
+
 
 class TestInterface(unittest.TestCase):
 
@@ -175,14 +182,12 @@ class TestInterface(unittest.TestCase):
 
         engine = create_engine(os.environ["DATABASE_URL"])
         Session.configure(bind=engine)
+        Base.metadata.create_all(engine)
         self.session = Session()
         self.objects = []
         self.session.rollback()
         self.called_replacement_resources = False
 
-        num = random.randrange(len(res["networks"]))
-        print num
-        # Only one vm for this
         self.resources = res["networks"] + res["vms"] + res["objects"]
 
         self.start = datetime.now() - timedelta(days=30)
@@ -190,16 +195,18 @@ class TestInterface(unittest.TestCase):
 
     def tearDown(self):
 
-        self.session.query(database.UsageEntry).delete()
+        self.session.query(UsageEntry).delete()
+        self.session.query(tenant_model).delete()
+        self.session.query(Resource).delete()
         self.session.commit()
         self.contents = None
         self.resources = []
         self.artifice = None
         self.usage = None
 
-
     @mock.patch("artifice.models.Session")
-    # @mock.patch("artifice.interface.get_meter") # I don't think this will work
+    # @mock.patch("artifice.interface.get_meter")
+    # I don't think this will work
     @mock.patch("artifice.interface.keystone")
     @mock.patch("sqlalchemy.create_engine")
     def test_get_usage(self, sqlmock, keystone, session):
@@ -229,10 +236,10 @@ class TestInterface(unittest.TestCase):
         # del this_config["default_tenant"]
 
         keystone.assert_called_with(
-            username=        config["openstack"]["username"],
-            password=        config["openstack"]["password"],
-            tenant_name=     config["openstack"]["default_tenant"],
-            auth_url=        config["openstack"]["authentication_url"]
+            username=config["openstack"]["username"],
+            password=config["openstack"]["password"],
+            tenant_name=config["openstack"]["default_tenant"],
+            auth_url=config["openstack"]["authentication_url"]
         )
         tenants = None
         # try:
@@ -242,12 +249,10 @@ class TestInterface(unittest.TestCase):
 
         # self.assertEqual ( len(tenants.vms), 1 )
 
-        self.assertEqual( len(tenants), 1 )
+        self.assertEqual(len(tenants), 1)
         k = tenants.keys()[0]
-        t = tenants[k] # First tenant
-        self.assertTrue( isinstance( t, interface.Tenant ) )
-
-        contents = None
+        t = tenants[k]  # First tenant
+        self.assertTrue(isinstance(t, interface.Tenant))
 
         # t.resources = resources_replacement(self)
         # t.resources = mock.Mock(spec=interface.Resource)
@@ -256,7 +261,7 @@ class TestInterface(unittest.TestCase):
 
         try:
             hdc = getattr(artifice, "host_to_dc")
-            self.assertTrue( callable(hdc) )
+            self.assertTrue(callable(hdc))
         except AttributeError:
             self.fail("Artifice object lacks host_to_dc method ")
 
@@ -279,46 +284,27 @@ class TestInterface(unittest.TestCase):
         # What got called, when, and how.
 
         for call in artifice.host_to_dc.call_args_list:
-            self.assertTrue ( len(call[0]) == 1 )
-            self.assertTrue ( call[0][0] in hosts )
+            self.assertTrue(len(call[0]) == 1)
+            self.assertTrue(call[0][0] in hosts)
 
-        self.assertTrue ( isinstance(usage, interface.Usage) )
+        self.assertTrue(isinstance(usage, interface.Usage))
 
         # self.assertEqual( len(usage.vms), 1 )
         # self.assertEqual( len(usage.objects), 0)
         # self.assertEqual( len(usage.volumes), 0)
 
         # This is a fully qualified Usage object.
-        print "usage" + str(usage.objects)
         self.usage = usage
-
-    # @mock.patch("artifice.models.Session")
-    # @mock.patch("artifice.interface.get_meter") # I don't think this will work
-    # @mock.patch("artifice.interface.keystone")
-    # @mock.patch("sqlalchemy.create_engine")
-    # def test_save_smaller_range_no_overlap(self, sqlmock, keystone, meters, session):
-
-    #     self.test_get_usage()
-
-    #     first_contents = self.usage
-
-    #     # self.resources = [
-    #     #     res["vms"][random.randrange(len[res["vms"]])],
-    #     # ]
-
 
     def add_element(self, from_):
 
-        self.resources.append( res[from_][random.randrange(len(res[from_]))] )
-        print len(self.resources)
+        self.resources.append(res[from_][random.randrange(len(res[from_]))])
 
         self.test_get_usage()
         usage = self.usage
 
         # key = contents.keys()[0] # Key is the datacenter
-        print from_
-
-        self.assertTrue( isinstance(usage, interface.Usage) )
+        self.assertTrue(isinstance(usage, interface.Usage))
 
         try:
             getattr(usage, from_)
@@ -329,9 +315,9 @@ class TestInterface(unittest.TestCase):
         try:
             getattr(usage, "vms")
         except AttributeError:
-            self.fail ("No property vms")
+            self.fail("No property vms")
 
-        lens = { "vms": 4 }
+        lens = {"vms": 4}
 
         if from_ == "vms":
             lens["vms"] = 5
@@ -339,9 +325,9 @@ class TestInterface(unittest.TestCase):
             lens[from_] = 2
 
         self.assertEqual(len(usage.vms), lens["vms"])
-        self.assertEqual(len( getattr(usage, from_) ), lens[from_])
+        self.assertEqual(len(getattr(usage, from_)), lens[from_])
 
-        self.assertEqual( usage.vms[0].location, DATACENTRE )
+        self.assertEqual(usage.vms[0].location, DATACENTRE)
 
     def test_add_instance(self):
         """
@@ -358,8 +344,6 @@ class TestInterface(unittest.TestCase):
     def test_add_storage(self):
 
         self.add_element("objects")
-
-
 
     def test_correct_usage_values(self):
         """Usage data matches expected results:
@@ -385,9 +369,11 @@ class TestInterface(unittest.TestCase):
             if obj.resource_id == "388b3939-8854-4a1b-a133-e738f1ffbb0a":
                 self.assertEqual(obj.object_size, 180667.463)
         for net in usage.networks:
-            if net.resource_id == "nova-instance-instance-00000001-fa163e915745":
+            if (net.resource_id ==
+                    "nova-instance-instance-00000001-fa163e915745"):
                 self.assertEqual(net.outgoing, 26.134)
                 self.assertEqual(net.incoming, 30.499)
-            if net.resource_id == "nova-instance-instance-00000004-fa163e99f87f":
+            if (net.resource_id ==
+                    "nova-instance-instance-00000004-fa163e99f87f"):
                 self.assertEqual(net.outgoing, 8.355)
                 self.assertEqual(net.incoming, 7.275)

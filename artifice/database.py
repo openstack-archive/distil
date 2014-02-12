@@ -1,34 +1,20 @@
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Text, DateTime, Float, func
-from .models.tenants import Tenant as tenant_model
-from .models import billing
+from sqlalchemy import func
+from sqlalchemy.sql import exists
+from .models.db_models import Tenant as tenant_model
+from .models.db_models import UsageEntry, Resource
+from .models import billing, Base
 import collections
-Base = declarative_base()
 
-
-class UsageEntry(Base):
-    __tablename__ = 'usage'
-    service = Column(Text, primary_key=True)
-    volume = Column(Float)
-    resource_id = Column(Text, primary_key=True)
-    tenant_id = Column(Text, primary_key=True)
-    start = Column(DateTime)
-    end = Column(DateTime, primary_key=True)
-    # metadata = Column(Text)
-
-
-class SalesOrder(Base):
-    __tablename__ = 'sales_orders'
-    tenant_id = Column(Text, primary_key=True)
-    start = Column(DateTime)
-    end = Column(DateTime, primary_key=True)
+from sqlalchemy import create_engine
+import os
 
 
 class Database(object):
 
     def __init__(self, config, session):
         self.session = session
-        pass
+        engine = create_engine(os.environ["DATABASE_URL"])
+        Base.metadata.create_all(engine)
 
     def enter(self, usage, start, end):
         """Creates a new database entry for every usage strategy
@@ -36,7 +22,6 @@ class Database(object):
 
         # self.session.begin()
         for element in usage:
-            print element
             for key in element.usage_strategies:
                 strategy = element.usage_strategies[key]
                 volume = float(element.get(strategy['usage']))
@@ -47,14 +32,20 @@ class Database(object):
                 resource_id = element.get("resource_id")
                 tenant_id = element.get("tenant_id")
 
-                # el_type = element.type
-                # if el_type != 'virtual_machine':
-                #     metadata = {'type': el_type}
-                # else:
-                #     metadata = {'type': el_type, 'name': element.name,
-                #                 'region': element.region}
-                # # metadata should really be a json...
-                # # but is just a dict cast to a str for now
+                #  Have we seen this resource before?
+                query = self.session.query(Resource).\
+                    filter(Resource.resource_id == element.get("resource_id"))
+                if query.count() == 0:
+                    el_type = element.type
+                    if el_type != 'virtual_machine':
+                        info = {'type': el_type}
+                    else:
+                        info = {'type': el_type, 'name': element.name}
+                    # info should really be a json...
+                    # but is just a dict cast to a str for now
+                    self.session.add(Resource(resource_id=
+                                              element.get("resource_id"),
+                                              info=str(info)))
 
                 entry = UsageEntry(service=service, volume=volume,
                                    resource_id=resource_id,
@@ -66,12 +57,19 @@ class Database(object):
 
     def tenants(self, start, end, tenants=None):
         """Returns a list of tenants based on the usage entries
-           in the given range."""
+           in the given range.
+           start, end: define the range to query
+           teants: is a iterable of tenants,
+                   if not given will default to whole tenant list."""
 
         if tenants is None:
-            tenants = self.session.query(tenant_model)
+            tenants = self.session.query(tenant_model.tenant_id).\
+                filter(tenant_model.active)
         elif not isinstance(tenants, collections.Iterable):
             raise AttributeError("tenants is not an iterable")
+
+        if start > end:
+            raise AttributeError("End must be a later date than start.")
 
         # build a query set in the format:
         # tenant_id  | resource_id | service | sum(volume)
@@ -93,30 +91,29 @@ class Database(object):
             # does this tenant exist yet?
             if entry.tenant_id not in tenants_dict:
                 # build resource:
-                # metadata = session.query(ResourceMetadata.metadata).\
-                #   filter(ResourceMetadata.resource_id=entry.resource_id)
-                # temp variable to stop syntax highlighting :P
-                metadata = {}
-                resource = billing.Resource(metadata, entry.resource_id)
+                info = self.session.query(Resource.info).\
+                    filter(Resource.resource_id == entry.resource_id)
+                resource = billing.Resource(info[0].info, entry.resource_id)
 
                 # add strat to resource:
                 resource.usage_strategies[entry.service] = usage_strat
 
                 # build tenant:
-                # name = self.session.query(tenant_model.name).\
-                #     filter(tenant_model.tenant_id == entry.tenant_id)
-                name = "no tenant DB yet"
-                tenant = billing.Tenant(name, entry.tenant_id)
+                name = self.session.query(tenant_model.name).\
+                    filter(tenant_model.tenant_id == entry.tenant_id)
+                tenant = billing.Tenant(name[0].name, entry.tenant_id)
                 # add resource to tenant:
                 tenant.resources[entry.resource_id] = resource
                 # add tenant to dict:
                 tenants_dict[entry.tenant_id] = tenant
 
             # tenant exists, but does the resource?
-            elif entry.resource_id not in tenants_dict[entry.tenant_id].resources:
+            elif (entry.resource_id not
+                  in tenants_dict[entry.tenant_id].resources):
                 # build resource
-                metadata = {}
-                resource = billing.Resource(metadata, entry.resource_id)
+                info = self.session.query(Resource.info).\
+                    filter(Resource.resource_id == entry.resource_id)
+                resource = billing.Resource(info[0].info, entry.resource_id)
 
                 # add strat to resource:
                 resource.usage_strategies[entry.service] = usage_strat

@@ -132,9 +132,9 @@ class Object(BaseModelConstruct):
 
     relevant_meters = ["storage.objects.size"]
 
-    usage_strategies = {"size": {"usage": "size", "service": "object_size"}}
+    usage_strategies = {"size": {"usage": "size", "service": "storage_size"}}
 
-    type = "object"  # object storage
+    type = "object_storage"  # object storage
 
     @property
     def size(self):
@@ -166,7 +166,7 @@ class Network(BaseModelConstruct):
                         "incoming": {"usage": "incoming",
                                      "service": "incoming_megabytes"}}
 
-    type = "network"
+    type = "network_interface"
 
     @property
     def outgoing(self):
