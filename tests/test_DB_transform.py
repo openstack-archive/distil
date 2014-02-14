@@ -1,23 +1,17 @@
 from . import test_interface
+from decimal import Decimal
 from artifice import database
 from artifice.models.db_models import Tenant
-import os
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
-try:
-    fn = os.path.abspath(__file__)
-    path, f = os.path.split(fn)
-except NameError:
-    path = os.getcwd()
 
-
-class TestInvoice(test_interface.TestInterface):
+class TestDatabaseModels(test_interface.TestInterface):
 
     def tearDown(self):
 
-        super(TestInvoice, self).tearDown()
+        super(TestDatabaseModels, self).tearDown()
 
     def test_artifice_start_session(self):
         """Loading and instancing the database module works as expected: """
@@ -90,35 +84,35 @@ class TestInvoice(test_interface.TestInterface):
 
                 if resource.id == "3f7b702e4ca14cd99aebf4c4320e00ec":
                     strat = resource.usage_strategies["storage_size"]
-                    self.assertEqual(strat.volume, 276189.372)
+                    self.assertEqual(strat.volume, Decimal('276.1893720000'))
 
                 if (resource.id ==
                         "nova-instance-instance-00000002-fa163ee2d5f6"):
                     strat = resource.usage_strategies["outgoing_megabytes"]
-                    self.assertEqual(strat.volume, 11.822)
+                    self.assertEqual(strat.volume, Decimal('0.0118220000'))
                     strat = resource.usage_strategies["incoming_megabytes"]
-                    self.assertEqual(strat.volume, 9.734)
+                    self.assertEqual(strat.volume, Decimal('0.0097340000'))
                 if (resource.id ==
                         "nova-instance-instance-00000001-fa163edf2e3c"):
                     strat = resource.usage_strategies["outgoing_megabytes"]
-                    self.assertEqual(strat.volume, 6.306)
+                    self.assertEqual(strat.volume, Decimal('0.0063060000'))
                     strat = resource.usage_strategies["incoming_megabytes"]
-                    self.assertEqual(strat.volume, 5.84)
+                    self.assertEqual(strat.volume, Decimal('0.0058400000'))
                 if (resource.id ==
                         "nova-instance-instance-00000005-fa163ee2fde1"):
                     strat = resource.usage_strategies["outgoing_megabytes"]
-                    self.assertEqual(strat.volume, 13.406)
+                    self.assertEqual(strat.volume, Decimal('0.0134060000'))
                     strat = resource.usage_strategies["incoming_megabytes"]
-                    self.assertEqual(strat.volume, 10.795)
+                    self.assertEqual(strat.volume, Decimal('0.0107950000'))
 
                 if (resource.id ==
                         "e788c617-01e9-405b-823f-803f44fb3483"):
                     strat = resource.usage_strategies["volume_size"]
-                    self.assertEqual(strat.volume, 0.045)
+                    self.assertEqual(strat.volume, Decimal('0.0000450000'))
                 if (resource.id ==
                         "6af83f4f-1f4f-40cf-810e-e3262dec718f"):
                     strat = resource.usage_strategies["volume_size"]
-                    self.assertEqual(strat.volume, 0.003)
+                    self.assertEqual(strat.volume, Decimal('0.0000030000'))
 
                 if (resource.id ==
                         "84326068-5ccd-4a32-bcd2-c6c3af84d862"):
@@ -133,22 +127,22 @@ class TestInvoice(test_interface.TestInterface):
                     print "      " + usage.service
                     print "      " + str(usage.volume)
 
-        def test_get_from_db_2(self):
-            """Test to return a list of billable tenant objects,
-               with the 'tenants' parameter given a tuple with the
-               resource_id for the demo tenant."""
-            self.test_get_usage()
+    def test_get_from_db_2(self):
+        """Test to return a list of billable tenant objects,
+           with the 'tenants' parameter given a tuple with the
+           resource_id for the demo tenant."""
+        self.test_get_usage()
 
-            db = self.test_artifice_start_session()
-            db.enter(self.usage.vms, self.start, self.end)
-            db.enter(self.usage.objects, self.start, self.end)
-            db.enter(self.usage.networks, self.start, self.end)
-            db.enter(self.usage.volumes, self.start, self.end)
+        db = self.test_artifice_start_session()
+        db.enter(self.usage.vms, self.start, self.end)
+        db.enter(self.usage.objects, self.start, self.end)
+        db.enter(self.usage.networks, self.start, self.end)
+        db.enter(self.usage.volumes, self.start, self.end)
 
-            db.session.add(Tenant(tenant_id="3f7b702e4ca14cd99aebf4c4320e00ec",
-                                  name="demo"))
+        db.session.add(Tenant(tenant_id="3f7b702e4ca14cd99aebf4c4320e00ec",
+                              name="demo"))
 
-            tenants = db.tenants(self.start, self.end,
-                                 ("3f7b702e4ca14cd99aebf4c4320e00ec",))
+        tenants = db.tenants(self.start, self.end,
+                             ("3f7b702e4ca14cd99aebf4c4320e00ec",))
 
-            self.assertEqual(len(tenants), 1)
+        self.assertEqual(len(tenants), 1)

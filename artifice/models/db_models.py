@@ -1,11 +1,11 @@
 from . import Base
-from sqlalchemy import Column, Text, DateTime, Float, Boolean
+from sqlalchemy import Column, Text, DateTime, Boolean, DECIMAL
 
 
 class UsageEntry(Base):
     __tablename__ = 'usage'
     service = Column(Text, primary_key=True)
-    volume = Column(Float)
+    volume = Column(DECIMAL)
     resource_id = Column(Text, primary_key=True)
     tenant_id = Column(Text, primary_key=True)
     start = Column(DateTime)

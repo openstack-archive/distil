@@ -11,38 +11,8 @@ invoice_object:
   delimiter: ','
   output_file: '%(tenant)s-%(start)s-%(end)s.csv'
   output_path: ./
-  models:
-    virtual_machine:
-      info_fields:
-        - name
-        - resource_id
-        - flavor
-      strategies:
-        - uptime
-    object:
-      info_fields:
-        - resource_id
-      strategies:
-        - size
-    volume:
-      info_fields:
-        - resource_id
-      strategies:
-        - size
-    network:
-      info_fields:
-        - resource_id
-      strategies:
-        - incoming
-        - outgoing
-    floating_ip:
-      info_fields:
-        - resource_id
-      strategies:
-        - duration
   rates: 
     file: /etc/artifice/csv_rates.csv
-    names: /etc/artifice/csv_names.csv
 main:
   invoice:object: billing.csv_invoice:Csv
 openstack:

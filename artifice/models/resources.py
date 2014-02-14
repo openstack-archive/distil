@@ -1,4 +1,4 @@
-from decimal import *
+from decimal import Decimal
 import math
 
 
@@ -52,7 +52,7 @@ class BaseModelConstruct(object):
 
 def to_mb(bytes):
     # function to make code easier to understand elsewhere.
-    return bytes / 1000
+    return (bytes / 1000) / 1000
 
 
 class VM(BaseModelConstruct):

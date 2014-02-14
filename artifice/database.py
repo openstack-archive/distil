@@ -5,6 +5,9 @@ from .models.db_models import UsageEntry, Resource
 from .models import billing, Base
 import collections
 
+import json
+from decimal import Decimal
+
 from sqlalchemy import create_engine
 import os
 
@@ -24,7 +27,7 @@ class Database(object):
         for element in usage:
             for key in element.usage_strategies:
                 strategy = element.usage_strategies[key]
-                volume = float(element.get(strategy['usage']))
+                volume = element.get(strategy['usage'])
                 try:
                     service = element.get(strategy['service'])
                 except AttributeError:
@@ -38,9 +41,10 @@ class Database(object):
                 if query.count() == 0:
                     el_type = element.type
                     if el_type != 'virtual_machine':
-                        info = {'type': el_type}
+                        info = json.dumps({'type': el_type})
                     else:
-                        info = {'type': el_type, 'name': element.name}
+                        info = json.dumps({'type': el_type,
+                                           'name': element.name})
                     # info should really be a json...
                     # but is just a dict cast to a str for now
                     self.session.add(Resource(resource_id=
@@ -86,14 +90,16 @@ class Database(object):
         for entry in query:
             # since there is no field for volume after the sum, we must
             # access the entry by index
-            usage_strat = billing.UsageStrategy(entry.service, entry[3])
+            usage_strat = billing.UsageStrategy(entry.service,
+                                                Decimal(entry[3]))
 
             # does this tenant exist yet?
             if entry.tenant_id not in tenants_dict:
                 # build resource:
                 info = self.session.query(Resource.info).\
                     filter(Resource.resource_id == entry.resource_id)
-                resource = billing.Resource(info[0].info, entry.resource_id)
+                metadata = json.loads(info[0].info)
+                resource = billing.Resource(metadata, entry.resource_id)
 
                 # add strat to resource:
                 resource.usage_strategies[entry.service] = usage_strat
@@ -113,7 +119,8 @@ class Database(object):
                 # build resource
                 info = self.session.query(Resource.info).\
                     filter(Resource.resource_id == entry.resource_id)
-                resource = billing.Resource(info[0].info, entry.resource_id)
+                metadata = json.loads(info[0].info)
+                resource = billing.Resource(metadata, entry.resource_id)
 
                 # add strat to resource:
                 resource.usage_strategies[entry.service] = usage_strat

@@ -368,25 +368,26 @@ class TestInterface(unittest.TestCase):
                 self.assertEqual(vm.uptime, 0)
         for obj in usage.objects:
             if obj.resource_id == "3f7b702e4ca14cd99aebf4c4320e00ec":
-                self.assertEqual(obj.size, 276189.372)
+                self.assertEqual(obj.size,
+                                 276.18937199999999165811459533870220184326171875)
         for vol in usage.volumes:
             if vol.resource_id == "e788c617-01e9-405b-823f-803f44fb3483":
-                self.assertEqual(vol.size, 0.045)
+                self.assertEqual(vol.size, 0.000044999999999999996057840900842705877948901616036891937255859375)
             if vol.resource_id == "6af83f4f-1f4f-40cf-810e-e3262dec718f":
-                self.assertEqual(vol.size, 0.003)
+                self.assertEqual(vol.size, 0.000003000000000000000076002572291233860823922441340982913970947265625)
         for net in usage.networks:
             if (net.resource_id ==
                     "nova-instance-instance-00000002-fa163ee2d5f6"):
-                self.assertEqual(net.outgoing, 11.822)
-                self.assertEqual(net.incoming, 9.734)
+                self.assertEqual(net.outgoing, 0.011821999999999999175770426518283784389495849609375)
+                self.assertEqual(net.incoming, 0.009733999999999999597211086665993207134306430816650390625)
             if (net.resource_id ==
                     "nova-instance-instance-00000001-fa163edf2e3c"):
-                self.assertEqual(net.outgoing, 6.306)
-                self.assertEqual(net.incoming, 5.84)
+                self.assertEqual(net.outgoing, 0.006305999999999999973410158560227500856854021549224853515625)
+                self.assertEqual(net.incoming, 0.00583999999999999970523578696202093851752579212188720703125)
             if (net.resource_id ==
                     "nova-instance-instance-00000005-fa163ee2fde1"):
-                self.assertEqual(net.outgoing, 13.406)
-                self.assertEqual(net.incoming, 10.795)
+                self.assertEqual(net.outgoing, 0.0134060000000000012487788580983760766685009002685546875)
+                self.assertEqual(net.incoming, 0.01079500000000000077549078270067184348590672016143798828125)
         for ip in usage.ips:
             if ip.resource_id == "84326068-5ccd-4a32-bcd2-c6c3af84d862":
                 self.assertEqual(ip.duration, 1)
