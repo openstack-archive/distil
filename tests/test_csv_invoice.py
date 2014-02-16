@@ -1,6 +1,6 @@
 from . import test_interface
 from artifice import database
-from artifice.models.db_models import Tenant
+from artifice.models import Tenant
 from sqlalchemy.ext.declarative import declarative_base
 
 from artifice.billing import csv_invoice
@@ -10,7 +10,7 @@ Base = declarative_base()
 
 config = {
     "output_file": '%(tenant)s-%(start)s-%(end)s.csv',
-    "output_path": "./invoices",
+    "output_path": "./tests/invoices",
     "rates": {"file":
               "/home/adriant/Projects/openstack-artifice/examples/csv_rates.csv"}
 }

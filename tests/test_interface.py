@@ -4,8 +4,8 @@ from artifice.interface import Artifice
 import mock
 import random
 import json
-from artifice.models.db_models import Tenant as tenant_model
-from artifice.models.db_models import UsageEntry, Resource
+from artifice.models import Tenant as tenant_model
+from artifice.models import UsageEntry, Resource
 # import copy
 
 from sqlalchemy import create_engine

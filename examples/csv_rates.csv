@@ -1,8 +1,8 @@
-region | m1.nano  | duration       | 0.32
-region | m1.micro  | duration       | 0.42
-region | m1.tiny  | duration       | 0.62
-region | m1.small  | duration       | 0.82
-region | m1.medium  | duration       | 1.02
+region | m1_nano  | duration       | 0.32
+region | m1_micro  | duration       | 0.42
+region | m1_tiny  | duration       | 0.62
+region | m1_small  | duration       | 0.82
+region | m1_medium  | duration       | 1.02
 region | incoming_megabytes  | bytes          | 0.004
 region | outgoing_megabytes  | bytes          | 0.007
 region | storage_size    | bytes per hour | 0.000513
