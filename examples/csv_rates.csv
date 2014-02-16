@@ -1,0 +1,7 @@
+region | m1.nano  | duration       | 0.32
+region | m1.tiny  | duration       | 0.62
+region | incoming_bytes  | bytes          | 0.004
+region | outgoing_bytes  | bytes          | 0.007
+region | object_size    | bytes per hour | 0.00513
+region | floating_ip       | duration    | 0.05
+region | volume_size       | bytes per hour | 0.0076
