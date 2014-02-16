@@ -15,6 +15,9 @@ db = Session()
 
 config = load_config()
 
+
+# Some useful constants
+
 iso_time = "%Y-%m-%dT%H:%M:%S"
 iso_date = "%Y-%m-%d"
 
@@ -47,9 +50,14 @@ def keystone(func):
 
     return _perform_keystone
 
+# TODO: fill me in
+def must(*args):
+    return lambda(func): func
+
 @app.get("/usage")
 @app.get("/usage/{resource_id}") # also allow for querying by resource ID.
 @keystone
+@must("resource_id", "tenant")
 def retrieve_usage(resource_id=None):
     """Retrieves usage for a given tenant ID.
     Tenant ID will be passed in via the query string.
@@ -99,33 +107,108 @@ def retrieve_usage(resource_id=None):
 
 @app.post("/usage")
 @keystone
-def add_usage(self):
+@must("amount", "start", "end", "tenant")
+def add_usage():
     """
-    Adds usage for a given tenant T.
+    Adds usage for a given tenant T and resource R.
     Expects to receive a Resource ID, a time range, and a volume.
 
     The volume will be parsed from JSON as a Decimal object.
     """
 
     body = json.loads(request.body, parse_float=Decimal)
+    db.begin()
+    for resource in body["resources"]:
+        start = datetime.strptime(resource.get("start"), date_iso)
+        end   = datetime.strptime(resource.get("end"), date_iso)
+        id_   = resource["id"]
+        u = usage.Usage( 
+                resource=id_, 
+                tenant=request.params["tenant"],
+                value=resource["amount"],
+                start=start,
+                end=end)
+        db.add(u)
+    try:
+        db.commit()
+    except Exception as e:
+        # Explodytime
+        status(500)
+        return(json.dumps(
+            {"status": "error",
+             "error" : "database transaction error"
+             }))
 
+    status(201)
+    return json.dumps({
+        "status": "ok",
+        "saved": len(body["resources"])
+        })
 
-@app.get("/bill")
-@app.get("/bill/{id}")
+@app.get("/bills/{id}")
 @keystone
-def get_bill():
+@must("tenant", "start", "end")
+def get_bill(id_):
     """
     Returns either a single bill or a set of the most recent
     bills for a given Tenant.
     """
-    pass
+
+    # TODO: Put these into an input validator instead
+    try:
+        start = datetime.strptime(request.params["start"], date_iso)
+    except:
+        abort(
+            403, 
+            json.dumps(
+                {"status":"error", 
+                 "error": "start date is not ISO-compliant"})
+        )
+    try:
+        end = datetime.strptime(request.params["end"], date_iso)
+    except:
+        abort(
+            403, 
+            json.dumps(
+                {"status":"error", 
+                 "error": "end date is not ISO-compliant"})
+        )
+
+    try:
+        bill = BillInterface(session).get(id_)
+    except:
+        abort(404)
+
+    if not bill:
+        abort(404)
+
+    resp = {"status": "ok",
+            "bill": [],
+            "total": str(bill.total),
+            "tenant": bill.tenant_id
+           }
+
+    for resource in billed:
+        resp["bill"].append({
+            'resource_id': bill.resource_id,
+            'volume': str( bill.volume ),
+            'rate': str( bill.rate ),
+            # 'metadata':  # TODO: This will be filled in with extra data
+        })
     
-
-
-
-@app.get("/bill/{bill_id}")
+    return (200, json.dumps(resp))
+    
+@app.post("/usage/current")
 @keystone
-def get_bill_by_id(bill_id=None):
+@must("tenant_id")
+def get_current_usage():
+    """
+    Is intended to return a running total of the current billing periods'
+    dataset. Performs a Rate transformer on each transformed datapoint and 
+    returns the result.
+
+    TODO: Implement
+    """
     pass
 
 @app.post("/bill")
@@ -147,6 +230,29 @@ def make_a_bill():
     end = body.get("end", None)
     if not start or not end:
         return abort(403) # All three *must* be defined
-    bill = usage.Bill()
+    
 
-    # total = 
+    bill = BillInterface(session)
+    thebill = bill.generate(body["tenant_id"], start, end)
+    # assumes the bill is saved
+
+    if not thebill.is_saved:
+        # raise an error
+        abort(500)
+    
+    resp = {"status":"created",
+            "id": thebill.id,
+            "contents": [],
+            "total": None
+           }
+    for resource in thebill.resources:
+        total += Decimal(billed.total)
+        resp["contents"].append({
+            'resource_id': bill.resource_id,
+            'volume': str( bill.volume ),
+            'rate': str( bill.rate ),
+            # 'metadata':  # TODO: This will be filled in with extra data
+        })
+    
+    resp["total"] = thebill.total
+    return (201, json.dumps(resp))
