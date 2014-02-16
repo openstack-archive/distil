@@ -118,7 +118,7 @@ class RatesFileMixin(object):
     # Adds a rates file loader, expecting various things from the
     # configuration
 
-    def rate(self, name):
+    def rate(self, name, region=None):
         try:
             self.__rates
         except AttributeError:

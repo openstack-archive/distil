@@ -1,7 +1,7 @@
 from . import test_interface
 from decimal import Decimal
 from artifice import database
-from artifice.models.db_models import Tenant
+from artifice.models import Tenant
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()

@@ -1,7 +1,5 @@
 from sqlalchemy import func
-from .models.db_models import Tenant as tenant_model
-from .models.db_models import UsageEntry, Resource
-from .models import billing, Base
+from .models import billing, Base, Tenant, Resource, UsageEntry
 import collections
 
 import json
@@ -61,12 +59,12 @@ class Database(object):
         """Returns a list of tenants based on the usage entries
            in the given range.
            start, end: define the range to query
-           teants: is a iterable of tenants,
+           tenants: is a iterable of tenants,
                    if not given will default to whole tenant list."""
 
         if tenants is None:
-            tenants = self.session.query(tenant_model.tenant_id).\
-                filter(tenant_model.active)
+            tenants = self.session.query(Tenant.tenant_id).\
+                filter(Tenant.active)
         elif not isinstance(tenants, collections.Iterable):
             raise AttributeError("tenants is not an iterable")
 
@@ -103,8 +101,8 @@ class Database(object):
                 resource.usage_strategies[entry.service] = usage_strat
 
                 # build tenant:
-                name = self.session.query(tenant_model.name).\
-                    filter(tenant_model.tenant_id == entry.tenant_id)
+                name = self.session.query(Tenant.name).\
+                    filter(Tenant.tenant_id == entry.tenant_id)
                 tenant = billing.Tenant(name[0].name, entry.tenant_id)
                 # add resource to tenant:
                 tenant.resources[entry.resource_id] = resource

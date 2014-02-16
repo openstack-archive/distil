@@ -6,6 +6,8 @@ import requests
 import json
 import urllib
 
+from constants import states
+
 from collections import defaultdict
 
 #
@@ -575,13 +577,19 @@ class Gauge(Artifact):
         # totals is now an array of max values per hour for a given month.
         return sum(totals)
 
-    def uptime(self, tracked):
+    def uptime(self, tracked_states):
         """Calculates uptime accurately for the given 'tracked' states.
         - Will ignore all other states.
         - Relies heavily on the existence of a state meter, and
           should only ever be called on the state meter.
 
         Returns: uptime in seconds"""
+
+        # build int list of tracked states:
+        tracked = []
+        for state in tracked_states:
+            tracked.append(states[state])
+        
 
         usage = sorted(self.usage, key=lambda x: x["timestamp"])
 

@@ -1,12 +1,12 @@
 import os
 from csv import writer
 from artifice import invoice
-from artifice import clerk_mixins
+# from artifice import clerk_mixins
 import yaml
 from decimal import *
 
 
-class Csv(clerk_mixins.ClerkRatesMixin, invoice.Invoice):
+class Csv(invoice.RatesFileMixin, invoice.Invoice):
 
     def __init__(self, tenant, start, end, config):
         self.config = config
