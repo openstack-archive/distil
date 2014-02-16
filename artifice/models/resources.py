@@ -70,9 +70,9 @@ class VM(BaseModelConstruct):
 
         # this NEEDS to be moved to a config file or
         # possibly be queried from Clerk?
-        tracked = [1, 2, 3, 6, 7]
+        tracked_states = ["active", "building", "paused", "rescued", "resized"]
 
-        seconds = self.usage()["state"].uptime(tracked)
+        seconds = self.usage()["state"].uptime(tracked_states)
 
         # in hours, rounded up:
         uptime = math.ceil((seconds / 60.0) / 60.0)
