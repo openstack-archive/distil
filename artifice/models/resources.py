@@ -1,6 +1,8 @@
 from decimal import Decimal
 import math
 
+from artifice import constants
+
 
 class BaseModelConstruct(object):
 
@@ -70,7 +72,9 @@ class VM(BaseModelConstruct):
 
         # this NEEDS to be moved to a config file or
         # possibly be queried from Clerk?
-        tracked_states = ["active", "building", "paused", "rescued", "resized"]
+        tracked_states = [constants.active, constants.building,
+                          constants.paused, constants.rescued,
+                          constants.resized]
 
         seconds = self.usage()["state"].uptime(tracked_states)
 
