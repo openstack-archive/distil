@@ -1,5 +1,4 @@
 from sqlalchemy import func
-from sqlalchemy.sql import exists
 from .models.db_models import Tenant as tenant_model
 from .models.db_models import UsageEntry, Resource
 from .models import billing, Base
@@ -40,13 +39,12 @@ class Database(object):
                     filter(Resource.resource_id == element.get("resource_id"))
                 if query.count() == 0:
                     el_type = element.type
-                    if el_type != 'virtual_machine':
+                    if el_type not in ('virtual_machine', 'volume'):
                         info = json.dumps({'type': el_type})
                     else:
                         info = json.dumps({'type': el_type,
                                            'name': element.name})
-                    # info should really be a json...
-                    # but is just a dict cast to a str for now
+
                     self.session.add(Resource(resource_id=
                                               element.get("resource_id"),
                                               info=str(info)))
@@ -90,8 +88,8 @@ class Database(object):
         for entry in query:
             # since there is no field for volume after the sum, we must
             # access the entry by index
-            usage_strat = billing.UsageStrategy(entry.service,
-                                                Decimal(entry[3]))
+            volume = Decimal(entry[3])
+            usage_strat = billing.UsageStrategy(entry.service, volume)
 
             # does this tenant exist yet?
             if entry.tenant_id not in tenants_dict:

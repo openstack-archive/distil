@@ -11,7 +11,8 @@ Base = declarative_base()
 config = {
     "output_file": '%(tenant)s-%(start)s-%(end)s.csv',
     "output_path": "./invoices",
-    "rates": {"file": "/home/adriant/Projects/openstack-artifice/examples/csv_rates.csv"}
+    "rates": {"file":
+              "/home/adriant/Projects/openstack-artifice/examples/csv_rates.csv"}
 }
 
 

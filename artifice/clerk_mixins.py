@@ -1,6 +1,5 @@
 import requests
 from decimal import Decimal
-from artifice import NotFound
 
 
 class ClerkNamesMixin(object):
@@ -14,14 +13,13 @@ class ClerkNamesMixin(object):
             return str(response.json()['pretty_name'])
         elif response.status_code == 404:
             print "not found"
-            raise NotFound
 
 
 class ClerkRatesMixin(object):
 
     def rate(self, name, loc_name):
-        url = self.config["clerk"]["url"]
-        url = (url + "locations/" + loc_name +
+        url = "http://10.5.36.32/"
+        url = (url + "regions/" + loc_name +
                "/services/" + name + "/rates/current/")
         response = requests.get(url,
                                 headers={"Content-Type": "application/json"})
@@ -29,4 +27,3 @@ class ClerkRatesMixin(object):
             return Decimal(response.json()['rate'])
         elif response.status_code == 404:
             print "not found"
-            raise NotFound

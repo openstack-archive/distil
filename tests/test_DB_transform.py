@@ -64,22 +64,22 @@ class TestDatabaseModels(test_interface.TestInterface):
                 print "    " + resource.id
 
                 if resource.id == "db8037b2-9f1c-4dd2-94dd-ea72f49a21d7":
-                    strat = resource.usage_strategies["m1.nano"]
+                    strat = resource.usage_strategies["m1_nano"]
                     self.assertEqual(strat.volume, 1)
                 if resource.id == "9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a":
-                    strat = resource.usage_strategies["m1.micro"]
+                    strat = resource.usage_strategies["m1_micro"]
                     self.assertEqual(strat.volume, 1)
                 if resource.id == "0a57e3da-9e85-4690-8ba9-ee7573619ec3":
-                    strat = resource.usage_strategies["m1.small"]
+                    strat = resource.usage_strategies["m1_small"]
                     self.assertEqual(strat.volume, 1)
                 if resource.id == "388b3939-8854-4a1b-a133-e738f1ffbb0a":
-                    strat = resource.usage_strategies["m1.micro"]
+                    strat = resource.usage_strategies["m1_micro"]
                     self.assertEqual(strat.volume, 1)
                 if resource.id == "de35c688-5a82-4ce5-a7e0-36245d2448bc":
-                    strat = resource.usage_strategies["m1.tiny"]
+                    strat = resource.usage_strategies["m1_tiny"]
                     self.assertEqual(strat.volume, 1)
                 if resource.id == "e404920f-cfc8-40ba-bc53-a5c610714bd":
-                    strat = resource.usage_strategies["m1.medium"]
+                    strat = resource.usage_strategies["m1_medium"]
                     self.assertEqual(strat.volume, 0)
 
                 if resource.id == "3f7b702e4ca14cd99aebf4c4320e00ec":

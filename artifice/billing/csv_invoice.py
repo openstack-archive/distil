@@ -1,11 +1,12 @@
 import os
 from csv import writer
 from artifice import invoice
+from artifice import clerk_mixins
 import yaml
 from decimal import *
 
 
-class Csv(invoice.RatesFileMixin, invoice.Invoice):
+class Csv(clerk_mixins.ClerkRatesMixin, invoice.Invoice):
 
     def __init__(self, tenant, start, end, config):
         self.config = config
@@ -19,26 +20,33 @@ class Csv(invoice.RatesFileMixin, invoice.Invoice):
     def bill(self):
         # Usage is one of VMs, Storage, or Volumes.
         for element in self.tenant.resources.values():
-            appendee = []
             print " * " + element.metadata['type']
 
             print "   - resource id: " + str(element.id)
-            appendee.append(element.id)
+            self.add_line(element.metadata['type'], [element.id])
 
+            appendee = []
+            appendee2 = []
             for key, value in element.metadata.iteritems():
                 print "   - " + key + ": " + str(value)
-                appendee.append(value)
+                appendee.append(key + str(":"))
+                appendee2.append(value)
 
             self.add_line(element.metadata['type'], appendee)
+            self.add_line(element.metadata['type'], appendee2)
 
             total_cost = Decimal(0.0)
-            appendee = ["", "service:", "usage:", "rate:", "cost:"]
+            appendee = ["service:", "usage:", "rate:", "cost:"]
             self.add_line(element.metadata['type'], appendee)
             for strategy in element.usage_strategies.values():
-                appendee = ["-"]
+                appendee = []
                 cost = Decimal(0.0)
                 usage = Decimal(strategy.volume)
-                rate = self.rate(strategy.service)
+
+                # GET REGION FROM CONFIG:
+                region = 'wellington'
+
+                rate = self.rate(strategy.service, region)
                 cost = usage * rate
                 total_cost += cost
                 appendee.append(strategy.service)
@@ -47,11 +55,11 @@ class Csv(invoice.RatesFileMixin, invoice.Invoice):
                 appendee.append(round(cost, 2))
                 print "   - " + strategy.service + ": " + str(usage)
                 print "     - rate: " + str(rate)
-                print "     - cost: " + str(cost)
+                print "     - cost: " + str(round(cost))
                 self.add_line(element.metadata['type'], appendee)
             appendee = ["total cost:", round(total_cost, 2)]
             self.add_line(element.metadata['type'], appendee)
-            print "   - total cost: " + str(total_cost)
+            print "   - total cost: " + str(round(total_cost))
 
             self.add_line(element.metadata['type'], [])
             self.total += total_cost

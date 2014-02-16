@@ -86,10 +86,10 @@ class VM(BaseModelConstruct):
         # sometimes instance_type is needed instead....
         try:
             # print "\"flavor.name\" was used"
-            return self._raw["metadata"]["flavor.name"]
+            return self._raw["metadata"]["flavor.name"].replace(".", "_")
         except KeyError:
             # print "\"instance_type\" was used"
-            return self._raw["metadata"]["instance_type"]
+            return self._raw["metadata"]["instance_type"].replace(".", "_")
 
     @property
     def memory(self):
@@ -156,6 +156,10 @@ class Volume(BaseModelConstruct):
     def size(self):
         # Size of the thing over time.
         return Decimal(to_mb(self.usage()["volume.size"].volume()))
+
+    @property
+    def name(self):
+        return self._raw["metadata"]["display_name"]
 
 
 class Network(BaseModelConstruct):
