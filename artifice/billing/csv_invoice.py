@@ -38,22 +38,22 @@ class Csv(invoice.RatesFileMixin, invoice.Invoice):
             total_cost = Decimal(0.0)
             appendee = ["service:", "usage:", "rate:", "cost:"]
             self.add_line(element.metadata['type'], appendee)
-            for strategy in element.usage_strategies.values():
+            for service in element.services.values():
                 appendee = []
                 cost = Decimal(0.0)
-                usage = Decimal(strategy.volume)
+                usage = Decimal(service.volume)
 
                 # GET REGION FROM CONFIG:
                 region = 'wellington'
 
-                rate = self.rate(strategy.service, region)
+                rate = self.rate(service.name, region)
                 cost = usage * rate
                 total_cost += cost
-                appendee.append(strategy.service)
+                appendee.append(service.name)
                 appendee.append(usage)
                 appendee.append(rate)
                 appendee.append(round(cost, 2))
-                print "   - " + strategy.service + ": " + str(usage)
+                print "   - " + service.name + ": " + str(usage)
                 print "     - rate: " + str(rate)
                 print "     - cost: " + str(round(cost))
                 self.add_line(element.metadata['type'], appendee)
