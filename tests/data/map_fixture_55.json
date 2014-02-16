@@ -1,0 +1,39 @@
+{
+ "http://localhost:8777/v2/resources/a37fbd75-79e8-49bf-ae27-96e7cb80d44d": {
+  "user_id": "376b44e5683549288cfc7620b3dd2694", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/a37fbd75-79e8-49bf-ae27-96e7cb80d44d", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=a37fbd75-79e8-49bf-ae27-96e7cb80d44d", 
+    "rel": "port"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=a37fbd75-79e8-49bf-ae27-96e7cb80d44d", 
+    "rel": "port.create"
+   }
+  ], 
+  "resource_id": "a37fbd75-79e8-49bf-ae27-96e7cb80d44d", 
+  "last_sample_timestamp": "2014-02-12T02:48:14.372303", 
+  "first_sample_timestamp": "2014-02-12T02:48:14.372303", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "status": "DOWN", 
+   "binding:host_id": "vagrant-ubuntu-precise-64", 
+   "binding:capabilities.port_filter": "True", 
+   "admin_state_up": "True", 
+   "network_id": "a52ff971-8a62-433b-9092-19c0d5a54304", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "device_owner": "compute:nova", 
+   "binding:vif_type": "ovs", 
+   "host": "network.vagrant-ubuntu-precise-64", 
+   "mac_address": "fa:16:3e:e2:d5:f6", 
+   "event_type": "port.create.end", 
+   "device_id": "9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+   "id": "a37fbd75-79e8-49bf-ae27-96e7cb80d44d", 
+   "name": ""
+  }
+ }
+}

@@ -1,1 +1,46 @@
-{"http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=615a397c-fca2-4233-9f42-b769a8d6ea59": [{"counter_name": "port.create", "user_id": "9692a61b44f246259af534f0b1d95942", "resource_id": "615a397c-fca2-4233-9f42-b769a8d6ea59", "timestamp": "2013-08-04T23:58:49.296000", "message_id": "ce871c4a-fd61-11e2-a072-080027880ca6", "source": "openstack", "counter_unit": "port", "counter_volume": 1.0, "project_id": "931dc699f9934021bb4a2b1088ba4d3b", "resource_metadata": {"status": "DOWN", "binding:host_id": "openstack", "name": "", "admin_state_up": "True", "network_id": "0e5f3762-a8a9-4051-ad35-49ad879ebfc3", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "binding:vif_type": "ovs", "device_owner": "compute:None", "mac_address": "fa:16:3e:4d:0f:e5", "event_type": "port.create.end", "id": "615a397c-fca2-4233-9f42-b769a8d6ea59", "device_id": "03bd0d4c-99da-4ccf-b308-2721f33e84ef"}, "counter_type": "delta"}], "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=615a397c-fca2-4233-9f42-b769a8d6ea59": [{"counter_name": "port", "user_id": "9692a61b44f246259af534f0b1d95942", "resource_id": "615a397c-fca2-4233-9f42-b769a8d6ea59", "timestamp": "2013-08-04T23:58:49.296000", "message_id": "ce863870-fd61-11e2-a072-080027880ca6", "source": "openstack", "counter_unit": "port", "counter_volume": 1.0, "project_id": "931dc699f9934021bb4a2b1088ba4d3b", "resource_metadata": {"status": "DOWN", "binding:host_id": "openstack", "name": "", "admin_state_up": "True", "network_id": "0e5f3762-a8a9-4051-ad35-49ad879ebfc3", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "binding:vif_type": "ovs", "device_owner": "compute:None", "mac_address": "fa:16:3e:4d:0f:e5", "event_type": "port.create.end", "id": "615a397c-fca2-4233-9f42-b769a8d6ea59", "device_id": "03bd0d4c-99da-4ccf-b308-2721f33e84ef"}, "counter_type": "gauge"}]}
+{
+ "http://localhost:8777/v2/resources/3f7b702e4ca14cd99aebf4c4320e00ec": {
+  "user_id": "6427e9ae88ed4dc69e4e4d82b229c8a6", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.api.request?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "rel": "storage.api.request"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "rel": "storage.objects"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects.containers?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "rel": "storage.objects.containers"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects.incoming.bytes?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "rel": "storage.objects.incoming.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects.outgoing.bytes?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "rel": "storage.objects.outgoing.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects.size?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "rel": "storage.objects.size"
+   }
+  ], 
+  "resource_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "last_sample_timestamp": "2014-02-12T02:56:32.372133", 
+  "first_sample_timestamp": "2014-02-11T22:53:29", 
+  "project_id": "c7c724d04e734e3688f8e7276aecec9c", 
+  "metadata": {
+   "path": "/v1/AUTH_3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "object": "None", 
+   "container": "None", 
+   "method": "head", 
+   "version": "v1"
+  }
+ }
+}

@@ -1,0 +1,55 @@
+{
+ "http://localhost:8777/v2/resources/8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0": {
+  "user_id": null, 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image?q.field=resource_id&q.value=8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "rel": "image"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.download?q.field=resource_id&q.value=8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "rel": "image.download"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.serve?q.field=resource_id&q.value=8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "rel": "image.serve"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.size?q.field=resource_id&q.value=8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "rel": "image.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.update?q.field=resource_id&q.value=8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "rel": "image.update"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.upload?q.field=resource_id&q.value=8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "rel": "image.upload"
+   }
+  ], 
+  "resource_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+  "last_sample_timestamp": "2014-02-12T02:56:32", 
+  "first_sample_timestamp": "2014-02-11T22:54:11.626339", 
+  "project_id": "5f836e56b51747e080f3442cb1b8035a", 
+  "metadata": {
+   "status": "active", 
+   "name": "cirros-0.3.1-x86_64-uec-ramdisk", 
+   "deleted": "False", 
+   "checksum": "69c33642f44ca552ba4bb8b66ad97e85", 
+   "created_at": "2014-02-11T22:54:11", 
+   "disk_format": "ari", 
+   "updated_at": "2014-02-11T22:54:11", 
+   "protected": "False", 
+   "container_format": "ari", 
+   "min_disk": "0", 
+   "is_public": "True", 
+   "deleted_at": "None", 
+   "min_ram": "0", 
+   "size": "3714968"
+  }
+ }
+}

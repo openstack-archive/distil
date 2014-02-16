@@ -4,14 +4,18 @@ from artifice.interface import Artifice
 import mock
 import random
 import json
+from artifice.models.db_models import Tenant as tenant_model
+from artifice.models.db_models import UsageEntry, Resource
 # import copy
 
 from sqlalchemy import create_engine
 from artifice.models import Session
-from artifice.models import usage, tenants
-from artifice.models.resources import Resource, VM
 
 from datetime import datetime, timedelta
+
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 
 """
@@ -43,7 +47,7 @@ config = {
     "openstack": {
         "username": "foo",
         "password": "bar",
-        "default_tenant":"asdf",
+        "default_tenant": "asdf",
         "authentication_url": "http://foo"
     },
     "ceilometer": {
@@ -74,19 +78,20 @@ except NameError:
     path = os.getcwd()
 
 
-fh = open( os.path.join( path, "data/resources.json") )
-resources = json.loads(fh.read () )
+fh = open(os.path.join(path, "data/resources.json"))
+resources = json.loads(fh.read())
 fh.close()
 
 i = 0
 
 mappings = {}
 
-hosts = set([resource["metadata"]["host"] for resource in resources if resource["metadata"].get("host")])
+hosts = set([resource["metadata"]["host"] for resource
+             in resources if resource["metadata"].get("host")])
 
 while True:
     try:
-        fh = open(  os.path.join( path, "data/map_fixture_%s.json" % i ) )
+        fh = open(os.path.join(path, "data/map_fixture_%s.json" % i))
         d = json.loads(fh.read())
         fh.close()
         mappings.update(d)
@@ -104,7 +109,8 @@ networks = []
 
 # res = {"vms": [], "net": [], 'storage': [], "ports":[], "ips": []}
 # res = {"vms": [], "network": [], 'storage': [], "ports":[]}
-res = {"vms": [], "volumes": [], 'objects': [], "network": []}
+res = {"vms": [], "volumes": [], 'objects': [], "networks": [], "ips": []}
+
 
 class InternalResource(object):
 
@@ -122,6 +128,7 @@ class InternalResource(object):
     @property
     def links(self):
         return [MiniMeter(i) for i in self.resource['links']]
+
 
 class MiniMeter(object):
 
@@ -143,23 +150,22 @@ class MiniMeter(object):
 resources = [InternalResource(r) for r in resources]
 
 for resource in resources:
-    rels = [link.rel for link in resource.links if link.rel != 'self' ]
+    rels = [link.rel for link in resource.links if link.rel != 'self']
     if "image" in rels:
         continue
-    elif "storage.objects" in rels:
+    elif "storage.objects.size" in rels:
         # Unknown how this data layout happens yet.
         # resource["_type"] = "storage"
         res["objects"].append(resource)
     elif "volume" in rels:
         res["volumes"].append(resource)
-    elif "network" in rels:
-        res["network"].append(resource)
-    elif "instance" in rels:
+    elif "network.outgoing.bytes" in rels:
+        res["networks"].append(resource)
+    elif "state" in rels:
         res["vms"].append(resource)
-    # elif "port" in rels:
-    #     res["ports"].append(resource)
-    # elif "ip.floating" in rels:
-    #     res["ips"].append(resource)
+    elif "ip.floating" in rels:
+        res["ips"].append(resource)
+
 
 def resources_replacement(tester):
     #
@@ -167,39 +173,39 @@ def resources_replacement(tester):
         tester.called_replacement_resources = True
         return resources
 
+
 class TestInterface(unittest.TestCase):
 
     def setUp(self):
 
         engine = create_engine(os.environ["DATABASE_URL"])
         Session.configure(bind=engine)
+        Base.metadata.create_all(engine)
         self.session = Session()
         self.objects = []
         self.session.rollback()
         self.called_replacement_resources = False
 
-        num = random.randrange(len(res["vms"]))
-        # Only one vm for this
-        self.resources = [ res["vms"][ num ] ]
+        self.resources = (res["networks"] + res["vms"] + res["objects"] +
+                          res["volumes"] + res["ips"])
 
         self.start = datetime.now() - timedelta(days=30)
         self.end = datetime.now()
 
     def tearDown(self):
 
-        self.session.query(usage.Usage).delete()
+        self.session.query(UsageEntry).delete()
+        self.session.query(tenant_model).delete()
         self.session.query(Resource).delete()
-        self.session.query(tenants.Tenant).delete()
-
         self.session.commit()
         self.contents = None
         self.resources = []
         self.artifice = None
         self.usage = None
 
-
     @mock.patch("artifice.models.Session")
-    # @mock.patch("artifice.interface.get_meter") # I don't think this will work
+    # @mock.patch("artifice.interface.get_meter")
+    # I don't think this will work
     @mock.patch("artifice.interface.keystone")
     @mock.patch("sqlalchemy.create_engine")
     def test_get_usage(self, sqlmock, keystone, session):
@@ -215,8 +221,7 @@ class TestInterface(unittest.TestCase):
         def get_meter(self, start, end, auth):
             # Returns meter data from our data up above
             global mappings
-            # print self.link
-            data = mappings[self.link.link]
+            data = mappings[self.link]
             return data
 
         interface.get_meter = get_meter
@@ -230,10 +235,10 @@ class TestInterface(unittest.TestCase):
         # del this_config["default_tenant"]
 
         keystone.assert_called_with(
-            username=        config["openstack"]["username"],
-            password=        config["openstack"]["password"],
-            tenant_name=     config["openstack"]["default_tenant"],
-            auth_url=        config["openstack"]["authentication_url"]
+            username=config["openstack"]["username"],
+            password=config["openstack"]["password"],
+            tenant_name=config["openstack"]["default_tenant"],
+            auth_url=config["openstack"]["authentication_url"]
         )
         tenants = None
         # try:
@@ -243,12 +248,10 @@ class TestInterface(unittest.TestCase):
 
         # self.assertEqual ( len(tenants.vms), 1 )
 
-        self.assertEqual( len(tenants), 1 )
+        self.assertEqual(len(tenants), 1)
         k = tenants.keys()[0]
-        t = tenants[k] # First tenant
-        self.assertTrue( isinstance( t, interface.Tenant ) )
-
-        contents = None
+        t = tenants[k]  # First tenant
+        self.assertTrue(isinstance(t, interface.Tenant))
 
         # t.resources = resources_replacement(self)
         # t.resources = mock.Mock(spec=interface.Resource)
@@ -257,7 +260,7 @@ class TestInterface(unittest.TestCase):
 
         try:
             hdc = getattr(artifice, "host_to_dc")
-            self.assertTrue( callable(hdc) )
+            self.assertTrue(callable(hdc))
         except AttributeError:
             self.fail("Artifice object lacks host_to_dc method ")
 
@@ -280,10 +283,10 @@ class TestInterface(unittest.TestCase):
         # What got called, when, and how.
 
         for call in artifice.host_to_dc.call_args_list:
-            self.assertTrue ( len(call[0]) == 1 )
-            self.assertTrue ( call[0][0] in hosts )
+            self.assertTrue(len(call[0]) == 1)
+            self.assertTrue(call[0][0] in hosts)
 
-        self.assertTrue ( isinstance(usage, interface.Usage) )
+        self.assertTrue(isinstance(usage, interface.Usage))
 
         # self.assertEqual( len(usage.vms), 1 )
         # self.assertEqual( len(usage.objects), 0)
@@ -292,33 +295,15 @@ class TestInterface(unittest.TestCase):
         # This is a fully qualified Usage object.
         self.usage = usage
 
-    # @mock.patch("artifice.models.Session")
-    # @mock.patch("artifice.interface.get_meter") # I don't think this will work
-    # @mock.patch("artifice.interface.keystone")
-    # @mock.patch("sqlalchemy.create_engine")
-    # def test_save_smaller_range_no_overlap(self, sqlmock, keystone, meters, session):
-
-    #     self.test_get_usage()
-
-    #     first_contents = self.usage
-
-    #     # self.resources = [
-    #     #     res["vms"][random.randrange(len[res["vms"]])],
-    #     # ]
-
-
     def add_element(self, from_):
 
-        self.resources.append( res[from_][random.randrange(len(res[from_]))] )
-        print len(self.resources)
+        self.resources.append(res[from_][random.randrange(len(res[from_]))])
 
         self.test_get_usage()
         usage = self.usage
 
         # key = contents.keys()[0] # Key is the datacenter
-        print from_
-
-        self.assertTrue( isinstance(usage, interface.Usage) )
+        self.assertTrue(isinstance(usage, interface.Usage))
 
         try:
             getattr(usage, from_)
@@ -329,19 +314,19 @@ class TestInterface(unittest.TestCase):
         try:
             getattr(usage, "vms")
         except AttributeError:
-            self.fail ("No property vms")
+            self.fail("No property vms")
 
-        lens = { "vms": 1 }
+        lens = {"vms": 5}
 
         if from_ == "vms":
-            lens["vms"] = 2
+            lens["vms"] = 6
         else:
-            lens[from_] = 1
+            lens[from_] = 2
 
         self.assertEqual(len(usage.vms), lens["vms"])
-        self.assertEqual(len( getattr(usage, from_) ), lens[from_])
+        self.assertEqual(len(getattr(usage, from_)), lens[from_])
 
-        self.assertEqual( usage.vms[0].location, DATACENTRE )
+        self.assertEqual(usage.vms[0].location, DATACENTRE)
 
     def test_add_instance(self):
         """
@@ -353,23 +338,11 @@ class TestInterface(unittest.TestCase):
 
         self.add_element("vms")
         self.usage._vms = []
-        self.assertTrue(len(self.usage.vms) == 2)
+        self.assertTrue(len(self.usage.vms) == 6)
 
     def test_add_storage(self):
 
         self.add_element("objects")
-
-
-    def test_save_contents(self):
-
-        self.test_get_usage()
-
-        usage = self.usage
-        # try:
-        usage.save()
-        # except Exception as e:
-
-        # Now examine the database
 
     def test_correct_usage_values(self):
         """Usage data matches expected results:
@@ -383,56 +356,40 @@ class TestInterface(unittest.TestCase):
         usage = self.usage
 
         for vm in usage.vms:
-            volume = vm.usage()
-            # print "vm is %s" % vm
-            # print vm.size
-            # print "Volume is: %s" % volume
-            # VM here is a resource object, not an underlying meter object.
-            id_ = vm["project_id"]
-
-            for rvm in self.resources:
-                if not getattr(rvm, "project_id") == id_:
-                    continue
-                for meter in getattr(rvm, "links"):
-                    if not meter["rel"] in volume:
-                        continue
-                    data = mappings[ meter["href"] ]
-                    vol = volume[ meter["rel"] ]
-
-                    type_ = data[0]["counter_type"]
-                    if type_ == "cumulative":
-                        v = interface.Cumulative(rvm, data, self.start, self.end)
-                    elif type_ == "gauge":
-                        v = interface.Gauge(rvm, data, self.start, self.end)
-                    elif type_ == "delta":
-                        v = interface.Delta(rvm, data, self.start, self.end)
-                    # Same type of data
-                    self.assertEqual( v.__class__, vol.__class__ )
-                    self.assertEqual( v.volume(), vol.volume() )
-
-
-    def test_use_a_bunch_of_data(self):
-        pass
-
-
-    def test_usage_vms(self):
-        """
-        Tests the usage.vms by using a non-mock resource object
-
-        """
-
-        self.test_get_usage()
-
-        u = self.usage
-        u.contents = {"vms":[]}
-
-        r = interface.Resource(self.resources[0], self.artifice)
-        u.contents["vms"].append(r)
-
-        # Wipe it
-        # self.assertTrue( bool(getattr(u, '_vms')) )
-        self.assertEqual( u._vms, [] )
-
-        u._vms = []
-
-        self.assertEqual( len(u.vms), 1 )
+            if vm.resource_id == "db8037b2-9f1c-4dd2-94dd-ea72f49a21d7":
+                self.assertEqual(vm.uptime, 1)
+            if vm.resource_id == "9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a":
+                self.assertEqual(vm.uptime, 1)
+            if vm.resource_id == "0a57e3da-9e85-4690-8ba9-ee7573619ec3":
+                self.assertEqual(vm.uptime, 1)
+            if vm.resource_id == "de35c688-5a82-4ce5-a7e0-36245d2448bc":
+                self.assertEqual(vm.uptime, 1)
+            if vm.resource_id == "e404920f-cfc8-40ba-bc53-a5c610714bd9":
+                self.assertEqual(vm.uptime, 0)
+        for obj in usage.objects:
+            if obj.resource_id == "3f7b702e4ca14cd99aebf4c4320e00ec":
+                self.assertEqual(obj.size,
+                                 276.18937199999999165811459533870220184326171875)
+        for vol in usage.volumes:
+            if vol.resource_id == "e788c617-01e9-405b-823f-803f44fb3483":
+                self.assertEqual(vol.size, 0.000044999999999999996057840900842705877948901616036891937255859375)
+            if vol.resource_id == "6af83f4f-1f4f-40cf-810e-e3262dec718f":
+                self.assertEqual(vol.size, 0.000003000000000000000076002572291233860823922441340982913970947265625)
+        for net in usage.networks:
+            if (net.resource_id ==
+                    "nova-instance-instance-00000002-fa163ee2d5f6"):
+                self.assertEqual(net.outgoing, 0.011821999999999999175770426518283784389495849609375)
+                self.assertEqual(net.incoming, 0.009733999999999999597211086665993207134306430816650390625)
+            if (net.resource_id ==
+                    "nova-instance-instance-00000001-fa163edf2e3c"):
+                self.assertEqual(net.outgoing, 0.006305999999999999973410158560227500856854021549224853515625)
+                self.assertEqual(net.incoming, 0.00583999999999999970523578696202093851752579212188720703125)
+            if (net.resource_id ==
+                    "nova-instance-instance-00000005-fa163ee2fde1"):
+                self.assertEqual(net.outgoing, 0.0134060000000000012487788580983760766685009002685546875)
+                self.assertEqual(net.incoming, 0.01079500000000000077549078270067184348590672016143798828125)
+        for ip in usage.ips:
+            if ip.resource_id == "84326068-5ccd-4a32-bcd2-c6c3af84d862":
+                self.assertEqual(ip.duration, 1)
+            if ip.resource_id == "2155db5c-4c7b-4787-90ff-7b8ded741c75":
+                self.assertEqual(ip.duration, 1)

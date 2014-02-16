@@ -1,0 +1,26 @@
+{
+ "http://localhost:8777/v2/meters/image.download?q.field=resource_id&q.value=cf66da87-d3e4-4c20-9739-7b8a8852cb78": [
+  {
+   "counter_name": "image.download", 
+   "user_id": "6ab10df928e2487f92b950d482038c58", 
+   "resource_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+   "timestamp": "2014-02-12T02:47:43.805133", 
+   "message_id": "0c8a5132-9390-11e3-b65d-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 4955792.0, 
+   "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "resource_metadata": {
+    "receiver_tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "destination_ip": "10.0.2.15", 
+    "event_type": "image.send", 
+    "bytes_sent": "4955792", 
+    "image_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+    "host": "vagrant-ubuntu-precise-64", 
+    "receiver_user_id": "6ab10df928e2487f92b950d482038c58", 
+    "owner_id": "5f836e56b51747e080f3442cb1b8035a"
+   }, 
+   "counter_type": "delta"
+  }
+ ]
+}

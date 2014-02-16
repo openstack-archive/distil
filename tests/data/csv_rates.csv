@@ -1,5 +1,0 @@
-region | VM instance, size nano  | duration       | 100
-region | Incoming Network Usage  | bytes          | 120
-region | Outgoing Network Usage  | bytes          | 240
-region | Object Storage Usage    | bytes per hour | 300
-region | Disk Volume, Size       | bytes per hour | 320

@@ -6,7 +6,6 @@ import requests
 import json
 import urllib
 
-from copy import copy
 from collections import defaultdict
 
 #
@@ -18,10 +17,8 @@ from keystoneclient.v2_0 import client as KeystoneClient
 # Provides hooks to ceilometer, which we need for data.
 from ceilometerclient.v2.client import Client as ceilometer
 
-from sqlalchemy import create_engine
-
 # from .models.usage import Usage
-from .models import Session, resources, tenants, usage
+from .models import resources
 
 # from .models.tenants import Tenant
 
@@ -124,9 +121,6 @@ class Artifice(object):
         conn_string = ('postgresql://%(username)s:%(password)s@' +
                        '%(host)s:%(port)s/%(database)s') % conn_dict
 
-        engine = create_engine(conn_string)
-        Session.configure(bind=engine)
-        self.session = Session()
         self.artifice = None
 
         self.ceilometer = ceilometer(
@@ -345,7 +339,7 @@ class Usage(object):
                 networks.append(obj)
             self._networks = networks
         return self._networks
-    
+
     @property
     def ips(self):
         if not self._ips:
@@ -378,21 +372,6 @@ class Usage(object):
         for key in keys:
             yield key
         raise StopIteration()
-
-    def save(self):
-
-        """
-        Iterate the list of things; save them to DB.
-        """
-
-        for vm in self.vms:
-            vm.save()
-
-        for obj in self.objects:
-            obj.save()
-
-        for vol in self.volumes:
-            vol.save()
 
 
 class Resource(object):
@@ -490,11 +469,6 @@ class Meter(object):
 
         return type_(self.resource, measurements, start, end)
 
-    def save(self):
-        if not self.start and self.end:
-            raise AttributeError("Needs start and end defined to save")
-        self.volume().save()
-
 
 class Artifact(object):
 
@@ -514,55 +488,6 @@ class Artifact(object):
         if item in self._data:
             return self._data[item]
         raise KeyError("no such item %s" % item)
-
-    def save(self):
-        """
-        Persists to our database backend.
-        Opinionatedly this is a sql datastore.
-        """
-        value = self.volume()
-        session = self.resource.conn.session
-        # self.artifice.
-        try:
-            tenant_id = self.resource["tenant_id"]
-        except KeyError:
-            tenant_id = self.resource["project_id"]
-        resource_id = self.resource["resource_id"]
-
-        tenant = session.query(tenants.Tenant).get(tenant_id)
-
-        if tenant is None:
-            res = resources.Resource()
-            tenant = tenants.Tenant()
-            tenant.id = tenant_id
-
-            res.id = resource_id
-            res.tenant = tenant
-            session.add(res)
-            session.add(tenant)
-        else:
-            try:
-                matching = resources.Resource.id == resource_id
-                res = session.query(resources.Resource).filter(matching)[0]
-                tenant = res.tenant
-            except IndexError:
-                res = resources.Resource()
-                tenant = tenants.Tenant()
-                tenant.id = tenant_id
-                res.id = resource_id
-                res.tenant = tenant
-                session.add(res)
-                session.add(tenant)
-
-        this_usage = usage.Usage(
-            res,
-            tenant,
-            value,
-            self.start,
-            self.end,
-        )
-        session.add(this_usage)
-        session.commit()  # Persist to Postgres
 
     def volume(self):
         """

@@ -1,1 +1,27 @@
-{"http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=5561589b-c1fa-46eb-b9d4-5998daceaee4": [{"counter_name": "port.create", "user_id": "2b8fbe55863d4dfab5310796202b2019", "resource_id": "5561589b-c1fa-46eb-b9d4-5998daceaee4", "timestamp": "2013-08-05T21:56:25.971000", "message_id": "dff93784-fe19-11e2-a072-080027880ca6", "source": "openstack", "counter_unit": "port", "counter_volume": 1.0, "project_id": "931dc699f9934021bb4a2b1088ba4d3b", "resource_metadata": {"status": "DOWN", "name": "", "admin_state_up": "True", "network_id": "79b5e163-496c-4ab6-9c21-3b597ed632dc", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "device_owner": "", "mac_address": "fa:16:3e:4a:5d:9a", "event_type": "port.create.end", "id": "5561589b-c1fa-46eb-b9d4-5998daceaee4", "device_id": ""}, "counter_type": "delta"}], "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=5561589b-c1fa-46eb-b9d4-5998daceaee4": [{"counter_name": "port", "user_id": "2b8fbe55863d4dfab5310796202b2019", "resource_id": "5561589b-c1fa-46eb-b9d4-5998daceaee4", "timestamp": "2013-08-05T21:56:25.971000", "message_id": "dff84b8a-fe19-11e2-a072-080027880ca6", "source": "openstack", "counter_unit": "port", "counter_volume": 1.0, "project_id": "931dc699f9934021bb4a2b1088ba4d3b", "resource_metadata": {"status": "DOWN", "name": "", "admin_state_up": "True", "network_id": "79b5e163-496c-4ab6-9c21-3b597ed632dc", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "device_owner": "", "mac_address": "fa:16:3e:4a:5d:9a", "event_type": "port.create.end", "id": "5561589b-c1fa-46eb-b9d4-5998daceaee4", "device_id": ""}, "counter_type": "gauge"}]}
+{
+ "http://localhost:8777/v2/meters/ip.floating.create?q.field=resource_id&q.value=2155db5c-4c7b-4787-90ff-7b8ded741c75": [
+  {
+   "counter_name": "ip.floating.create", 
+   "user_id": "6ab10df928e2487f92b950d482038c58", 
+   "resource_id": "2155db5c-4c7b-4787-90ff-7b8ded741c75", 
+   "timestamp": "2014-02-12T02:50:39.202116", 
+   "message_id": "749c72be-9390-11e3-b65d-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "ip", 
+   "counter_volume": 1.0, 
+   "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "resource_metadata": {
+    "router_id": "None", 
+    "event_type": "floatingip.create.end", 
+    "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "floating_network_id": "48a95728-51ac-4e13-864c-8659499db368", 
+    "host": "network.vagrant-ubuntu-precise-64", 
+    "fixed_ip_address": "None", 
+    "floating_ip_address": "172.24.4.227", 
+    "port_id": "None", 
+    "id": "2155db5c-4c7b-4787-90ff-7b8ded741c75"
+   }, 
+   "counter_type": "delta"
+  }
+ ]
+}

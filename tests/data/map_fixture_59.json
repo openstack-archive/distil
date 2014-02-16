@@ -1,0 +1,32 @@
+{
+ "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=a3addd6a-ca02-4c07-a1db-d78efdcb2baa": [
+  {
+   "counter_name": "port", 
+   "user_id": "376b44e5683549288cfc7620b3dd2694", 
+   "resource_id": "a3addd6a-ca02-4c07-a1db-d78efdcb2baa", 
+   "timestamp": "2014-02-12T02:47:43.886093", 
+   "message_id": "0c9a8552-9390-11e3-b65d-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "port", 
+   "counter_volume": 1.0, 
+   "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "resource_metadata": {
+    "status": "DOWN", 
+    "binding:host_id": "vagrant-ubuntu-precise-64", 
+    "binding:capabilities.port_filter": "True", 
+    "admin_state_up": "True", 
+    "network_id": "a52ff971-8a62-433b-9092-19c0d5a54304", 
+    "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "device_owner": "compute:nova", 
+    "binding:vif_type": "ovs", 
+    "host": "network.vagrant-ubuntu-precise-64", 
+    "mac_address": "fa:16:3e:df:2e:3c", 
+    "event_type": "port.create.end", 
+    "device_id": "db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "id": "a3addd6a-ca02-4c07-a1db-d78efdcb2baa", 
+    "name": ""
+   }, 
+   "counter_type": "gauge"
+  }
+ ]
+}

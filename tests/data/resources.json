@@ -1,1 +1,1165 @@
-[{"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "2b8fbe55863d4dfab5310796202b2019", "metadata": {"state_description": "", "event_type": "compute.instance.exists", "availability_zone": "None", "ephemeral_gb": "0", "instance_type_id": "6", "deleted_at": "", "reservation_id": "r-vswa1jkd", "instance_id": "03bd0d4c-99da-4ccf-b308-2721f33e84ef", "user_id": "2b8fbe55863d4dfab5310796202b2019", "hostname": "trogdor", "state": "active", "launched_at": "2013-08-04T23:58:54.000000", "node": "openstack", "ramdisk_id": "b23fbced-b272-41a6-8f48-be76b586bd00", "access_ip_v6": "None", "disk_gb": "0", "access_ip_v4": "None", "kernel_id": "7cbf09f5-43ae-4d94-a1e7-47e95fd27017", "host": "compute.openstack", "display_name": "trogdor", "image_ref_url": "http://10.0.2.15:9292/images/", "audit_period_beginning": "2013-08-12 03:00:00", "root_gb": "0", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "created_at": "2013-08-04T23:58:46.000000", "memory_mb": "64", "instance_type": "m1.nano", "vcpus": "1", "architecture": "None", "audit_period_ending": "2013-08-12 04:00:00", "os_type": "None"}, "links": [{"href": "http://localhost:8777/v2/resources/03bd0d4c-99da-4ccf-b308-2721f33e84ef", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/disk.ephemeral.size?q.field=resource_id&q.value=03bd0d4c-99da-4ccf-b308-2721f33e84ef", "rel": "disk.ephemeral.size"}, {"href": "http://localhost:8777/v2/meters/memory?q.field=resource_id&q.value=03bd0d4c-99da-4ccf-b308-2721f33e84ef", "rel": "memory"}, {"href": "http://localhost:8777/v2/meters/instance?q.field=resource_id&q.value=03bd0d4c-99da-4ccf-b308-2721f33e84ef", "rel": "instance"}, {"href": "http://localhost:8777/v2/meters/instance:m1.nano?q.field=resource_id&q.value=03bd0d4c-99da-4ccf-b308-2721f33e84ef", "rel": "instance:m1.nano"}, {"href": "http://localhost:8777/v2/meters/vcpus?q.field=resource_id&q.value=03bd0d4c-99da-4ccf-b308-2721f33e84ef", "rel": "vcpus"}, {"href": "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.value=03bd0d4c-99da-4ccf-b308-2721f33e84ef", "rel": "disk.root.size"}], "resource_id": "03bd0d4c-99da-4ccf-b308-2721f33e84ef"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "9692a61b44f246259af534f0b1d95942", "metadata": {"status": "DOWN", "binding:host_id": "openstack", "name": "", "admin_state_up": "True", "network_id": "0e5f3762-a8a9-4051-ad35-49ad879ebfc3", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "binding:vif_type": "ovs", "device_owner": "compute:nova", "mac_address": "fa:16:3e:b3:f6:db", "event_type": "port.create.end", "id": "07771c9c-f10e-4b08-9702-78c8618f5a48", "device_id": "c01c63fe-7a29-4426-bab1-34d088e92415"}, "links": [{"href": "http://localhost:8777/v2/resources/07771c9c-f10e-4b08-9702-78c8618f5a48", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=07771c9c-f10e-4b08-9702-78c8618f5a48", "rel": "port"}, {"href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=07771c9c-f10e-4b08-9702-78c8618f5a48", "rel": "port.create"}], "resource_id": "07771c9c-f10e-4b08-9702-78c8618f5a48"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "2b8fbe55863d4dfab5310796202b2019", "metadata": {"state_description": "", "event_type": "compute.instance.exists", "availability_zone": "None", "ephemeral_gb": "0", "instance_type_id": "6", "deleted_at": "", "reservation_id": "r-epqlkbe8", "instance_id": "0a16330b-d457-425d-8249-a275fab9adea", "user_id": "2b8fbe55863d4dfab5310796202b2019", "hostname": "trogtwo", "state": "stopped", "launched_at": "2013-08-05T22:04:25.000000", "node": "openstack", "ramdisk_id": "b23fbced-b272-41a6-8f48-be76b586bd00", "access_ip_v6": "None", "disk_gb": "0", "access_ip_v4": "None", "kernel_id": "7cbf09f5-43ae-4d94-a1e7-47e95fd27017", "host": "compute.openstack", "display_name": "trogtwo", "image_ref_url": "http://10.0.2.15:9292/images/", "audit_period_beginning": "2013-08-12 03:00:00", "root_gb": "0", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "created_at": "2013-08-05T22:04:16.000000", "memory_mb": "64", "instance_type": "m1.nano", "vcpus": "1", "architecture": "None", "audit_period_ending": "2013-08-12 04:00:00", "os_type": "None"}, "links": [{"href": "http://localhost:8777/v2/resources/0a16330b-d457-425d-8249-a275fab9adea", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/memory?q.field=resource_id&q.value=0a16330b-d457-425d-8249-a275fab9adea", "rel": "memory"}, {"href": "http://localhost:8777/v2/meters/disk.ephemeral.size?q.field=resource_id&q.value=0a16330b-d457-425d-8249-a275fab9adea", "rel": "disk.ephemeral.size"}, {"href": "http://localhost:8777/v2/meters/instance?q.field=resource_id&q.value=0a16330b-d457-425d-8249-a275fab9adea", "rel": "instance"}, {"href": "http://localhost:8777/v2/meters/instance:m1.nano?q.field=resource_id&q.value=0a16330b-d457-425d-8249-a275fab9adea", "rel": "instance:m1.nano"}, {"href": "http://localhost:8777/v2/meters/vcpus?q.field=resource_id&q.value=0a16330b-d457-425d-8249-a275fab9adea", "rel": "vcpus"}, {"href": "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.value=0a16330b-d457-425d-8249-a275fab9adea", "rel": "disk.root.size"}], "resource_id": "0a16330b-d457-425d-8249-a275fab9adea"}, {"project_id": "0c5a6b84fd2a43999c8820060c57da30", "user_id": null, "metadata": {}, "links": [{"href": "http://localhost:8777/v2/resources/0c5a6b84fd2a43999c8820060c57da30", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/storage.objects?q.field=resource_id&q.value=0c5a6b84fd2a43999c8820060c57da30", "rel": "storage.objects"}, {"href": "http://localhost:8777/v2/meters/storage.objects.containers?q.field=resource_id&q.value=0c5a6b84fd2a43999c8820060c57da30", "rel": "storage.objects.containers"}, {"href": "http://localhost:8777/v2/meters/storage.objects.size?q.field=resource_id&q.value=0c5a6b84fd2a43999c8820060c57da30", "rel": "storage.objects.size"}], "resource_id": "0c5a6b84fd2a43999c8820060c57da30"}, {"project_id": "0d0854c42a7b49b0a6348b2746d60e7f", "user_id": null, "metadata": {}, "links": [{"href": "http://localhost:8777/v2/resources/0d0854c42a7b49b0a6348b2746d60e7f", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/storage.objects?q.field=resource_id&q.value=0d0854c42a7b49b0a6348b2746d60e7f", "rel": "storage.objects"}, {"href": "http://localhost:8777/v2/meters/storage.objects.containers?q.field=resource_id&q.value=0d0854c42a7b49b0a6348b2746d60e7f", "rel": "storage.objects.containers"}, {"href": "http://localhost:8777/v2/meters/storage.objects.size?q.field=resource_id&q.value=0d0854c42a7b49b0a6348b2746d60e7f", "rel": "storage.objects.size"}], "resource_id": "0d0854c42a7b49b0a6348b2746d60e7f"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "2b8fbe55863d4dfab5310796202b2019", "metadata": {"state_description": "", "event_type": "compute.instance.exists", "availability_zone": "nova", "ephemeral_gb": "0", "instance_type_id": "6", "deleted_at": "", "reservation_id": "r-zyyri69c", "instance_id": "1bd5a017-2777-4601-8c48-fd7569a4e485", "user_id": "2b8fbe55863d4dfab5310796202b2019", "hostname": "foo-1bd5a017-2777-4601-8c48-fd7569a4e485", "state": "active", "launched_at": "2013-08-05T05:17:46.000000", "node": "openstack", "ramdisk_id": "b23fbced-b272-41a6-8f48-be76b586bd00", "access_ip_v6": "None", "disk_gb": "0", "access_ip_v4": "None", "kernel_id": "7cbf09f5-43ae-4d94-a1e7-47e95fd27017", "host": "compute.openstack", "display_name": "foo-1bd5a017-2777-4601-8c48-fd7569a4e485", "image_ref_url": "http://10.0.2.15:9292/images/e58bf75a-35e9-4709-9eab-885438f36a34", "audit_period_beginning": "2013-08-12 03:00:00", "root_gb": "0", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "created_at": "2013-08-05T05:17:36.000000", "memory_mb": "64", "instance_type": "m1.nano", "vcpus": "1", "architecture": "None", "audit_period_ending": "2013-08-12 04:00:00", "os_type": "None"}, "links": [{"href": "http://localhost:8777/v2/resources/1bd5a017-2777-4601-8c48-fd7569a4e485", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/memory?q.field=resource_id&q.value=1bd5a017-2777-4601-8c48-fd7569a4e485", "rel": "memory"}, {"href": "http://localhost:8777/v2/meters/disk.ephemeral.size?q.field=resource_id&q.value=1bd5a017-2777-4601-8c48-fd7569a4e485", "rel": "disk.ephemeral.size"}, {"href": "http://localhost:8777/v2/meters/instance?q.field=resource_id&q.value=1bd5a017-2777-4601-8c48-fd7569a4e485", "rel": "instance"}, {"href": "http://localhost:8777/v2/meters/instance:m1.nano?q.field=resource_id&q.value=1bd5a017-2777-4601-8c48-fd7569a4e485", "rel": "instance:m1.nano"}, {"href": "http://localhost:8777/v2/meters/vcpus?q.field=resource_id&q.value=1bd5a017-2777-4601-8c48-fd7569a4e485", "rel": "vcpus"}, {"href": "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.value=1bd5a017-2777-4601-8c48-fd7569a4e485", "rel": "disk.root.size"}, {"href": "http://localhost:8777/v2/meters/instance.scheduled?q.field=resource_id&q.value=1bd5a017-2777-4601-8c48-fd7569a4e485", "rel": "instance.scheduled"}], "resource_id": "1bd5a017-2777-4601-8c48-fd7569a4e485"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "9692a61b44f246259af534f0b1d95942", "metadata": {"status": "DOWN", "binding:host_id": "openstack", "name": "", "admin_state_up": "True", "network_id": "0e5f3762-a8a9-4051-ad35-49ad879ebfc3", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "binding:vif_type": "ovs", "device_owner": "compute:None", "mac_address": "fa:16:3e:de:89:e7", "event_type": "port.create.end", "id": "24916b40-f8d8-49ad-be4a-4edbf6c9a370", "device_id": "0a16330b-d457-425d-8249-a275fab9adea"}, "links": [{"href": "http://localhost:8777/v2/resources/24916b40-f8d8-49ad-be4a-4edbf6c9a370", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=24916b40-f8d8-49ad-be4a-4edbf6c9a370", "rel": "port"}, {"href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=24916b40-f8d8-49ad-be4a-4edbf6c9a370", "rel": "port.create"}], "resource_id": "24916b40-f8d8-49ad-be4a-4edbf6c9a370"}, {"project_id": "253d975f27004438b89a239b5638a6bc", "user_id": null, "metadata": {}, "links": [{"href": "http://localhost:8777/v2/resources/253d975f27004438b89a239b5638a6bc", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/storage.objects?q.field=resource_id&q.value=253d975f27004438b89a239b5638a6bc", "rel": "storage.objects"}, {"href": "http://localhost:8777/v2/meters/storage.objects.containers?q.field=resource_id&q.value=253d975f27004438b89a239b5638a6bc", "rel": "storage.objects.containers"}, {"href": "http://localhost:8777/v2/meters/storage.objects.size?q.field=resource_id&q.value=253d975f27004438b89a239b5638a6bc", "rel": "storage.objects.size"}], "resource_id": "253d975f27004438b89a239b5638a6bc"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "9692a61b44f246259af534f0b1d95942", "metadata": {"status": "DOWN", "binding:host_id": "openstack", "name": "", "admin_state_up": "True", "network_id": "0e5f3762-a8a9-4051-ad35-49ad879ebfc3", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "binding:vif_type": "ovs", "device_owner": "compute:nova", "mac_address": "fa:16:3e:20:df:2e", "event_type": "port.create.end", "id": "375d1c5d-e732-4082-857b-ca133f08006b", "device_id": "6d254988-1431-49d7-9491-e7c27d0bd6cb"}, "links": [{"href": "http://localhost:8777/v2/resources/375d1c5d-e732-4082-857b-ca133f08006b", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=375d1c5d-e732-4082-857b-ca133f08006b", "rel": "port"}, {"href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=375d1c5d-e732-4082-857b-ca133f08006b", "rel": "port.create"}], "resource_id": "375d1c5d-e732-4082-857b-ca133f08006b"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "2b8fbe55863d4dfab5310796202b2019", "metadata": {"status": "ACTIVE", "external_gateway_info": "None", "name": "router2", "admin_state_up": "True", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "id": "4392aff1-d6a8-4106-9e75-818eb91a3d45", "event_type": "router.update.end"}, "links": [{"href": "http://localhost:8777/v2/resources/4392aff1-d6a8-4106-9e75-818eb91a3d45", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/router?q.field=resource_id&q.value=4392aff1-d6a8-4106-9e75-818eb91a3d45", "rel": "router"}, {"href": "http://localhost:8777/v2/meters/router.create?q.field=resource_id&q.value=4392aff1-d6a8-4106-9e75-818eb91a3d45", "rel": "router.create"}, {"href": "http://localhost:8777/v2/meters/router.update?q.field=resource_id&q.value=4392aff1-d6a8-4106-9e75-818eb91a3d45", "rel": "router.update"}], "resource_id": "4392aff1-d6a8-4106-9e75-818eb91a3d45"}, {"project_id": "4cb54495d7784d3dbd61db9d7adf955f", "user_id": null, "metadata": {}, "links": [{"href": "http://localhost:8777/v2/resources/4cb54495d7784d3dbd61db9d7adf955f", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/storage.objects?q.field=resource_id&q.value=4cb54495d7784d3dbd61db9d7adf955f", "rel": "storage.objects"}, {"href": "http://localhost:8777/v2/meters/storage.objects.containers?q.field=resource_id&q.value=4cb54495d7784d3dbd61db9d7adf955f", "rel": "storage.objects.containers"}, {"href": "http://localhost:8777/v2/meters/storage.objects.size?q.field=resource_id&q.value=4cb54495d7784d3dbd61db9d7adf955f", "rel": "storage.objects.size"}], "resource_id": "4cb54495d7784d3dbd61db9d7adf955f"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "2b8fbe55863d4dfab5310796202b2019", "metadata": {"status": "DOWN", "name": "", "admin_state_up": "True", "network_id": "79b5e163-496c-4ab6-9c21-3b597ed632dc", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "device_owner": "", "mac_address": "fa:16:3e:4a:5d:9a", "event_type": "port.create.end", "id": "5561589b-c1fa-46eb-b9d4-5998daceaee4", "device_id": ""}, "links": [{"href": "http://localhost:8777/v2/resources/5561589b-c1fa-46eb-b9d4-5998daceaee4", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=5561589b-c1fa-46eb-b9d4-5998daceaee4", "rel": "port"}, {"href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=5561589b-c1fa-46eb-b9d4-5998daceaee4", "rel": "port.create"}], "resource_id": "5561589b-c1fa-46eb-b9d4-5998daceaee4"}, {"project_id": "7ec5ec9750414a4c8e767e16e1b6c9cf", "user_id": "2b8fbe55863d4dfab5310796202b2019", "metadata": {"status": "available", "display_name": "asdf", "event_type": "volume.create.end", "availability_zone": "nova", "tenant_id": "7ec5ec9750414a4c8e767e16e1b6c9cf", "created_at": "2013-08-05 03:52:23", "volume_id": "5d658ace-2535-48c5-a05f-85d651c0d0ac", "volume_type": "None", "host": "volume.openstack", "snapshot_id": "None", "user_id": "2b8fbe55863d4dfab5310796202b2019", "launched_at": "", "size": "2"}, "links": [{"href": "http://localhost:8777/v2/resources/5d658ace-2535-48c5-a05f-85d651c0d0ac", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/volume?q.field=resource_id&q.value=5d658ace-2535-48c5-a05f-85d651c0d0ac", "rel": "volume"}, {"href": "http://localhost:8777/v2/meters/volume.size?q.field=resource_id&q.value=5d658ace-2535-48c5-a05f-85d651c0d0ac", "rel": "volume.size"}], "resource_id": "5d658ace-2535-48c5-a05f-85d651c0d0ac"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "9692a61b44f246259af534f0b1d95942", "metadata": {"status": "DOWN", "binding:host_id": "openstack", "name": "", "admin_state_up": "True", "network_id": "0e5f3762-a8a9-4051-ad35-49ad879ebfc3", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "binding:vif_type": "ovs", "device_owner": "compute:None", "mac_address": "fa:16:3e:4d:0f:e5", "event_type": "port.create.end", "id": "615a397c-fca2-4233-9f42-b769a8d6ea59", "device_id": "03bd0d4c-99da-4ccf-b308-2721f33e84ef"}, "links": [{"href": "http://localhost:8777/v2/resources/615a397c-fca2-4233-9f42-b769a8d6ea59", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=615a397c-fca2-4233-9f42-b769a8d6ea59", "rel": "port"}, {"href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=615a397c-fca2-4233-9f42-b769a8d6ea59", "rel": "port.create"}], "resource_id": "615a397c-fca2-4233-9f42-b769a8d6ea59"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "9692a61b44f246259af534f0b1d95942", "metadata": {"status": "DOWN", "binding:host_id": "openstack", "name": "", "admin_state_up": "True", "network_id": "0e5f3762-a8a9-4051-ad35-49ad879ebfc3", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "binding:vif_type": "ovs", "device_owner": "compute:nova", "mac_address": "fa:16:3e:19:28:00", "event_type": "port.create.end", "id": "6b9765e2-9138-4468-a60c-4e9f63044d9d", "device_id": "1bd5a017-2777-4601-8c48-fd7569a4e485"}, "links": [{"href": "http://localhost:8777/v2/resources/6b9765e2-9138-4468-a60c-4e9f63044d9d", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=6b9765e2-9138-4468-a60c-4e9f63044d9d", "rel": "port.create"}, {"href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=6b9765e2-9138-4468-a60c-4e9f63044d9d", "rel": "port"}], "resource_id": "6b9765e2-9138-4468-a60c-4e9f63044d9d"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "2b8fbe55863d4dfab5310796202b2019", "metadata": {"state_description": "", "event_type": "compute.instance.exists", "availability_zone": "nova", "ephemeral_gb": "0", "instance_type_id": "6", "deleted_at": "", "reservation_id": "r-zyyri69c", "instance_id": "6d254988-1431-49d7-9491-e7c27d0bd6cb", "user_id": "2b8fbe55863d4dfab5310796202b2019", "hostname": "foo-6d254988-1431-49d7-9491-e7c27d0bd6cb", "state": "stopped", "launched_at": "2013-08-05T05:17:46.000000", "node": "openstack", "ramdisk_id": "b23fbced-b272-41a6-8f48-be76b586bd00", "access_ip_v6": "None", "disk_gb": "0", "access_ip_v4": "None", "kernel_id": "7cbf09f5-43ae-4d94-a1e7-47e95fd27017", "host": "compute.openstack", "display_name": "foo-6d254988-1431-49d7-9491-e7c27d0bd6cb", "image_ref_url": "http://10.0.2.15:9292/images/e58bf75a-35e9-4709-9eab-885438f36a34", "audit_period_beginning": "2013-08-12 03:00:00", "root_gb": "0", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "created_at": "2013-08-05T05:17:36.000000", "memory_mb": "64", "instance_type": "m1.nano", "vcpus": "1", "architecture": "None", "audit_period_ending": "2013-08-12 04:00:00", "os_type": "None"}, "links": [{"href": "http://localhost:8777/v2/resources/6d254988-1431-49d7-9491-e7c27d0bd6cb", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/memory?q.field=resource_id&q.value=6d254988-1431-49d7-9491-e7c27d0bd6cb", "rel": "memory"}, {"href": "http://localhost:8777/v2/meters/disk.ephemeral.size?q.field=resource_id&q.value=6d254988-1431-49d7-9491-e7c27d0bd6cb", "rel": "disk.ephemeral.size"}, {"href": "http://localhost:8777/v2/meters/instance?q.field=resource_id&q.value=6d254988-1431-49d7-9491-e7c27d0bd6cb", "rel": "instance"}, {"href": "http://localhost:8777/v2/meters/instance:m1.nano?q.field=resource_id&q.value=6d254988-1431-49d7-9491-e7c27d0bd6cb", "rel": "instance:m1.nano"}, {"href": "http://localhost:8777/v2/meters/vcpus?q.field=resource_id&q.value=6d254988-1431-49d7-9491-e7c27d0bd6cb", "rel": "vcpus"}, {"href": "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.value=6d254988-1431-49d7-9491-e7c27d0bd6cb", "rel": "disk.root.size"}, {"href": "http://localhost:8777/v2/meters/instance.scheduled?q.field=resource_id&q.value=6d254988-1431-49d7-9491-e7c27d0bd6cb", "rel": "instance.scheduled"}], "resource_id": "6d254988-1431-49d7-9491-e7c27d0bd6cb"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "2b8fbe55863d4dfab5310796202b2019", "metadata": {"status": "ACTIVE", "name": "two", "admin_state_up": "True", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "shared": "False", "id": "79b5e163-496c-4ab6-9c21-3b597ed632dc", "event_type": "network.create.end"}, "links": [{"href": "http://localhost:8777/v2/resources/79b5e163-496c-4ab6-9c21-3b597ed632dc", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/network?q.field=resource_id&q.value=79b5e163-496c-4ab6-9c21-3b597ed632dc", "rel": "network"}, {"href": "http://localhost:8777/v2/meters/network.create?q.field=resource_id&q.value=79b5e163-496c-4ab6-9c21-3b597ed632dc", "rel": "network.create"}], "resource_id": "79b5e163-496c-4ab6-9c21-3b597ed632dc"}, {"project_id": "0c5a6b84fd2a43999c8820060c57da30", "user_id": null, "metadata": {"status": "active", "name": "cirros-0.3.1-x86_64-uec-kernel", "deleted": "False", "container_format": "aki", "created_at": "2013-08-04T22:53:46", "disk_format": "aki", "updated_at": "2013-08-04T22:53:46", "protected": "False", "checksum": "c352f4e7121c6eae958bc1570324f17e", "min_disk": "0", "is_public": "True", "deleted_at": "None", "min_ram": "0", "size": "4955792"}, "links": [{"href": "http://localhost:8777/v2/resources/7cbf09f5-43ae-4d94-a1e7-47e95fd27017", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/image?q.field=resource_id&q.value=7cbf09f5-43ae-4d94-a1e7-47e95fd27017", "rel": "image"}, {"href": "http://localhost:8777/v2/meters/image.size?q.field=resource_id&q.value=7cbf09f5-43ae-4d94-a1e7-47e95fd27017", "rel": "image.size"}, {"href": "http://localhost:8777/v2/meters/image.download?q.field=resource_id&q.value=7cbf09f5-43ae-4d94-a1e7-47e95fd27017", "rel": "image.download"}, {"href": "http://localhost:8777/v2/meters/image.serve?q.field=resource_id&q.value=7cbf09f5-43ae-4d94-a1e7-47e95fd27017", "rel": "image.serve"}], "resource_id": "7cbf09f5-43ae-4d94-a1e7-47e95fd27017"}, {"project_id": "7ec5ec9750414a4c8e767e16e1b6c9cf", "user_id": null, "metadata": {}, "links": [{"href": "http://localhost:8777/v2/resources/7ec5ec9750414a4c8e767e16e1b6c9cf", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/storage.objects?q.field=resource_id&q.value=7ec5ec9750414a4c8e767e16e1b6c9cf", "rel": "storage.objects"}, {"href": "http://localhost:8777/v2/meters/storage.objects.containers?q.field=resource_id&q.value=7ec5ec9750414a4c8e767e16e1b6c9cf", "rel": "storage.objects.containers"}, {"href": "http://localhost:8777/v2/meters/storage.objects.size?q.field=resource_id&q.value=7ec5ec9750414a4c8e767e16e1b6c9cf", "rel": "storage.objects.size"}], "resource_id": "7ec5ec9750414a4c8e767e16e1b6c9cf"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": null, "metadata": {}, "links": [{"href": "http://localhost:8777/v2/resources/931dc699f9934021bb4a2b1088ba4d3b", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/storage.objects?q.field=resource_id&q.value=931dc699f9934021bb4a2b1088ba4d3b", "rel": "storage.objects"}, {"href": "http://localhost:8777/v2/meters/storage.objects.containers?q.field=resource_id&q.value=931dc699f9934021bb4a2b1088ba4d3b", "rel": "storage.objects.containers"}, {"href": "http://localhost:8777/v2/meters/storage.objects.size?q.field=resource_id&q.value=931dc699f9934021bb4a2b1088ba4d3b", "rel": "storage.objects.size"}], "resource_id": "931dc699f9934021bb4a2b1088ba4d3b"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "2b8fbe55863d4dfab5310796202b2019", "metadata": {"name": "two", "enable_dhcp": "True", "network_id": "79b5e163-496c-4ab6-9c21-3b597ed632dc", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "gateway_ip": "192.168.0.1", "ip_version": "4", "cidr": "192.168.0.0/24", "id": "a2777ed6-7442-42b8-bb86-5b554aad7f08", "event_type": "subnet.create.end"}, "links": [{"href": "http://localhost:8777/v2/resources/a2777ed6-7442-42b8-bb86-5b554aad7f08", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/subnet?q.field=resource_id&q.value=a2777ed6-7442-42b8-bb86-5b554aad7f08", "rel": "subnet"}, {"href": "http://localhost:8777/v2/meters/subnet.create?q.field=resource_id&q.value=a2777ed6-7442-42b8-bb86-5b554aad7f08", "rel": "subnet.create"}], "resource_id": "a2777ed6-7442-42b8-bb86-5b554aad7f08"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "2b8fbe55863d4dfab5310796202b2019", "metadata": {"status": "available", "display_name": "tests", "event_type": "volume.create.end", "availability_zone": "nova", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "created_at": "2013-08-05 03:50:03", "volume_id": "a5696083-56d2-4e25-a0cb-2b51bd2ca90d", "volume_type": "2fbf14d8-e544-487e-aba7-98c1ebba8fcd", "host": "volume.openstack", "snapshot_id": "None", "user_id": "2b8fbe55863d4dfab5310796202b2019", "launched_at": "", "size": "1"}, "links": [{"href": "http://localhost:8777/v2/resources/a5696083-56d2-4e25-a0cb-2b51bd2ca90d", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/volume?q.field=resource_id&q.value=a5696083-56d2-4e25-a0cb-2b51bd2ca90d", "rel": "volume"}, {"href": "http://localhost:8777/v2/meters/volume.size?q.field=resource_id&q.value=a5696083-56d2-4e25-a0cb-2b51bd2ca90d", "rel": "volume.size"}], "resource_id": "a5696083-56d2-4e25-a0cb-2b51bd2ca90d"}, {"project_id": "0c5a6b84fd2a43999c8820060c57da30", "user_id": null, "metadata": {"status": "active", "name": "cirros-0.3.1-x86_64-uec-ramdisk", "deleted": "False", "container_format": "ari", "created_at": "2013-08-04T22:53:46", "disk_format": "ari", "updated_at": "2013-08-04T22:53:47", "protected": "False", "checksum": "69c33642f44ca552ba4bb8b66ad97e85", "min_disk": "0", "is_public": "True", "deleted_at": "None", "min_ram": "0", "size": "3714968"}, "links": [{"href": "http://localhost:8777/v2/resources/b23fbced-b272-41a6-8f48-be76b586bd00", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/image?q.field=resource_id&q.value=b23fbced-b272-41a6-8f48-be76b586bd00", "rel": "image"}, {"href": "http://localhost:8777/v2/meters/image.size?q.field=resource_id&q.value=b23fbced-b272-41a6-8f48-be76b586bd00", "rel": "image.size"}, {"href": "http://localhost:8777/v2/meters/image.download?q.field=resource_id&q.value=b23fbced-b272-41a6-8f48-be76b586bd00", "rel": "image.download"}, {"href": "http://localhost:8777/v2/meters/image.serve?q.field=resource_id&q.value=b23fbced-b272-41a6-8f48-be76b586bd00", "rel": "image.serve"}], "resource_id": "b23fbced-b272-41a6-8f48-be76b586bd00"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "9692a61b44f246259af534f0b1d95942", "metadata": {"status": "DOWN", "binding:host_id": "openstack", "name": "", "admin_state_up": "True", "network_id": "79b5e163-496c-4ab6-9c21-3b597ed632dc", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "host": "network.openstack", "binding:vif_type": "ovs", "device_owner": "compute:None", "mac_address": "fa:16:3e:a6:d8:57", "event_type": "port.create.end", "id": "b35709ef-6b3a-42d7-bd57-ef4cd673ec9b", "device_id": "0a16330b-d457-425d-8249-a275fab9adea"}, "links": [{"href": "http://localhost:8777/v2/resources/b35709ef-6b3a-42d7-bd57-ef4cd673ec9b", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=b35709ef-6b3a-42d7-bd57-ef4cd673ec9b", "rel": "port"}, {"href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=b35709ef-6b3a-42d7-bd57-ef4cd673ec9b", "rel": "port.create"}], "resource_id": "b35709ef-6b3a-42d7-bd57-ef4cd673ec9b"}, {"project_id": "931dc699f9934021bb4a2b1088ba4d3b", "user_id": "2b8fbe55863d4dfab5310796202b2019", "metadata": {"state_description": "", "event_type": "compute.instance.exists", "availability_zone": "nova", "ephemeral_gb": "0", "instance_type_id": "6", "deleted_at": "", "reservation_id": "r-zyyri69c", "instance_id": "c01c63fe-7a29-4426-bab1-34d088e92415", "user_id": "2b8fbe55863d4dfab5310796202b2019", "hostname": "foo-c01c63fe-7a29-4426-bab1-34d088e92415", "state": "active", "launched_at": "2013-08-05T05:17:46.000000", "node": "openstack", "ramdisk_id": "b23fbced-b272-41a6-8f48-be76b586bd00", "access_ip_v6": "None", "disk_gb": "0", "access_ip_v4": "None", "kernel_id": "7cbf09f5-43ae-4d94-a1e7-47e95fd27017", "host": "compute.openstack", "display_name": "foo-c01c63fe-7a29-4426-bab1-34d088e92415", "image_ref_url": "http://10.0.2.15:9292/images/e58bf75a-35e9-4709-9eab-885438f36a34", "audit_period_beginning": "2013-08-12 03:00:00", "root_gb": "0", "tenant_id": "931dc699f9934021bb4a2b1088ba4d3b", "created_at": "2013-08-05T05:17:36.000000", "memory_mb": "64", "instance_type": "m1.nano", "vcpus": "1", "architecture": "None", "audit_period_ending": "2013-08-12 04:00:00", "os_type": "None"}, "links": [{"href": "http://localhost:8777/v2/resources/c01c63fe-7a29-4426-bab1-34d088e92415", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/memory?q.field=resource_id&q.value=c01c63fe-7a29-4426-bab1-34d088e92415", "rel": "memory"}, {"href": "http://localhost:8777/v2/meters/disk.ephemeral.size?q.field=resource_id&q.value=c01c63fe-7a29-4426-bab1-34d088e92415", "rel": "disk.ephemeral.size"}, {"href": "http://localhost:8777/v2/meters/instance?q.field=resource_id&q.value=c01c63fe-7a29-4426-bab1-34d088e92415", "rel": "instance"}, {"href": "http://localhost:8777/v2/meters/instance:m1.nano?q.field=resource_id&q.value=c01c63fe-7a29-4426-bab1-34d088e92415", "rel": "instance:m1.nano"}, {"href": "http://localhost:8777/v2/meters/vcpus?q.field=resource_id&q.value=c01c63fe-7a29-4426-bab1-34d088e92415", "rel": "vcpus"}, {"href": "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.value=c01c63fe-7a29-4426-bab1-34d088e92415", "rel": "disk.root.size"}, {"href": "http://localhost:8777/v2/meters/instance.scheduled?q.field=resource_id&q.value=c01c63fe-7a29-4426-bab1-34d088e92415", "rel": "instance.scheduled"}], "resource_id": "c01c63fe-7a29-4426-bab1-34d088e92415"}, {"project_id": "0c5a6b84fd2a43999c8820060c57da30", "user_id": null, "metadata": {"status": "active", "name": "cirros-0.3.1-x86_64-uec", "deleted": "False", "container_format": "ami", "created_at": "2013-08-04T22:53:47", "disk_format": "ami", "updated_at": "2013-08-04T22:53:48", "protected": "False", "checksum": "f8a2eeee2dc65b3d9b6e63678955bd83", "min_disk": "0", "is_public": "True", "deleted_at": "None", "min_ram": "0", "size": "25165824"}, "links": [{"href": "http://localhost:8777/v2/resources/e58bf75a-35e9-4709-9eab-885438f36a34", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/image?q.field=resource_id&q.value=e58bf75a-35e9-4709-9eab-885438f36a34", "rel": "image"}, {"href": "http://localhost:8777/v2/meters/image.size?q.field=resource_id&q.value=e58bf75a-35e9-4709-9eab-885438f36a34", "rel": "image.size"}, {"href": "http://localhost:8777/v2/meters/image.download?q.field=resource_id&q.value=e58bf75a-35e9-4709-9eab-885438f36a34", "rel": "image.download"}, {"href": "http://localhost:8777/v2/meters/image.serve?q.field=resource_id&q.value=e58bf75a-35e9-4709-9eab-885438f36a34", "rel": "image.serve"}], "resource_id": "e58bf75a-35e9-4709-9eab-885438f36a34"}, {"project_id": "e88ef09124594ede8ecea0b1628a05bf", "user_id": null, "metadata": {}, "links": [{"href": "http://localhost:8777/v2/resources/e88ef09124594ede8ecea0b1628a05bf", "rel": "self"}, {"href": "http://localhost:8777/v2/meters/storage.objects?q.field=resource_id&q.value=e88ef09124594ede8ecea0b1628a05bf", "rel": "storage.objects"}, {"href": "http://localhost:8777/v2/meters/storage.objects.containers?q.field=resource_id&q.value=e88ef09124594ede8ecea0b1628a05bf", "rel": "storage.objects.containers"}, {"href": "http://localhost:8777/v2/meters/storage.objects.size?q.field=resource_id&q.value=e88ef09124594ede8ecea0b1628a05bf", "rel": "storage.objects.size"}], "resource_id": "e88ef09124594ede8ecea0b1628a05bf"}]
+[
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/0a57e3da-9e85-4690-8ba9-ee7573619ec3", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.ephemeral.size?q.field=resource_id&q.value=0a57e3da-9e85-4690-8ba9-ee7573619ec3", 
+    "rel": "disk.ephemeral.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.value=0a57e3da-9e85-4690-8ba9-ee7573619ec3", 
+    "rel": "disk.root.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance?q.field=resource_id&q.value=0a57e3da-9e85-4690-8ba9-ee7573619ec3", 
+    "rel": "instance"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance.scheduled?q.field=resource_id&q.value=0a57e3da-9e85-4690-8ba9-ee7573619ec3", 
+    "rel": "instance.scheduled"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance:m1.small?q.field=resource_id&q.value=0a57e3da-9e85-4690-8ba9-ee7573619ec3", 
+    "rel": "instance:m1.small"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/memory?q.field=resource_id&q.value=0a57e3da-9e85-4690-8ba9-ee7573619ec3", 
+    "rel": "memory"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/state?q.field=resource_id&q.value=0a57e3da-9e85-4690-8ba9-ee7573619ec3", 
+    "rel": "state"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/vcpus?q.field=resource_id&q.value=0a57e3da-9e85-4690-8ba9-ee7573619ec3", 
+    "rel": "vcpus"
+   }
+  ], 
+  "resource_id": "0a57e3da-9e85-4690-8ba9-ee7573619ec3", 
+  "last_sample_timestamp": "2014-02-12T02:50:22.856900", 
+  "first_sample_timestamp": "2014-02-12T02:48:50.018821", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "state_description": "", 
+   "image_meta.base_image_ref": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+   "event_type": "compute.instance.delete.end", 
+   "availability_zone": "nova", 
+   "terminated_at": "2014-02-12T02:50:22.481312", 
+   "ephemeral_gb": "0", 
+   "instance_type_id": "5", 
+   "deleted_at": "", 
+   "reservation_id": "r-hjsi3xoo", 
+   "instance_id": "0a57e3da-9e85-4690-8ba9-ee7573619ec3", 
+   "display_name": "Also a vm", 
+   "hostname": "also-a-vm", 
+   "state": "deleted", 
+   "image_ref_url": "http://10.0.2.15:9292/images/ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+   "image_meta.kernel_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+   "launched_at": "", 
+   "node": "vagrant-ubuntu-precise-64", 
+   "ramdisk_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+   "access_ip_v6": "None", 
+   "disk_gb": "20", 
+   "access_ip_v4": "None", 
+   "kernel_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+   "image_meta.disk_format": "ami", 
+   "image_meta.container_format": "ami", 
+   "user_id": "6ab10df928e2487f92b950d482038c58", 
+   "image_meta.min_disk": "20", 
+   "image_meta.ramdisk_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+   "root_gb": "20", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "created_at": "2014-02-12 02:48:49+00:00", 
+   "image_meta.min_ram": "0", 
+   "host": "compute.vagrant-ubuntu-precise-64", 
+   "memory_mb": "2048", 
+   "instance_type": "m1.small", 
+   "vcpus": "1", 
+   "architecture": "None", 
+   "os_type": "None", 
+   "instance_flavor_id": "2"
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/2155db5c-4c7b-4787-90ff-7b8ded741c75", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/ip.floating?q.field=resource_id&q.value=2155db5c-4c7b-4787-90ff-7b8ded741c75", 
+    "rel": "ip.floating"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/ip.floating.create?q.field=resource_id&q.value=2155db5c-4c7b-4787-90ff-7b8ded741c75", 
+    "rel": "ip.floating.create"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/ip.floating.update?q.field=resource_id&q.value=2155db5c-4c7b-4787-90ff-7b8ded741c75", 
+    "rel": "ip.floating.update"
+   }
+  ], 
+  "resource_id": "2155db5c-4c7b-4787-90ff-7b8ded741c75", 
+  "last_sample_timestamp": "2014-02-12T02:50:42.433526", 
+  "first_sample_timestamp": "2014-02-12T02:50:39.202116", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "router_id": "dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
+   "event_type": "floatingip.update.end", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "floating_network_id": "48a95728-51ac-4e13-864c-8659499db368", 
+   "host": "network.vagrant-ubuntu-precise-64", 
+   "fixed_ip_address": "10.0.0.4", 
+   "floating_ip_address": "172.24.4.227", 
+   "port_id": "a37fbd75-79e8-49bf-ae27-96e7cb80d44d", 
+   "id": "2155db5c-4c7b-4787-90ff-7b8ded741c75"
+  }
+ }, 
+ {
+  "user_id": null, 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.api.request?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "rel": "storage.api.request"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "rel": "storage.objects"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects.containers?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "rel": "storage.objects.containers"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects.incoming.bytes?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "rel": "storage.objects.incoming.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects.outgoing.bytes?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "rel": "storage.objects.outgoing.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/storage.objects.size?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "rel": "storage.objects.size"
+   }
+  ], 
+  "resource_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "last_sample_timestamp": "2014-02-12T02:56:32", 
+  "first_sample_timestamp": "2014-02-11T22:53:29", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {}
+ }, 
+ {
+  "user_id": "376b44e5683549288cfc7620b3dd2694", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/619767ba-0275-4220-8c4a-b2196c394df0", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=619767ba-0275-4220-8c4a-b2196c394df0", 
+    "rel": "port"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=619767ba-0275-4220-8c4a-b2196c394df0", 
+    "rel": "port.create"
+   }
+  ], 
+  "resource_id": "619767ba-0275-4220-8c4a-b2196c394df0", 
+  "last_sample_timestamp": "2014-02-12T02:52:21.088311", 
+  "first_sample_timestamp": "2014-02-12T02:52:21.088311", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "status": "DOWN", 
+   "binding:host_id": "vagrant-ubuntu-precise-64", 
+   "binding:capabilities.port_filter": "True", 
+   "admin_state_up": "True", 
+   "network_id": "a52ff971-8a62-433b-9092-19c0d5a54304", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "device_owner": "compute:nova", 
+   "binding:vif_type": "ovs", 
+   "host": "network.vagrant-ubuntu-precise-64", 
+   "mac_address": "fa:16:3e:e2:fd:e1", 
+   "event_type": "port.create.end", 
+   "device_id": "de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+   "id": "619767ba-0275-4220-8c4a-b2196c394df0", 
+   "name": ""
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/6af83f4f-1f4f-40cf-810e-e3262dec718f", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/volume?q.field=resource_id&q.value=6af83f4f-1f4f-40cf-810e-e3262dec718f", 
+    "rel": "volume"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/volume.size?q.field=resource_id&q.value=6af83f4f-1f4f-40cf-810e-e3262dec718f", 
+    "rel": "volume.size"
+   }
+  ], 
+  "resource_id": "6af83f4f-1f4f-40cf-810e-e3262dec718f", 
+  "last_sample_timestamp": "2014-02-12T02:14:27.419241", 
+  "first_sample_timestamp": "2014-02-12T02:14:23.351046", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "status": "available", 
+   "display_name": "sdfsf", 
+   "event_type": "volume.create.end", 
+   "availability_zone": "nova", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "created_at": "2014-02-12 02:14:23", 
+   "snapshot_id": "None", 
+   "volume_type": "None", 
+   "host": "volume.vagrant-ubuntu-precise-64", 
+   "volume_id": "6af83f4f-1f4f-40cf-810e-e3262dec718f", 
+   "user_id": "6ab10df928e2487f92b950d482038c58", 
+   "launched_at": "2014-02-12 02:14:27.293993", 
+   "size": "3"
+  }
+ }, 
+ {
+  "user_id": "376b44e5683549288cfc7620b3dd2694", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/6d0aaf23-6cae-4331-8de0-6d7b54ab208d", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=6d0aaf23-6cae-4331-8de0-6d7b54ab208d", 
+    "rel": "port"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=6d0aaf23-6cae-4331-8de0-6d7b54ab208d", 
+    "rel": "port.create"
+   }
+  ], 
+  "resource_id": "6d0aaf23-6cae-4331-8de0-6d7b54ab208d", 
+  "last_sample_timestamp": "2014-02-12T02:48:52.274704", 
+  "first_sample_timestamp": "2014-02-12T02:48:52.274704", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "status": "DOWN", 
+   "binding:host_id": "vagrant-ubuntu-precise-64", 
+   "binding:capabilities.port_filter": "True", 
+   "admin_state_up": "True", 
+   "network_id": "a52ff971-8a62-433b-9092-19c0d5a54304", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "device_owner": "compute:nova", 
+   "binding:vif_type": "ovs", 
+   "host": "network.vagrant-ubuntu-precise-64", 
+   "mac_address": "fa:16:3e:c5:94:9f", 
+   "event_type": "port.create.end", 
+   "device_id": "0a57e3da-9e85-4690-8ba9-ee7573619ec3", 
+   "id": "6d0aaf23-6cae-4331-8de0-6d7b54ab208d", 
+   "name": ""
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/84326068-5ccd-4a32-bcd2-c6c3af84d862", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/ip.floating?q.field=resource_id&q.value=84326068-5ccd-4a32-bcd2-c6c3af84d862", 
+    "rel": "ip.floating"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/ip.floating.create?q.field=resource_id&q.value=84326068-5ccd-4a32-bcd2-c6c3af84d862", 
+    "rel": "ip.floating.create"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/ip.floating.update?q.field=resource_id&q.value=84326068-5ccd-4a32-bcd2-c6c3af84d862", 
+    "rel": "ip.floating.update"
+   }
+  ], 
+  "resource_id": "84326068-5ccd-4a32-bcd2-c6c3af84d862", 
+  "last_sample_timestamp": "2014-02-12T02:50:49.946017", 
+  "first_sample_timestamp": "2014-02-12T02:50:48.522124", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "router_id": "dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
+   "event_type": "floatingip.update.end", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "floating_network_id": "48a95728-51ac-4e13-864c-8659499db368", 
+   "host": "network.vagrant-ubuntu-precise-64", 
+   "fixed_ip_address": "10.0.0.2", 
+   "floating_ip_address": "172.24.4.228", 
+   "port_id": "a3addd6a-ca02-4c07-a1db-d78efdcb2baa", 
+   "id": "84326068-5ccd-4a32-bcd2-c6c3af84d862"
+  }
+ }, 
+ {
+  "user_id": null, 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image?q.field=resource_id&q.value=8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "rel": "image"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.download?q.field=resource_id&q.value=8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "rel": "image.download"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.serve?q.field=resource_id&q.value=8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "rel": "image.serve"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.size?q.field=resource_id&q.value=8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "rel": "image.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.update?q.field=resource_id&q.value=8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "rel": "image.update"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.upload?q.field=resource_id&q.value=8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "rel": "image.upload"
+   }
+  ], 
+  "resource_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+  "last_sample_timestamp": "2014-02-12T02:47:45.448304", 
+  "first_sample_timestamp": "2014-02-12T02:47:45.448304", 
+  "project_id": "5f836e56b51747e080f3442cb1b8035a", 
+  "metadata": {
+   "receiver_tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "destination_ip": "10.0.2.15", 
+   "event_type": "image.send", 
+   "bytes_sent": "3714968", 
+   "image_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+   "host": "vagrant-ubuntu-precise-64", 
+   "receiver_user_id": "6ab10df928e2487f92b950d482038c58", 
+   "owner_id": "5f836e56b51747e080f3442cb1b8035a"
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/cpu?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "cpu"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/cpu_util?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "cpu_util"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.ephemeral.size?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "disk.ephemeral.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.read.bytes?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "disk.read.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.read.requests?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "disk.read.requests"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "disk.root.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.write.bytes?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "disk.write.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.write.requests?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "disk.write.requests"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "instance"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance.scheduled?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "instance.scheduled"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance:m1.micro?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "instance:m1.micro"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/memory?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "memory"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/state?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "state"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/vcpus?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+    "rel": "vcpus"
+   }
+  ], 
+  "resource_id": "9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+  "last_sample_timestamp": "2014-02-12T02:56:40", 
+  "first_sample_timestamp": "2014-02-12T02:48:11.320441", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "ephemeral_gb": "0", 
+   "flavor.vcpus": "1", 
+   "flavor.ephemeral": "0", 
+   "display_name": "This is a VM", 
+   "flavor.id": "84", 
+   "OS-EXT-AZ:availability_zone": "nova", 
+   "ramdisk_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+   "flavor.name": "m1.micro", 
+   "disk_gb": "0", 
+   "kernel_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+   "image.id": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+   "flavor.ram": "128", 
+   "host": "dfe0a168f3dd9ba097dc1520a46a00984436342bdbf6522e9796d6b2", 
+   "image.name": "cirros-0.3.1-x86_64-uec", 
+   "image_ref_url": "http://10.0.2.15:8774/c7c724d04e734e3688f8e7276aecec9c/images/ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+   "flavor.disk": "0", 
+   "root_gb": "0", 
+   "name": "instance-00000002", 
+   "memory_mb": "128", 
+   "instance_type": "84", 
+   "vcpus": "1", 
+   "image_ref": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9"
+  }
+ }, 
+ {
+  "user_id": "376b44e5683549288cfc7620b3dd2694", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/a37fbd75-79e8-49bf-ae27-96e7cb80d44d", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=a37fbd75-79e8-49bf-ae27-96e7cb80d44d", 
+    "rel": "port"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=a37fbd75-79e8-49bf-ae27-96e7cb80d44d", 
+    "rel": "port.create"
+   }
+  ], 
+  "resource_id": "a37fbd75-79e8-49bf-ae27-96e7cb80d44d", 
+  "last_sample_timestamp": "2014-02-12T02:48:14.372303", 
+  "first_sample_timestamp": "2014-02-12T02:48:14.372303", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "status": "DOWN", 
+   "binding:host_id": "vagrant-ubuntu-precise-64", 
+   "binding:capabilities.port_filter": "True", 
+   "admin_state_up": "True", 
+   "network_id": "a52ff971-8a62-433b-9092-19c0d5a54304", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "device_owner": "compute:nova", 
+   "binding:vif_type": "ovs", 
+   "host": "network.vagrant-ubuntu-precise-64", 
+   "mac_address": "fa:16:3e:e2:d5:f6", 
+   "event_type": "port.create.end", 
+   "device_id": "9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+   "id": "a37fbd75-79e8-49bf-ae27-96e7cb80d44d", 
+   "name": ""
+  }
+ }, 
+ {
+  "user_id": "376b44e5683549288cfc7620b3dd2694", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/a3addd6a-ca02-4c07-a1db-d78efdcb2baa", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=a3addd6a-ca02-4c07-a1db-d78efdcb2baa", 
+    "rel": "port"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=a3addd6a-ca02-4c07-a1db-d78efdcb2baa", 
+    "rel": "port.create"
+   }
+  ], 
+  "resource_id": "a3addd6a-ca02-4c07-a1db-d78efdcb2baa", 
+  "last_sample_timestamp": "2014-02-12T02:47:43.886093", 
+  "first_sample_timestamp": "2014-02-12T02:47:43.886093", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "status": "DOWN", 
+   "binding:host_id": "vagrant-ubuntu-precise-64", 
+   "binding:capabilities.port_filter": "True", 
+   "admin_state_up": "True", 
+   "network_id": "a52ff971-8a62-433b-9092-19c0d5a54304", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "device_owner": "compute:nova", 
+   "binding:vif_type": "ovs", 
+   "host": "network.vagrant-ubuntu-precise-64", 
+   "mac_address": "fa:16:3e:df:2e:3c", 
+   "event_type": "port.create.end", 
+   "device_id": "db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+   "id": "a3addd6a-ca02-4c07-a1db-d78efdcb2baa", 
+   "name": ""
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/a52ff971-8a62-433b-9092-19c0d5a54304", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network?q.field=resource_id&q.value=a52ff971-8a62-433b-9092-19c0d5a54304", 
+    "rel": "network"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.create?q.field=resource_id&q.value=a52ff971-8a62-433b-9092-19c0d5a54304", 
+    "rel": "network.create"
+   }
+  ], 
+  "resource_id": "a52ff971-8a62-433b-9092-19c0d5a54304", 
+  "last_sample_timestamp": "2014-02-11T22:52:53.134561", 
+  "first_sample_timestamp": "2014-02-11T22:52:53.134561", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "status": "ACTIVE", 
+   "event_type": "network.create.end", 
+   "provider:physical_network": "None", 
+   "admin_state_up": "True", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "provider:network_type": "local", 
+   "host": "network.vagrant-ubuntu-precise-64", 
+   "shared": "False", 
+   "name": "private", 
+   "id": "a52ff971-8a62-433b-9092-19c0d5a54304", 
+   "provider:segmentation_id": "None"
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/add25bff-c233-41e3-83f1-f178e0a3ca6a", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/volume?q.field=resource_id&q.value=add25bff-c233-41e3-83f1-f178e0a3ca6a", 
+    "rel": "volume"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/volume.size?q.field=resource_id&q.value=add25bff-c233-41e3-83f1-f178e0a3ca6a", 
+    "rel": "volume.size"
+   }
+  ], 
+  "resource_id": "add25bff-c233-41e3-83f1-f178e0a3ca6a", 
+  "last_sample_timestamp": "2014-02-12T02:13:00.964868", 
+  "first_sample_timestamp": "2014-02-12T02:12:56.209333", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "status": "available", 
+   "display_name": "gfdg", 
+   "event_type": "volume.create.end", 
+   "availability_zone": "nova", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "created_at": "2014-02-12 02:12:55", 
+   "snapshot_id": "None", 
+   "volume_type": "None", 
+   "host": "volume.vagrant-ubuntu-precise-64", 
+   "volume_id": "add25bff-c233-41e3-83f1-f178e0a3ca6a", 
+   "user_id": "6ab10df928e2487f92b950d482038c58", 
+   "launched_at": "2014-02-12 02:13:00.939561", 
+   "size": "2"
+  }
+ }, 
+ {
+  "user_id": null, 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image?q.field=resource_id&q.value=ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+    "rel": "image"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.download?q.field=resource_id&q.value=ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+    "rel": "image.download"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.serve?q.field=resource_id&q.value=ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+    "rel": "image.serve"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.size?q.field=resource_id&q.value=ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+    "rel": "image.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.update?q.field=resource_id&q.value=ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+    "rel": "image.update"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.upload?q.field=resource_id&q.value=ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+    "rel": "image.upload"
+   }
+  ], 
+  "resource_id": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+  "last_sample_timestamp": "2014-02-12T02:47:46.118171", 
+  "first_sample_timestamp": "2014-02-12T02:12:58.116103", 
+  "project_id": "5f836e56b51747e080f3442cb1b8035a", 
+  "metadata": {
+   "receiver_tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "destination_ip": "10.0.2.15", 
+   "event_type": "image.send", 
+   "bytes_sent": "25165824", 
+   "image_id": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+   "host": "vagrant-ubuntu-precise-64", 
+   "receiver_user_id": "6ab10df928e2487f92b950d482038c58", 
+   "owner_id": "5f836e56b51747e080f3442cb1b8035a"
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/c2136c82-b5a1-4286-b970-edd849a301b3", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/subnet?q.field=resource_id&q.value=c2136c82-b5a1-4286-b970-edd849a301b3", 
+    "rel": "subnet"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/subnet.create?q.field=resource_id&q.value=c2136c82-b5a1-4286-b970-edd849a301b3", 
+    "rel": "subnet.create"
+   }
+  ], 
+  "resource_id": "c2136c82-b5a1-4286-b970-edd849a301b3", 
+  "last_sample_timestamp": "2014-02-11T22:52:53.937321", 
+  "first_sample_timestamp": "2014-02-11T22:52:53.937321", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "event_type": "subnet.create.end", 
+   "enable_dhcp": "True", 
+   "network_id": "a52ff971-8a62-433b-9092-19c0d5a54304", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "host": "network.vagrant-ubuntu-precise-64", 
+   "gateway_ip": "10.0.0.1", 
+   "ip_version": "4", 
+   "cidr": "10.0.0.0/24", 
+   "id": "c2136c82-b5a1-4286-b970-edd849a301b3", 
+   "name": "private-subnet"
+  }
+ }, 
+ {
+  "user_id": null, 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image?q.field=resource_id&q.value=cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+    "rel": "image"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.download?q.field=resource_id&q.value=cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+    "rel": "image.download"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.serve?q.field=resource_id&q.value=cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+    "rel": "image.serve"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.size?q.field=resource_id&q.value=cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+    "rel": "image.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.update?q.field=resource_id&q.value=cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+    "rel": "image.update"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/image.upload?q.field=resource_id&q.value=cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+    "rel": "image.upload"
+   }
+  ], 
+  "resource_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+  "last_sample_timestamp": "2014-02-12T02:47:43.805133", 
+  "first_sample_timestamp": "2014-02-12T02:47:43.805133", 
+  "project_id": "5f836e56b51747e080f3442cb1b8035a", 
+  "metadata": {
+   "receiver_tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "destination_ip": "10.0.2.15", 
+   "event_type": "image.send", 
+   "bytes_sent": "4955792", 
+   "image_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+   "host": "vagrant-ubuntu-precise-64", 
+   "receiver_user_id": "6ab10df928e2487f92b950d482038c58", 
+   "owner_id": "5f836e56b51747e080f3442cb1b8035a"
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/cpu?q.field=resource_id&q.value=db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "cpu"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/cpu_util?q.field=resource_id&q.value=db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "cpu_util"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.ephemeral.size?q.field=resource_id&q.value=db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "disk.ephemeral.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.read.bytes?q.field=resource_id&q.value=db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "disk.read.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.read.requests?q.field=resource_id&q.value=db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "disk.read.requests"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.value=db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "disk.root.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.write.bytes?q.field=resource_id&q.value=db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "disk.write.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.write.requests?q.field=resource_id&q.value=db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "disk.write.requests"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance?q.field=resource_id&q.value=db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "instance"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance.scheduled?q.field=resource_id&q.value=db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "instance.scheduled"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance:m1.nano?q.field=resource_id&q.value=db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "instance:m1.nano"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/memory?q.field=resource_id&q.value=db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "memory"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/state?q.field=resource_id&q.value=db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "state"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/vcpus?q.field=resource_id&q.value=db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+    "rel": "vcpus"
+   }
+  ], 
+  "resource_id": "db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+  "last_sample_timestamp": "2014-02-12T02:56:40", 
+  "first_sample_timestamp": "2014-02-12T02:47:41.120222", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "ephemeral_gb": "0", 
+   "flavor.vcpus": "1", 
+   "flavor.ephemeral": "0", 
+   "display_name": "Just another VM", 
+   "flavor.id": "42", 
+   "OS-EXT-AZ:availability_zone": "nova", 
+   "ramdisk_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+   "flavor.name": "m1.nano", 
+   "disk_gb": "0", 
+   "kernel_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+   "image.id": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+   "flavor.ram": "64", 
+   "host": "dfe0a168f3dd9ba097dc1520a46a00984436342bdbf6522e9796d6b2", 
+   "image.name": "cirros-0.3.1-x86_64-uec", 
+   "image_ref_url": "http://10.0.2.15:8774/c7c724d04e734e3688f8e7276aecec9c/images/ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+   "flavor.disk": "0", 
+   "root_gb": "0", 
+   "name": "instance-00000001", 
+   "memory_mb": "64", 
+   "instance_type": "42", 
+   "vcpus": "1", 
+   "image_ref": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9"
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/router?q.field=resource_id&q.value=dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
+    "rel": "router"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/router.create?q.field=resource_id&q.value=dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
+    "rel": "router.create"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/router.update?q.field=resource_id&q.value=dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
+    "rel": "router.update"
+   }
+  ], 
+  "resource_id": "dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
+  "last_sample_timestamp": "2014-02-11T22:52:57.680649", 
+  "first_sample_timestamp": "2014-02-11T22:52:54.598593", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "status": "ACTIVE", 
+   "event_type": "router.update.end", 
+   "external_gateway_info.enable_snat": "True", 
+   "admin_state_up": "True", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "host": "network.vagrant-ubuntu-precise-64", 
+   "external_gateway_info.network_id": "48a95728-51ac-4e13-864c-8659499db368", 
+   "id": "dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
+   "name": "router1"
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/cpu?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "cpu"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/cpu_util?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "cpu_util"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.ephemeral.size?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "disk.ephemeral.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.read.bytes?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "disk.read.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.read.requests?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "disk.read.requests"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "disk.root.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.write.bytes?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "disk.write.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.write.requests?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "disk.write.requests"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "instance"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance.scheduled?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "instance.scheduled"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance:m1.tiny?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "instance:m1.tiny"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/memory?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "memory"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/state?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "state"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/vcpus?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "rel": "vcpus"
+   }
+  ], 
+  "resource_id": "de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+  "last_sample_timestamp": "2014-02-12T02:56:39", 
+  "first_sample_timestamp": "2014-02-12T02:52:18.138444", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "ephemeral_gb": "0", 
+   "flavor.vcpus": "1", 
+   "flavor.ephemeral": "0", 
+   "display_name": "Jim2", 
+   "flavor.id": "1", 
+   "OS-EXT-AZ:availability_zone": "nova", 
+   "ramdisk_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+   "flavor.name": "m1.tiny", 
+   "disk_gb": "1", 
+   "kernel_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+   "image.id": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+   "flavor.ram": "512", 
+   "host": "dfe0a168f3dd9ba097dc1520a46a00984436342bdbf6522e9796d6b2", 
+   "image.name": "cirros-0.3.1-x86_64-uec", 
+   "image_ref_url": "http://10.0.2.15:8774/c7c724d04e734e3688f8e7276aecec9c/images/ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+   "flavor.disk": "1", 
+   "root_gb": "1", 
+   "name": "instance-00000005", 
+   "memory_mb": "512", 
+   "instance_type": "1", 
+   "vcpus": "1", 
+   "image_ref": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9"
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/e404920f-cfc8-40ba-bc53-a5c610714bd9", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.ephemeral.size?q.field=resource_id&q.value=e404920f-cfc8-40ba-bc53-a5c610714bd9", 
+    "rel": "disk.ephemeral.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.value=e404920f-cfc8-40ba-bc53-a5c610714bd9", 
+    "rel": "disk.root.size"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance?q.field=resource_id&q.value=e404920f-cfc8-40ba-bc53-a5c610714bd9", 
+    "rel": "instance"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/instance:m1.medium?q.field=resource_id&q.value=e404920f-cfc8-40ba-bc53-a5c610714bd9", 
+    "rel": "instance:m1.medium"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/memory?q.field=resource_id&q.value=e404920f-cfc8-40ba-bc53-a5c610714bd9", 
+    "rel": "memory"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/state?q.field=resource_id&q.value=e404920f-cfc8-40ba-bc53-a5c610714bd9", 
+    "rel": "state"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/vcpus?q.field=resource_id&q.value=e404920f-cfc8-40ba-bc53-a5c610714bd9", 
+    "rel": "vcpus"
+   }
+  ], 
+  "resource_id": "e404920f-cfc8-40ba-bc53-a5c610714bd9", 
+  "last_sample_timestamp": "2014-02-12T02:51:20.680646", 
+  "first_sample_timestamp": "2014-02-12T02:51:07.825614", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "state_description": "deleting", 
+   "image_meta.base_image_ref": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+   "event_type": "compute.instance.delete.end", 
+   "availability_zone": "nova", 
+   "terminated_at": "", 
+   "ephemeral_gb": "0", 
+   "instance_type_id": "1", 
+   "deleted_at": "", 
+   "reservation_id": "r-m5u76tt1", 
+   "instance_id": "e404920f-cfc8-40ba-bc53-a5c610714bd9", 
+   "display_name": "Jim", 
+   "hostname": "jim", 
+   "state": "error", 
+   "image_ref_url": "http://10.0.2.15:9292/images/ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
+   "image_meta.kernel_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+   "launched_at": "", 
+   "node": "None", 
+   "ramdisk_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+   "access_ip_v6": "None", 
+   "disk_gb": "40", 
+   "access_ip_v4": "None", 
+   "kernel_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
+   "image_meta.disk_format": "ami", 
+   "image_meta.container_format": "ami", 
+   "user_id": "6ab10df928e2487f92b950d482038c58", 
+   "image_meta.min_disk": "40", 
+   "image_meta.ramdisk_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+   "root_gb": "40", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "created_at": "2014-02-12 02:51:07+00:00", 
+   "image_meta.min_ram": "0", 
+   "host": "compute.vagrant-ubuntu-precise-64", 
+   "memory_mb": "4096", 
+   "instance_type": "m1.medium", 
+   "vcpus": "2", 
+   "architecture": "None", 
+   "os_type": "None", 
+   "instance_flavor_id": "3"
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/e788c617-01e9-405b-823f-803f44fb3483", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/volume?q.field=resource_id&q.value=e788c617-01e9-405b-823f-803f44fb3483", 
+    "rel": "volume"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/volume.size?q.field=resource_id&q.value=e788c617-01e9-405b-823f-803f44fb3483", 
+    "rel": "volume.size"
+   }
+  ], 
+  "resource_id": "e788c617-01e9-405b-823f-803f44fb3483", 
+  "last_sample_timestamp": "2014-02-12T02:14:11.631516", 
+  "first_sample_timestamp": "2014-02-12T02:14:11.552114", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "status": "error", 
+   "display_name": "cxvcxvc", 
+   "event_type": "volume.delete.end", 
+   "availability_zone": "nova", 
+   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "created_at": "2014-02-12 02:11:57", 
+   "snapshot_id": "None", 
+   "volume_type": "None", 
+   "host": "volume.vagrant-ubuntu-precise-64", 
+   "volume_id": "e788c617-01e9-405b-823f-803f44fb3483", 
+   "user_id": "6ab10df928e2487f92b950d482038c58", 
+   "launched_at": "", 
+   "size": "45"
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/nova-instance-instance-00000001-fa163edf2e3c", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.incoming.bytes?q.field=resource_id&q.value=nova-instance-instance-00000001-fa163edf2e3c", 
+    "rel": "network.incoming.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.incoming.packets?q.field=resource_id&q.value=nova-instance-instance-00000001-fa163edf2e3c", 
+    "rel": "network.incoming.packets"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.outgoing.bytes?q.field=resource_id&q.value=nova-instance-instance-00000001-fa163edf2e3c", 
+    "rel": "network.outgoing.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.outgoing.packets?q.field=resource_id&q.value=nova-instance-instance-00000001-fa163edf2e3c", 
+    "rel": "network.outgoing.packets"
+   }
+  ], 
+  "resource_id": "nova-instance-instance-00000001-fa163edf2e3c", 
+  "last_sample_timestamp": "2014-02-12T02:56:40", 
+  "first_sample_timestamp": "2014-02-12T02:48:40", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "instance_id": "db8037b2-9f1c-4dd2-94dd-ea72f49a21d7", 
+   "instance_type": "42", 
+   "mac": "fa:16:3e:df:2e:3c", 
+   "fref": "nova-instance-instance-00000001-fa163edf2e3c", 
+   "name": "tapa3addd6a-ca"
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/nova-instance-instance-00000002-fa163ee2d5f6", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.incoming.bytes?q.field=resource_id&q.value=nova-instance-instance-00000002-fa163ee2d5f6", 
+    "rel": "network.incoming.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.incoming.packets?q.field=resource_id&q.value=nova-instance-instance-00000002-fa163ee2d5f6", 
+    "rel": "network.incoming.packets"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.outgoing.bytes?q.field=resource_id&q.value=nova-instance-instance-00000002-fa163ee2d5f6", 
+    "rel": "network.outgoing.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.outgoing.packets?q.field=resource_id&q.value=nova-instance-instance-00000002-fa163ee2d5f6", 
+    "rel": "network.outgoing.packets"
+   }
+  ], 
+  "resource_id": "nova-instance-instance-00000002-fa163ee2d5f6", 
+  "last_sample_timestamp": "2014-02-12T02:56:40", 
+  "first_sample_timestamp": "2014-02-12T02:48:40", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "instance_id": "9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
+   "instance_type": "84", 
+   "mac": "fa:16:3e:e2:d5:f6", 
+   "fref": "nova-instance-instance-00000002-fa163ee2d5f6", 
+   "name": "tapa37fbd75-79"
+  }
+ }, 
+ {
+  "user_id": "6ab10df928e2487f92b950d482038c58", 
+  "links": [
+   {
+    "href": "http://localhost:8777/v2/resources/nova-instance-instance-00000005-fa163ee2fde1", 
+    "rel": "self"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.incoming.bytes?q.field=resource_id&q.value=nova-instance-instance-00000005-fa163ee2fde1", 
+    "rel": "network.incoming.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.incoming.packets?q.field=resource_id&q.value=nova-instance-instance-00000005-fa163ee2fde1", 
+    "rel": "network.incoming.packets"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.outgoing.bytes?q.field=resource_id&q.value=nova-instance-instance-00000005-fa163ee2fde1", 
+    "rel": "network.outgoing.bytes"
+   }, 
+   {
+    "href": "http://localhost:8777/v2/meters/network.outgoing.packets?q.field=resource_id&q.value=nova-instance-instance-00000005-fa163ee2fde1", 
+    "rel": "network.outgoing.packets"
+   }
+  ], 
+  "resource_id": "nova-instance-instance-00000005-fa163ee2fde1", 
+  "last_sample_timestamp": "2014-02-12T02:56:39", 
+  "first_sample_timestamp": "2014-02-12T02:52:39", 
+  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "metadata": {
+   "instance_id": "de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+   "instance_type": "1", 
+   "mac": "fa:16:3e:e2:fd:e1", 
+   "fref": "nova-instance-instance-00000005-fa163ee2fde1", 
+   "name": "tap619767ba-02"
+  }
+ }
+]

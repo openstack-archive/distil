@@ -1,0 +1,27 @@
+{
+ "http://localhost:8777/v2/meters/ip.floating.create?q.field=resource_id&q.value=84326068-5ccd-4a32-bcd2-c6c3af84d862": [
+  {
+   "counter_name": "ip.floating.create", 
+   "user_id": "6ab10df928e2487f92b950d482038c58", 
+   "resource_id": "84326068-5ccd-4a32-bcd2-c6c3af84d862", 
+   "timestamp": "2014-02-12T02:50:48.522124", 
+   "message_id": "7a2ae6de-9390-11e3-b65d-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "ip", 
+   "counter_volume": 1.0, 
+   "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "resource_metadata": {
+    "router_id": "None", 
+    "event_type": "floatingip.create.end", 
+    "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "floating_network_id": "48a95728-51ac-4e13-864c-8659499db368", 
+    "host": "network.vagrant-ubuntu-precise-64", 
+    "fixed_ip_address": "None", 
+    "floating_ip_address": "172.24.4.228", 
+    "port_id": "None", 
+    "id": "84326068-5ccd-4a32-bcd2-c6c3af84d862"
+   }, 
+   "counter_type": "delta"
+  }
+ ]
+}

@@ -1,11 +1,12 @@
 import os
 from csv import writer
 from artifice import invoice
+from artifice import clerk_mixins
 import yaml
 from decimal import *
 
 
-class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
+class Csv(clerk_mixins.ClerkRatesMixin, invoice.Invoice):
 
     def __init__(self, tenant, start, end, config):
         self.config = config
@@ -14,39 +15,54 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
         self.closed = False
         self.start = start
         self.end = end
+        self.total = Decimal(0.0)
 
-    def bill(self, usage):
+    def bill(self):
         # Usage is one of VMs, Storage, or Volumes.
-        for element in usage:
+        for element in self.tenant.resources.values():
+            print " * " + element.metadata['type']
+
+            print "   - resource id: " + str(element.id)
+            self.add_line(element.metadata['type'], [element.id])
+
             appendee = []
-            print " * " + element.type
+            appendee2 = []
+            for key, value in element.metadata.iteritems():
+                print "   - " + key + ": " + str(value)
+                appendee.append(key + str(":"))
+                appendee2.append(value)
 
-            for field in self.config["models"][element.type]["info_fields"]:
-                try:
-                    value = element.get(field)
-                    print "   - " + field + ": " + str(value)
-                    appendee.append(value)
-                except AttributeError:
-                    appendee.append("")
+            self.add_line(element.metadata['type'], appendee)
+            self.add_line(element.metadata['type'], appendee2)
 
-            cost = Decimal(0.0)
-            for key in self.config["models"][element.type]["strategies"]:
-                strategy = element.usage_strategies[key]
-                usage = element.get(strategy['usage'])
-                try:
-                    rate = self.rate(element.get(strategy['service']))
-                except AttributeError:
-                    rate = self.rate(strategy['service'])
-                cost += usage * rate
+            total_cost = Decimal(0.0)
+            appendee = ["service:", "usage:", "rate:", "cost:"]
+            self.add_line(element.metadata['type'], appendee)
+            for strategy in element.usage_strategies.values():
+                appendee = []
+                cost = Decimal(0.0)
+                usage = Decimal(strategy.volume)
+
+                # GET REGION FROM CONFIG:
+                region = 'wellington'
+
+                rate = self.rate(strategy.service, region)
+                cost = usage * rate
+                total_cost += cost
+                appendee.append(strategy.service)
                 appendee.append(usage)
                 appendee.append(rate)
-                print "   - " + key + ": " + str(usage)
+                appendee.append(round(cost, 2))
+                print "   - " + strategy.service + ": " + str(usage)
                 print "     - rate: " + str(rate)
-            appendee.append(cost)
-            print "   - cost: " + str(cost)
+                print "     - cost: " + str(round(cost))
+                self.add_line(element.metadata['type'], appendee)
+            appendee = ["total cost:", round(total_cost, 2)]
+            self.add_line(element.metadata['type'], appendee)
+            print "   - total cost: " + str(round(total_cost))
 
-            # print appendee
-            self.add_line(element.type, appendee)
+            self.add_line(element.metadata['type'], [])
+            self.total += total_cost
 
     def add_line(self, el_type, line):
         if not self.closed:
@@ -59,7 +75,7 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
 
     @property
     def filename(self):
-        fn_dict = dict(tenant=self.tenant.tenant['name'], start=self.start,
+        fn_dict = dict(tenant=self.tenant.name, start=self.start,
                        end=self.end)
 
         fn = os.path.join(
@@ -82,8 +98,6 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
         csvwriter.writerow([])
 
         for key in self.lines:
-            csvwriter.writerow([key + ":"])
-            csvwriter.writerow(self.build_headers(key))
             for line in self.lines[key]:
                 csvwriter.writerow(line)
             csvwriter.writerow([])
@@ -91,26 +105,7 @@ class Csv(invoice.RatesFileMixin, invoice.NamesFileMixin, invoice.Invoice):
         # write a blank line
         csvwriter.writerow([])
         # write total
-        csvwriter.writerow(["total cost: ", self.total()])
+        csvwriter.writerow(["invoice total cost: ", round(self.total, 2)])
 
         fh.close()
         self.closed = True
-
-    def build_headers(self, el_type):
-        headers = list(self.config["models"][el_type]["info_fields"])
-        for strat in self.config["models"][el_type]["strategies"]:
-            headers.append(strat)
-            headers.append(strat + " rate")
-        headers.append("cost")
-        return headers
-
-    def total(self):
-        total = Decimal(0.0)
-        for key in self.lines:
-            for line in self.lines[key]:
-                try:
-                    # cost will always be the final value in the line.
-                    total += Decimal(line[len(line) - 1])
-                except (TypeError, ValueError):
-                    total += 0
-        return total

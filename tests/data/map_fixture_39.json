@@ -1,0 +1,36 @@
+{
+ "http://localhost:8777/v2/meters/image.upload?q.field=resource_id&q.value=8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0": [
+  {
+   "counter_name": "image.upload", 
+   "user_id": null, 
+   "resource_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+   "timestamp": "2014-02-11T22:54:11.626339", 
+   "message_id": "6c2a94ce-936f-11e3-b65d-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "image", 
+   "counter_volume": 1.0, 
+   "project_id": "5f836e56b51747e080f3442cb1b8035a", 
+   "resource_metadata": {
+    "status": "saving", 
+    "event_type": "image.upload", 
+    "name": "cirros-0.3.1-x86_64-uec-ramdisk", 
+    "deleted": "False", 
+    "checksum": "69c33642f44ca552ba4bb8b66ad97e85", 
+    "created_at": "2014-02-11T22:54:11", 
+    "disk_format": "ari", 
+    "updated_at": "2014-02-11T22:54:11", 
+    "id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
+    "min_disk": "0", 
+    "host": "vagrant-ubuntu-precise-64", 
+    "protected": "False", 
+    "container_format": "ari", 
+    "owner": "5f836e56b51747e080f3442cb1b8035a", 
+    "is_public": "True", 
+    "deleted_at": "None", 
+    "min_ram": "0", 
+    "size": "3714968"
+   }, 
+   "counter_type": "delta"
+  }
+ ]
+}

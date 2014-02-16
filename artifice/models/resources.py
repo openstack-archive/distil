@@ -1,19 +1,5 @@
-from . import Base
-from sqlalchemy import Column, String, ForeignKey
-from sqlalchemy.orm import relationship, backref
-# from .tenants import Tenant
-from decimal import *
+from decimal import Decimal
 import math
-
-
-class Resource(Base):
-
-    __tablename__ = "resources"
-
-    id = Column(String, primary_key=True)
-    type_ = Column(String)
-    tenant_id = Column(String, ForeignKey("tenants.id"), primary_key=True)
-    tenant = relationship("Tenant", backref=backref("tenants"))
 
 
 class BaseModelConstruct(object):
@@ -66,7 +52,7 @@ class BaseModelConstruct(object):
 
 def to_mb(bytes):
     # function to make code easier to understand elsewhere.
-    return bytes / 1000
+    return (bytes / 1000) / 1000
 
 
 class VM(BaseModelConstruct):
@@ -86,7 +72,7 @@ class VM(BaseModelConstruct):
         # possibly be queried from Clerk?
         tracked = [1, 2, 3, 6, 7]
 
-        seconds = self.usage()['state'].uptime(tracked)
+        seconds = self.usage()["state"].uptime(tracked)
 
         # in hours, rounded up:
         uptime = math.ceil((seconds / 60.0) / 60.0)
@@ -100,10 +86,10 @@ class VM(BaseModelConstruct):
         # sometimes instance_type is needed instead....
         try:
             # print "\"flavor.name\" was used"
-            return self._raw["metadata"]["flavor.name"]
+            return self._raw["metadata"]["flavor.name"].replace(".", "_")
         except KeyError:
             # print "\"instance_type\" was used"
-            return self._raw["metadata"]["instance_type"]
+            return self._raw["metadata"]["instance_type"].replace(".", "_")
 
     @property
     def memory(self):
@@ -146,9 +132,9 @@ class Object(BaseModelConstruct):
 
     relevant_meters = ["storage.objects.size"]
 
-    usage_strategies = {"size": {"usage": "size", "service": "object_size"}}
+    usage_strategies = {"size": {"usage": "size", "service": "storage_size"}}
 
-    type = "object"  # object storage
+    type = "object_storage"  # object storage
 
     @property
     def size(self):
@@ -171,16 +157,20 @@ class Volume(BaseModelConstruct):
         # Size of the thing over time.
         return Decimal(to_mb(self.usage()["volume.size"].volume()))
 
+    @property
+    def name(self):
+        return self._raw["metadata"]["display_name"]
+
 
 class Network(BaseModelConstruct):
     relevant_meters = ["network.outgoing.bytes", "network.incoming.bytes"]
 
     usage_strategies = {"outgoing": {"usage": "outgoing",
-                                     "service": "outgoing_bytes"},
+                                     "service": "outgoing_megabytes"},
                         "incoming": {"usage": "incoming",
-                                     "service": "incoming_bytes"}}
+                                     "service": "incoming_megabytes"}}
 
-    type = "network"
+    type = "network_interface"
 
     @property
     def outgoing(self):

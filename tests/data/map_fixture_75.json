@@ -1,0 +1,28 @@
+{
+ "http://localhost:8777/v2/meters/subnet?q.field=resource_id&q.value=c2136c82-b5a1-4286-b970-edd849a301b3": [
+  {
+   "counter_name": "subnet", 
+   "user_id": "6ab10df928e2487f92b950d482038c58", 
+   "resource_id": "c2136c82-b5a1-4286-b970-edd849a301b3", 
+   "timestamp": "2014-02-11T22:52:53.937321", 
+   "message_id": "52fd11e8-936f-11e3-b65d-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "subnet", 
+   "counter_volume": 1.0, 
+   "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+   "resource_metadata": {
+    "event_type": "subnet.create.end", 
+    "enable_dhcp": "True", 
+    "network_id": "a52ff971-8a62-433b-9092-19c0d5a54304", 
+    "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+    "host": "network.vagrant-ubuntu-precise-64", 
+    "gateway_ip": "10.0.0.1", 
+    "ip_version": "4", 
+    "cidr": "10.0.0.0/24", 
+    "id": "c2136c82-b5a1-4286-b970-edd849a301b3", 
+    "name": "private-subnet"
+   }, 
+   "counter_type": "gauge"
+  }
+ ]
+}
