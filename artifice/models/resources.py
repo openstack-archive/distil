@@ -21,6 +21,10 @@ class BaseModelConstruct(object):
     def tenant_id(self):
         return self._raw.resource.project_id
 
+    @property
+    def info(self):
+        return {"type": self.type}
+
     def __getitem__(self, item):
         return self._raw[item]
 
@@ -66,6 +70,11 @@ class VM(BaseModelConstruct):
     usage_strategies = {"uptime": {"usage": "uptime", "service": "flavor"}}
 
     type = "virtual_machine"
+
+    @property
+    def info(self):
+        return {"name": self.name,
+                "type": self.type}
 
     @property
     def uptime(self):
@@ -155,6 +164,11 @@ class Volume(BaseModelConstruct):
     usage_strategies = {"size": {"usage": "size", "service": "volume_size"}}
 
     type = "volume"
+
+    @property
+    def info(self):
+        return {"name": self.name,
+                "type": self.type}
 
     @property
     def size(self):

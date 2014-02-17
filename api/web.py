@@ -27,6 +27,9 @@ dawn_of_time = "2012-01-01"
 current_region = "None" # FIXME
 
 class DecimalEncoder(json.JSONEncoder):
+    """Simple encoder which handles Decimal objects, rendering them to strings.
+    *REQUIRES* use of a decimal-aware decoder.
+    """
     def default(self, obj):
         if isinstance(obj, Decimal):
             return str(obj)
@@ -37,7 +40,10 @@ def fetch_endpoint(region):
     # return "http://0.0.0.0:35357/v2.0" # t\/his ought to be in config. #FIXME
 
 def keystone(func):
-
+    
+    """Will eventually provide a keystone wrapper for validating a query.
+    Currently does not.
+    """
     admin_token = config.get("admin_token")
     def _perform_keystone(*args, **kwargs):
         headers = flask.request.headers
@@ -55,7 +61,7 @@ def must(*args):
     return lambda(func): func
 
 @app.get("/usage")
-@app.get("/usage/{resource_id}") # also allow for querying by resource ID.
+# @app.get("/usage/{resource_id}") # also allow for querying by resource ID.
 @keystone
 @must("resource_id", "tenant")
 def retrieve_usage(resource_id=None):
@@ -107,43 +113,39 @@ def retrieve_usage(resource_id=None):
 
 @app.post("/usage")
 @keystone
-@must("amount", "start", "end", "tenant")
-def add_usage():
+@must("start", "end", "tenants")
+def run_usage_collection():
     """
     Adds usage for a given tenant T and resource R.
     Expects to receive a Resource ID, a time range, and a volume.
 
     The volume will be parsed from JSON as a Decimal object.
     """
+    
+    # TODO
+    artifice = interface.Artifice( config["artifice"] )
+    start = datetime.strptime(start, iso_date)
+    end = datetime.strptime(end, iso_date)
 
-    body = json.loads(request.body, parse_float=Decimal)
-    db.begin()
-    for resource in body["resources"]:
-        start = datetime.strptime(resource.get("start"), date_iso)
-        end   = datetime.strptime(resource.get("end"), date_iso)
-        id_   = resource["id"]
-        u = usage.Usage( 
-                resource=id_, 
-                tenant=request.params["tenant"],
-                value=resource["amount"],
-                start=start,
-                end=end)
-        db.add(u)
-    try:
-        db.commit()
-    except Exception as e:
-        # Explodytime
-        status(500)
-        return(json.dumps(
-            {"status": "error",
-             "error" : "database transaction error"
-             }))
+    d = Database(session)
 
-    status(201)
-    return json.dumps({
-        "status": "ok",
-        "saved": len(body["resources"])
-        })
+    for tenant in flask.request.params.get("tenant", None):
+        t = artifice.tenant(tenant)
+        usage = t.usage(start, end)
+        # .values() returns a tuple of lists of entries of artifice Resource models
+        # enter expects a list of direct resource models.
+        # So, unwind the list.
+        for resource in usage.values():
+            d.enter( t , resource )
+    session.commit()
+    
+
+@app.post("/sales_order")
+@keystone
+@must("start", "end", "tenants")
+def run_sales_order_generation():
+    pass
+    
 
 @app.get("/bills/{id}")
 @keystone

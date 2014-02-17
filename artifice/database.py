@@ -5,7 +5,7 @@ import collections
 import json
 from decimal import Decimal
 
-from sqlalchemy import create_engine
+# from sqlalchemy import create_engine
 import os
 
 
@@ -13,15 +13,17 @@ class Database(object):
 
     def __init__(self, config, session):
         self.session = session
-        engine = create_engine(os.environ["DATABASE_URL"])
-        Base.metadata.create_all(engine)
+        # engine = create_engine(os.environ["DATABASE_URL"])
+        # Base.metadata.create_all(engine)
 
     def enter(self, usage, start, end):
         """Creates a new database entry for every usage strategy
            in a resource, for all the resources given"""
 
         # self.session.begin()
+        # Seems to expect somethig else
         for element in usage:
+            # This is where possibly injectable strategies can happen
             for key in element.usage_strategies:
                 strategy = element.usage_strategies[key]
                 volume = element.get(strategy['usage'])
@@ -36,21 +38,18 @@ class Database(object):
                 query = self.session.query(Resource).\
                     filter(Resource.resource_id == element.get("resource_id"))
                 if query.count() == 0:
-                    el_type = element.type
-                    if el_type not in ('virtual_machine', 'volume'):
-                        info = json.dumps({'type': el_type})
-                    else:
-                        info = json.dumps({'type': el_type,
-                                           'name': element.name})
-
                     self.session.add(Resource(resource_id=
                                               element.get("resource_id"),
-                                              info=str(info)))
+                                              info=str(json.dumps( element.info )),
+                                              tenant_id = tenant_id
+                                              ))
 
-                entry = UsageEntry(service=service, volume=volume,
+                entry = UsageEntry(service=service, 
+                                   volume=volume,
                                    resource_id=resource_id,
                                    tenant_id=tenant_id,
-                                   start=start, end=end
+                                   start=start, 
+                                   end=end
                                    )
                 self.session.add(entry)
         self.session.commit()
@@ -76,12 +75,14 @@ class Database(object):
         query = self.session.query(UsageEntry.tenant_id,
                                    UsageEntry.resource_id,
                                    UsageEntry.service,
-                                   func.sum(UsageEntry.volume)).\
+                                   func.sum(UsageEntry.volume).label("volume")).\
             filter(UsageEntry.start >= start, UsageEntry.end <= end).\
             filter(UsageEntry.tenant_id.in_(tenants)).\
             group_by(UsageEntry.tenant_id, UsageEntry.resource_id,
                      UsageEntry.service)
 
+
+        return query
         tenants_dict = {}
         for entry in query:
             # since there is no field for volume after the sum, we must
@@ -131,3 +132,4 @@ class Database(object):
                 resource.services[entry.service] = usage_strat
 
         return tenants_dict.values()
+

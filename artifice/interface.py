@@ -111,15 +111,15 @@ class Artifice(object):
             auth_url=config["openstack"]["authentication_url"]
         )
 
-        conn_dict = {
-            "username": config["database"]["username"],
-            "password": config["database"]["password"],
-            "host": config["database"]["host"],
-            "port": config["database"]["port"],
-            "database": config["database"]["database"]
-        }
-        conn_string = ('postgresql://%(username)s:%(password)s@' +
-                       '%(host)s:%(port)s/%(database)s') % conn_dict
+        # conn_dict = {
+        #     "username": config["database"]["username"],
+        #     "password": config["database"]["password"],
+        #     "host": config["database"]["host"],
+        #     "port": config["database"]["port"],
+        #     "database": config["database"]["database"]
+        # }
+        # conn_string = ('postgresql://%(username)s:%(password)s@' +
+        #                '%(host)s:%(port)s/%(database)s') % conn_dict
 
         self.artifice = None
 
@@ -306,6 +306,10 @@ class Usage(object):
         # Replaces all the internal references with better references to
         # actual metered values.
         # self._replace()
+
+
+    def values(self):
+        return (self.vms, self.objects, self.volumes, self.networks, self.ips)
 
     @property
     def vms(self):
