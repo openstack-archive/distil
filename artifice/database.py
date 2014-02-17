@@ -1,12 +1,6 @@
 from sqlalchemy import func
-from .models import billing, Base, Tenant, Resource, UsageEntry
-import collections
-
+from .models import Resource, UsageEntry
 import json
-from decimal import Decimal
-
-# from sqlalchemy import create_engine
-import os
 
 
 class Database(object):
@@ -22,45 +16,44 @@ class Database(object):
 
         # self.session.begin()
         # Seems to expect somethig else
-        for element in usage:
+        for resource in usage:
             # This is where possibly injectable strategies can happen
-            for key in element.usage_strategies:
-                strategy = element.usage_strategies[key]
-                volume = element.get(strategy['usage'])
+            for key in resource.usage_strategies:
+                strategy = resource.usage_strategies[key]
+                volume = resource.get(strategy['usage'])
                 try:
-                    service = element.get(strategy['service'])
+                    service = resource.get(strategy['service'])
                 except AttributeError:
                     service = strategy['service']
-                resource_id = element.get("resource_id")
-                tenant_id = element.get("tenant_id")
+                resource_id = resource.get("resource_id")
+                tenant_id = resource.get("tenant_id")
 
                 #  Have we seen this resource before?
                 query = self.session.query(Resource).\
-                    filter(Resource.resource_id == element.get("resource_id"))
+                    filter(Resource.resource_id == resource.get("resource_id"))
                 if query.count() == 0:
+                    info = json.dumps(resource.info)
                     self.session.add(Resource(resource_id=
-                                              element.get("resource_id"),
-                                              info=str(json.dumps( element.info )),
-                                              tenant_id = tenant_id
+                                              resource.get("resource_id"),
+                                              info=str(info),
+                                              tenant_id=tenant_id
                                               ))
 
-                entry = UsageEntry(service=service, 
+                entry = UsageEntry(service=service,
                                    volume=volume,
                                    resource_id=resource_id,
                                    tenant_id=tenant_id,
-                                   start=start, 
+                                   start=start,
                                    end=end
                                    )
                 self.session.add(entry)
         self.session.commit()
 
     def usage(self, start, end, tenant):
-        """Returns a list of tenants based on the usage entries
+        """Returns a query of usage entries for a given tenant,
            in the given range.
            start, end: define the range to query
-           tenants: is a iterable of tenants,
-                   if not given will default to whole tenant list."""
-
+           tenant: a tenant entry (tenant_id for now)"""
 
         if start > end:
             raise AttributeError("End must be a later date than start.")
@@ -76,56 +69,4 @@ class Database(object):
             group_by(UsageEntry.tenant_id, UsageEntry.resource_id,
                      UsageEntry.service)
 
-
         return query
-    
-        tenants_dict = {}
-        for entry in query:
-            # since there is no field for volume after the sum, we must
-            # access the entry by index
-            volume = Decimal(entry.volume)
-            usage_strat = billing.Service(entry.service, volume)
-
-            # does this tenant exist yet?
-            if entry.tenant_id not in tenants_dict:
-                # build resource:
-                info = self.session.query(Resource.info).\
-                    filter(Resource.resource_id == entry.resource_id)
-                metadata = json.loads(info[0].info)
-                resource = billing.Resource(metadata, entry.resource_id)
-
-                # add strat to resource:
-                resource.services[entry.service] = usage_strat
-
-                # build tenant:
-                name = self.session.query(Tenant.name).\
-                    filter(Tenant.tenant_id == entry.tenant_id)
-                tenant = billing.Tenant(name[0].name, entry.tenant_id)
-                # add resource to tenant:
-                tenant.resources[entry.resource_id] = resource
-                # add tenant to dict:
-                tenants_dict[entry.tenant_id] = tenant
-
-            # tenant exists, but does the resource?
-            elif (entry.resource_id not
-                  in tenants_dict[entry.tenant_id].resources):
-                # build resource
-                info = self.session.query(Resource.info).\
-                    filter(Resource.resource_id == entry.resource_id)
-                metadata = json.loads(info[0].info)
-                resource = billing.Resource(metadata, entry.resource_id)
-
-                # add strat to resource:
-                resource.services[entry.service] = usage_strat
-
-                tenant = tenants_dict[entry.tenant_id]
-                tenant.resources[entry.resource_id] = resource
-
-            # both seem to exist!
-            else:
-                resource = tenant.resources[entry.resource_id]
-                # add strat to resource:
-                resource.services[entry.service] = usage_strat
-
-        return tenants_dict.values()
-

@@ -2,6 +2,7 @@ from flask import Flask
 app = Flask(__name__)
 
 from artifice.models import Session, usage
+from artifice.models import billing
 from sqlalchemy import type
 from decimal import Decimal
 from datetime import datetime
@@ -166,11 +167,11 @@ def run_sales_order_generation():
     # Handled like this for a later move to Celery distributed workers
 
     for tenant in tenants:
-        volumes = d.usage(start, end, tenant)
-        generator = invoicer(tenant, start, end, config)
+        usage = d.usage(start, end, tenant)
+        billable = billing.build_billable(usage, session)
+        generator = invoicer(billable, start, end, config)
         generator.bill()
         generator.close()
-
 
 
 @app.get("/bills/{id}")
