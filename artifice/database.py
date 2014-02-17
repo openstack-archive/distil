@@ -54,18 +54,13 @@ class Database(object):
                 self.session.add(entry)
         self.session.commit()
 
-    def tenants(self, start, end, tenants=None):
+    def usage(self, start, end, tenant):
         """Returns a list of tenants based on the usage entries
            in the given range.
            start, end: define the range to query
            tenants: is a iterable of tenants,
                    if not given will default to whole tenant list."""
 
-        if tenants is None:
-            tenants = self.session.query(Tenant.tenant_id).\
-                filter(Tenant.active)
-        elif not isinstance(tenants, collections.Iterable):
-            raise AttributeError("tenants is not an iterable")
 
         if start > end:
             raise AttributeError("End must be a later date than start.")
@@ -77,17 +72,18 @@ class Database(object):
                                    UsageEntry.service,
                                    func.sum(UsageEntry.volume).label("volume")).\
             filter(UsageEntry.start >= start, UsageEntry.end <= end).\
-            filter(UsageEntry.tenant_id.in_(tenants)).\
+            filter(UsageEntry.tenant_id == tenant).\
             group_by(UsageEntry.tenant_id, UsageEntry.resource_id,
                      UsageEntry.service)
 
 
         return query
+    
         tenants_dict = {}
         for entry in query:
             # since there is no field for volume after the sum, we must
             # access the entry by index
-            volume = Decimal(entry[3])
+            volume = Decimal(entry.volume)
             usage_strat = billing.Service(entry.service, volume)
 
             # does this tenant exist yet?

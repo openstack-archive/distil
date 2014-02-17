@@ -16,6 +16,11 @@ db = Session()
 config = load_config()
 
 
+invoicer = config["general"]["invoice_handler"]
+module, kls = invoice_type.split(":")
+invoicer = __import__(module, globals(), locals(), [kls])
+
+
 # Some useful constants
 
 iso_time = "%Y-%m-%dT%H:%M:%S"
@@ -142,10 +147,31 @@ def run_usage_collection():
 
 @app.post("/sales_order")
 @keystone
-@must("start", "end", "tenants")
+@json_must("tenants")
 def run_sales_order_generation():
-    pass
     
+    # get
+    start = datetime.strptime(start, iso_date)
+    end = datetime.strptime(end, iso_date)
+    d = Database(session)
+    current_tenant = None
+
+    body = json.loads(request.body)
+
+    t = body.get( "tenants", None )
+    tenants = session.query(Tenant).filter(Tenant.active == True)
+    if t:
+        t.filter( Tenants.id.in_(t) )
+    
+    # Handled like this for a later move to Celery distributed workers
+
+    for tenant in tenants:
+        volumes = d.usage(start, end, tenant)
+        generator = invoicer(tenant, start, end, config)
+        generator.bill()
+        generator.close()
+
+
 
 @app.get("/bills/{id}")
 @keystone

@@ -223,6 +223,8 @@ class Tenant(object):
 
     def resources(self, start, end):
         if not self._resources:
+
+            # TODO: Re-add date stuff.
             date_fields = [
                 {"field": "project_id",
                  "op": "eq",
