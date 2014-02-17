@@ -2,7 +2,6 @@ import os
 from csv import writer
 from artifice import invoice
 # from artifice import clerk_mixins
-import yaml
 from decimal import *
 
 
@@ -18,27 +17,30 @@ class Csv(invoice.RatesFileMixin, invoice.Invoice):
         self.total = Decimal(0.0)
 
     def bill(self):
+        """Genearates the lines for a sales order for the stored tenant."""
         # Usage is one of VMs, Storage, or Volumes.
-        for element in self.tenant.resources.values():
-            print " * " + element.metadata['type']
+        for resource in self.tenant.resources.values():
+            print " * " + resource.metadata['type']
 
-            print "   - resource id: " + str(element.id)
-            self.add_line(element.metadata['type'], [element.id])
+            print "   - resource id: " + str(resource.id)
+            self.add_line(resource.metadata['type'], [resource.id])
 
-            appendee = []
-            appendee2 = []
-            for key, value in element.metadata.iteritems():
+            headers = []
+            values = []
+            for key, value in resource.metadata.iteritems():
                 print "   - " + key + ": " + str(value)
-                appendee.append(key + str(":"))
-                appendee2.append(value)
+                headers.append(key + str(":"))
+                values.append(value)
 
-            self.add_line(element.metadata['type'], appendee)
-            self.add_line(element.metadata['type'], appendee2)
+            self.add_line(resource.metadata['type'], headers)
+            self.add_line(resource.metadata['type'], values)
+
+            headers = ["service:", "usage:", "rate:", "cost:"]
+            self.add_line(resource.metadata['type'], headers)
 
             total_cost = Decimal(0.0)
-            appendee = ["service:", "usage:", "rate:", "cost:"]
-            self.add_line(element.metadata['type'], appendee)
-            for service in element.services.values():
+
+            for service in resource.services.values():
                 appendee = []
                 cost = Decimal(0.0)
                 usage = Decimal(service.volume)
@@ -56,20 +58,24 @@ class Csv(invoice.RatesFileMixin, invoice.Invoice):
                 print "   - " + service.name + ": " + str(usage)
                 print "     - rate: " + str(rate)
                 print "     - cost: " + str(round(cost))
-                self.add_line(element.metadata['type'], appendee)
+                self.add_line(resource.metadata['type'], appendee)
+
             appendee = ["total cost:", round(total_cost, 2)]
-            self.add_line(element.metadata['type'], appendee)
+            self.add_line(resource.metadata['type'], appendee)
             print "   - total cost: " + str(round(total_cost))
 
-            self.add_line(element.metadata['type'], [])
+            self.add_line(resource.metadata['type'], [])
+
+            # adds resource total to sales-order total.
             self.total += total_cost
 
-    def add_line(self, el_type, line):
+    def add_line(self, res_type, line):
+        """Adds a line to the given resource type list."""
         if not self.closed:
             try:
-                self.lines[el_type].append(line)
+                self.lines[res_type].append(line)
             except KeyError:
-                self.lines[el_type] = [line]
+                self.lines[res_type] = [line]
             return
         raise AttributeError("Can't add to a closed invoice")
 
@@ -85,6 +91,7 @@ class Csv(invoice.RatesFileMixin, invoice.Invoice):
         return fn
 
     def close(self):
+        """Closes the sales order, and exports the lines to a csv file."""
         try:
             open(self.filename)
             raise RuntimeError("Can't write to an existing file!")
