@@ -87,7 +87,7 @@ class Database(object):
             # since there is no field for volume after the sum, we must
             # access the entry by index
             volume = Decimal(entry[3])
-            usage_strat = billing.UsageStrategy(entry.service, volume)
+            usage_strat = billing.Service(entry.service, volume)
 
             # does this tenant exist yet?
             if entry.tenant_id not in tenants_dict:
@@ -98,7 +98,7 @@ class Database(object):
                 resource = billing.Resource(metadata, entry.resource_id)
 
                 # add strat to resource:
-                resource.usage_strategies[entry.service] = usage_strat
+                resource.services[entry.service] = usage_strat
 
                 # build tenant:
                 name = self.session.query(Tenant.name).\
@@ -119,7 +119,7 @@ class Database(object):
                 resource = billing.Resource(metadata, entry.resource_id)
 
                 # add strat to resource:
-                resource.usage_strategies[entry.service] = usage_strat
+                resource.services[entry.service] = usage_strat
 
                 tenant = tenants_dict[entry.tenant_id]
                 tenant.resources[entry.resource_id] = resource
@@ -128,6 +128,6 @@ class Database(object):
             else:
                 resource = tenant.resources[entry.resource_id]
                 # add strat to resource:
-                resource.usage_strategies[entry.service] = usage_strat
+                resource.services[entry.service] = usage_strat
 
         return tenants_dict.values()

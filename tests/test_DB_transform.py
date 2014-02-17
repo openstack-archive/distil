@@ -64,68 +64,68 @@ class TestDatabaseModels(test_interface.TestInterface):
                 print "    " + resource.id
 
                 if resource.id == "db8037b2-9f1c-4dd2-94dd-ea72f49a21d7":
-                    strat = resource.usage_strategies["m1_nano"]
+                    strat = resource.services["m1_nano"]
                     self.assertEqual(strat.volume, 1)
                 if resource.id == "9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a":
-                    strat = resource.usage_strategies["m1_micro"]
+                    strat = resource.services["m1_micro"]
                     self.assertEqual(strat.volume, 1)
                 if resource.id == "0a57e3da-9e85-4690-8ba9-ee7573619ec3":
-                    strat = resource.usage_strategies["m1_small"]
+                    strat = resource.services["m1_small"]
                     self.assertEqual(strat.volume, 1)
                 if resource.id == "388b3939-8854-4a1b-a133-e738f1ffbb0a":
-                    strat = resource.usage_strategies["m1_micro"]
+                    strat = resource.services["m1_micro"]
                     self.assertEqual(strat.volume, 1)
                 if resource.id == "de35c688-5a82-4ce5-a7e0-36245d2448bc":
-                    strat = resource.usage_strategies["m1_tiny"]
+                    strat = resource.services["m1_tiny"]
                     self.assertEqual(strat.volume, 1)
                 if resource.id == "e404920f-cfc8-40ba-bc53-a5c610714bd":
-                    strat = resource.usage_strategies["m1_medium"]
+                    strat = resource.services["m1_medium"]
                     self.assertEqual(strat.volume, 0)
 
                 if resource.id == "3f7b702e4ca14cd99aebf4c4320e00ec":
-                    strat = resource.usage_strategies["storage_size"]
+                    strat = resource.services["storage_size"]
                     self.assertEqual(strat.volume, Decimal('276.1893720000'))
 
                 if (resource.id ==
                         "nova-instance-instance-00000002-fa163ee2d5f6"):
-                    strat = resource.usage_strategies["outgoing_megabytes"]
+                    strat = resource.services["outgoing_megabytes"]
                     self.assertEqual(strat.volume, Decimal('0.0118220000'))
-                    strat = resource.usage_strategies["incoming_megabytes"]
+                    strat = resource.services["incoming_megabytes"]
                     self.assertEqual(strat.volume, Decimal('0.0097340000'))
                 if (resource.id ==
                         "nova-instance-instance-00000001-fa163edf2e3c"):
-                    strat = resource.usage_strategies["outgoing_megabytes"]
+                    strat = resource.services["outgoing_megabytes"]
                     self.assertEqual(strat.volume, Decimal('0.0063060000'))
-                    strat = resource.usage_strategies["incoming_megabytes"]
+                    strat = resource.services["incoming_megabytes"]
                     self.assertEqual(strat.volume, Decimal('0.0058400000'))
                 if (resource.id ==
                         "nova-instance-instance-00000005-fa163ee2fde1"):
-                    strat = resource.usage_strategies["outgoing_megabytes"]
+                    strat = resource.services["outgoing_megabytes"]
                     self.assertEqual(strat.volume, Decimal('0.0134060000'))
-                    strat = resource.usage_strategies["incoming_megabytes"]
+                    strat = resource.services["incoming_megabytes"]
                     self.assertEqual(strat.volume, Decimal('0.0107950000'))
 
                 if (resource.id ==
                         "e788c617-01e9-405b-823f-803f44fb3483"):
-                    strat = resource.usage_strategies["volume_size"]
+                    strat = resource.services["volume_size"]
                     self.assertEqual(strat.volume, Decimal('0.0000450000'))
                 if (resource.id ==
                         "6af83f4f-1f4f-40cf-810e-e3262dec718f"):
-                    strat = resource.usage_strategies["volume_size"]
+                    strat = resource.services["volume_size"]
                     self.assertEqual(strat.volume, Decimal('0.0000030000'))
 
                 if (resource.id ==
                         "84326068-5ccd-4a32-bcd2-c6c3af84d862"):
-                    strat = resource.usage_strategies["floating_ip"]
+                    strat = resource.services["floating_ip"]
                     self.assertEqual(strat.volume, 1)
                 if (resource.id ==
                         "2155db5c-4c7b-4787-90ff-7b8ded741c75"):
-                    strat = resource.usage_strategies["floating_ip"]
+                    strat = resource.services["floating_ip"]
                     self.assertEqual(strat.volume, 1)
 
-                for usage in resource.usage_strategies.values():
-                    print "      " + usage.service
-                    print "      " + str(usage.volume)
+                for service in resource.services.values():
+                    print "      " + service.name
+                    print "      " + str(service.volume)
 
     def test_get_from_db_2(self):
         """Test to return a list of billable tenant objects,
