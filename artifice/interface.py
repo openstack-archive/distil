@@ -35,12 +35,9 @@ date_format = "%Y-%m-%dT%H:%M:%S"
 # Because why not be annoying in all the ways?
 other_date_format = "%Y-%m-%dT%H:%M:%S.%f"
 
-
-def get_meter(meter, start, end, auth):
-    # Meter is a href; in this case, it has a set of fields with it already.
-    # print meter.link
-    # print dir(meter)
-    date_fields = [
+# helpers
+def add_dates(start, end):
+    return [
         {
             "field": "timestamp",
             "op": "ge",
@@ -50,8 +47,15 @@ def get_meter(meter, start, end, auth):
             "field": "timestamp",
             "op": "lt",
             "value": end.strftime(date_format)
-        }
+        } 
     ]
+
+
+def get_meter(meter, start, end, auth):
+    # Meter is a href; in this case, it has a set of fields with it already.
+    # print meter.link
+    # print dir(meter)
+    date_fields = add_dates(start, end)
     fields = []
     for field in date_fields:
         fields.append(("q.field", field["field"]))
@@ -142,7 +146,7 @@ class Artifice(object):
         return "Data Center 1"  # For the moment, passthrough
         # TODO: FIXME.
 
-    def tenant(self, name):
+    def tenant(self, id_):
         """
         Returns a Tenant object describing the specified Tenant by
         name, or raises a NotFound error.
@@ -150,9 +154,10 @@ class Artifice(object):
         # Returns a Tenant object for the given name.
         # Uses Keystone API to perform a direct name lookup,
         # as this is expected to work via name.
-
-        data = self.auth.tenant_by_name(name)
-        t = Tenant(data["tenant"], self)
+        
+        data = self.auth.tenants.get(id_)
+        # data = self.auth.tenant_by_name(name)
+        t = Tenant(data, self)
         return t
 
     @property
@@ -196,41 +201,16 @@ class Tenant(object):
             # return super(Tenant, self).__getattr__(attr)
         return self.tenant[attr]
 
-    def invoice(self, start, end):
-
-        """
-        Creates a new Invoice.
-        Invoices are an Artifice datamodel that represent a
-        set of billable entries assigned to a client on a given Date.
-        An Invoice offers very little of its own opinions,
-        requiring a backend plugin to operate.
-        @returns: invoice
-        """
-
-        if self.invoice_type is None:
-            invoice_type = self.conn.config["main"]["invoice:object"]
-            if ":" not in invoice_type:
-                raise AttributeError("Invoice configuration incorrect! %s" %
-                                     invoice_type)
-            module, call = invoice_type.split(":")
-            _package = __import__(module, globals(), locals(), [call])
-
-            funct = getattr(_package, call)
-            self.invoice_type = funct
-        config = self.conn.config["invoice_object"]
-        invoice = self.invoice_type(self, start, end, config)
-        return invoice
-
     def resources(self, start, end):
         if not self._resources:
 
-            # TODO: Re-add date stuff.
             date_fields = [
                 {"field": "project_id",
                  "op": "eq",
                  "value": self.tenant["id"]
                  },
             ]
+            date_fields.extend(add_dates(start, end))
             # Sets up our resources as Ceilometer objects.
             # That's cool, I think.
             self._resources = self.conn.ceilometer.resources.list(date_fields)
@@ -580,7 +560,8 @@ class Gauge(Artifact):
         # totals = [max(x, key=lambda val: val["counter_volume"] ) for x in blocks]
         # totals is now an array of max values per hour for a given month.
         return sum(totals)
-
+    
+    # This continues to be wrong.
     def uptime(self, tracked):
         """Calculates uptime accurately for the given 'tracked' states.
         - Will ignore all other states.

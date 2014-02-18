@@ -6,6 +6,8 @@ from artifice.models import billing
 from sqlalchemy import type
 from decimal import Decimal
 from datetime import datetime
+import collections
+import itertools
 
 conn_string = ('postgresql://%(username)s:%(password)s@' +
                '%(host)s:%(port)s/%(database)s') % conn_dict
@@ -22,6 +24,8 @@ module, kls = invoice_type.split(":")
 invoicer = __import__(module, globals(), locals(), [kls])
 
 
+DEFAULT_TIMEZONE = "Pacific/Auckland"
+
 # Some useful constants
 
 iso_time = "%Y-%m-%dT%H:%M:%S"
@@ -29,8 +33,13 @@ iso_date = "%Y-%m-%d"
 
 dawn_of_time = "2012-01-01"
 
-
 current_region = "None" # FIXME
+
+class validators(object):
+
+    @classmethod
+    def iterable(cls, val):
+        return isinstance(val, collections.Iterable)
 
 class DecimalEncoder(json.JSONEncoder):
     """Simple encoder which handles Decimal objects, rendering them to strings.
@@ -62,9 +71,67 @@ def keystone(func):
 
     return _perform_keystone
 
-# TODO: fill me in
-def must(*args):
-    return lambda(func): func
+
+def must(*args, **kwargs):
+    """
+    Asserts that a given set of keys are present in the request parameters.
+    Also allows for keyword args to handle validation.
+    """
+    def tester(func):
+        def funky(*iargs, **ikwargs):
+            body = flask.request.params
+            for key in itertools.chain( args, kwargs.keys() ):
+                if not key in body:
+                    abort(403)
+                    return json.dumps({"error": "missing parameter",
+                                       "param": key})
+            for key, val in kwargs.iteritems():
+                input_ = body[key]
+                if not val( input_ ):
+                    abort(403)
+                    return json.dumps({"error": "validation failed",
+                                       "param": key}) 
+            return func(*iargs, **ikwargs)
+        return funky
+    return tester
+
+
+def returns_json(func):
+    def jsonify(*args,**kwargs):
+        r = func(*args,**kwargs)
+        if isinstance(r, dict):
+            flask.response.headers["Content-type"] = "application/json"
+            return json.dumps(r)
+        return r
+
+    return jsonify
+
+def json_must(*args, **kwargs):
+    """Implements a simple validation system to allow for the required
+       keys to be detected on a given callable."""
+    def unpack(func):
+        def dejson(*iargs):
+            if flask.request.headers["content-encoding"] != "application/json":
+                # We throw an exception
+                abort(403)
+                return json.dumps({"error": "must be in JSON format"})
+            body = json.loads( flask.request.body )
+            for key in itertools.chain( args, kwargs.keys() ):
+                if not key in body:
+                    abort(403)
+                    return json.dumps({"error": "missing key",
+                                       "key": key})
+            for key, val in kwargs.iteritems():
+                input_ = body[key]
+                if not val( input_ ):
+                    abort(403)
+                    return json.dumps({"error": "validation failed",
+                                       "key": key})
+            flask.request.body = body
+            return func(*args)
+        return dejson
+    return unpack
+
 
 @app.get("/usage")
 # @app.get("/usage/{resource_id}") # also allow for querying by resource ID.
@@ -119,7 +186,8 @@ def retrieve_usage(resource_id=None):
 
 @app.post("/usage")
 @keystone
-@must("start", "end", "tenants")
+@json_must( tenants=validators.iterable )
+@returns_json
 def run_usage_collection():
     """
     Adds usage for a given tenant T and resource R.
@@ -134,17 +202,54 @@ def run_usage_collection():
     end = datetime.strptime(end, iso_date)
 
     d = Database(session)
+    
+    # Handled in a loop here for later movement to a Celery-based backend
+    # system
 
-    for tenant in flask.request.params.get("tenant", None):
-        t = artifice.tenant(tenant)
-        usage = t.usage(start, end)
+    body = flask.request.body
+    tenants = session.query(Tenants).filter(Tenants.active)
+    if body["tenants"]:
+        tenants.filter(Tenants.id.in_(body["tenants"]))
+    
+    resp = {
+            "tenants": [],
+            "errors": 0
+           }
+    for tenant in tenants:
+        
+        start = session.query(func.max(UsageEntry.end).label("end")).\
+                filter(UsageEntry.tenant == tenant).end
+
+        end = datetime.now(pytz.timezone( DEFAULT_TIMEZONE )) \
+            .replace(minute=0, second=0, microsecond=0)
+        
+        usage = artifice.tenant(tenant.id).usage(start, end)
         # .values() returns a tuple of lists of entries of artifice Resource models
         # enter expects a list of direct resource models.
         # So, unwind the list.
         for resource in usage.values():
             d.enter( t , resource )
-    session.commit()
-    
+        try:
+            session.commit()
+            resp["tenants"].append(
+                    {"id": tenant.id,
+                     "updated": True,
+                     "start": start.strftime(iso_time),
+                     "end":   end.strftime(iso_time)
+                    }
+            )
+        except sqlalchemy.exc.IntegrityError:
+            # this is fine.
+            resp["tenants"].append(
+                    {"id": tenant.id,
+                     "updated": False,
+                     "error": "Integrity error",
+                     "start": start.strftime(iso_time),
+                     "end":   end.strftime(iso_time)
+                    }
+            )
+            resp["errors"] += 1
+    return resp
 
 @app.post("/sales_order")
 @keystone
@@ -165,13 +270,55 @@ def run_sales_order_generation():
         t.filter( Tenants.id.in_(t) )
     
     # Handled like this for a later move to Celery distributed workers
-
+    
+    resp = {
+            "tenants": []
+            }
     for tenant in tenants:
+        # Get the last sales order for this tenant, to establish
+        # the proper ranging
+
+        last = session.Query(SalesOrders).filter(SalesOrders.tenant == tenant)
+        start = last.end
+        # Today, the beginning of.
+        end = datetime.now(pytz.timezone( DEFAULT_TIMEZONE )) \
+            .replace(hour=0, minute=0, second=0, microsecond=0)
+
+        # Invoicer is pulled from the configfile and set up above.
         usage = d.usage(start, end, tenant)
+        so = SalesOrder()
+        so.tenant = tenant
+        so.range = (start, end)
+        session.add(so)
+        # Commit the record before we generate the bill, to mark this as a 
+        # billed region of data. Avoids race conditions by marking a tenant BEFORE
+        # we start to generate the data for it.
+        try:
+            session.commit()
+        except sqlalchemy.exc.IntegrityError:
+            session.rollback()
+            resp["tenants"].append({
+                "id": tenant.id,
+                "generated": False,
+                "start": start,
+                "end": end})
+            next
+        # Transform the query result into a billable dict.
+        # This is non-portable and very much tied to the CSV exporter
+        # and will probably result in the CSV exporter being changed.
         billable = billing.build_billable(usage, session)
         generator = invoicer(billable, start, end, config)
         generator.bill()
         generator.close()
+        resp["tenants"].append({
+                "id": tenant.id,
+                "generated": True,
+                "start": start,
+                "end": end})
+
+    status(201) # created
+    response.headers[ "Content-type" ] = "application/json"
+    return json.dumps( resp )
 
 
 @app.get("/bills/{id}")
