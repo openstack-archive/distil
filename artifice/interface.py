@@ -35,6 +35,7 @@ date_format = "%Y-%m-%dT%H:%M:%S"
 # Because why not be annoying in all the ways?
 other_date_format = "%Y-%m-%dT%H:%M:%S.%f"
 
+
 # helpers
 def add_dates(start, end):
     return [
@@ -47,7 +48,7 @@ def add_dates(start, end):
             "field": "timestamp",
             "op": "lt",
             "value": end.strftime(date_format)
-        } 
+        }
     ]
 
 
@@ -288,7 +289,6 @@ class Usage(object):
         # Replaces all the internal references with better references to
         # actual metered values.
         # self._replace()
-
 
     def values(self):
         return (self.vms, self.objects, self.volumes, self.networks, self.ips)
@@ -597,18 +597,7 @@ class Gauge(Artifact):
             if val["counter_volume"] in tracked:
                 difference = val["timestamp"] - last["timestamp"]
 
-                # TODO: rethink this:
-                # might need to account for sudden jumps
-                # caused due to ceilometer down time:
-                if difference > datetime.timedelta(hours=1):
-                    # the timedelta should be the ceilometer interval.
-                    # do nothing if different greater than twice interval?
-                    # or just add interval length to uptime.
-                    # FLAGS! logs these events so sys ops can doulbe check them
-                    pass
-                else:
-                    # otherwise just add difference.
-                    uptime = uptime + difference.seconds
+                uptime = uptime + difference.seconds
 
             last = val
 
