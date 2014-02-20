@@ -1,0 +1,6 @@
+flask
+requests
+sqlalchemy>=0.8,<0.9.0
+python-keystoneclient
+python-ceilometerclient
+WebTest

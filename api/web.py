@@ -1,23 +1,29 @@
 from flask import Flask
-app = Flask(__name__)
 
 from artifice.models import Session, usage
 from artifice.models import billing
-from sqlalchemy import type
+from sqlalchemy import type, scoped_session, create_session
 from decimal import Decimal
 from datetime import datetime
 import collections
 import itertools
 
-conn_string = ('postgresql://%(username)s:%(password)s@' +
-               '%(host)s:%(port)s/%(database)s') % conn_dict
+engine = None
+# Session.configure(bind=create_engine(conn_string))
 
-Session.configure(bind=create_engine(conn_string))
+db = scoped_session(lambda: create_session(bind=engine))
+# db = Session()
 
-db = Session()
+config = None
 
-config = load_config()
 
+def get_app(conf):
+    app = Flask(__name__)
+    global engine
+    engine = create_engine(config["main"]["database_uri"])
+    global config
+    config = conf
+    return app
 
 invoicer = config["general"]["invoice_handler"]
 module, kls = invoice_type.split(":")
@@ -33,7 +39,7 @@ iso_date = "%Y-%m-%d"
 
 dawn_of_time = "2012-01-01"
 
-current_region = "None" # FIXME
+current_region = "Wellington" # FIXME
 
 class validators(object):
 
@@ -432,3 +438,7 @@ def make_a_bill():
     
     resp["total"] = thebill.total
     return (201, json.dumps(resp))
+
+
+if __name__ == '__main__':
+    pass
