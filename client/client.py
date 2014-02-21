@@ -1,4 +1,5 @@
 import requests
+from requests.exceptions import ConnectionError
 
 
 class Client(object):
@@ -10,21 +11,31 @@ class Client(object):
     def usage(self, tenants):
         url = self.endpoint + "usage"
         data = {"tenants": tenants}
-        response = requests.post(url,
-                                 headers={"Content-Type": "application/json",
-                                          "token": self.auth_token},
-                                 data=data)
-        if response.status_code != 200:
-            raise AttributeError("Usage cycle failed: " + response.text +
-                                 "  code: " + str(response.status_code))
+        try:
+            response = requests.post(url,
+                                     headers={"Content-Type":
+                                              "application/json",
+                                              "token": self.auth_token},
+                                     data=data)
+            if response.status_code != 200:
+                raise AttributeError("Usage cycle failed: " + response.text +
+                                     "  code: " + str(response.status_code))
+
+        except ConnectionError:
+            pass
 
     def sales_order(self, tenants):
         url = self.endpoint + "sales_order"
         data = {"tenants": tenants}
-        response = requests.post(url,
-                                 headers={"Content-Type": "application/json",
-                                          "token": self.auth_token},
-                                 data=data)
-        if response.status_code != 200:
-            raise AttributeError("Sales order cycle failed: " + response.text +
-                                 "  code: " + str(response.status_code))
+        try:
+            response = requests.post(url,
+                                     headers={"Content-Type":
+                                              "application/json",
+                                              "token": self.auth_token},
+                                     data=data)
+            if response.status_code != 200:
+                raise AttributeError("Sales order cycle failed: " +
+                                     response.text + "  code: " +
+                                     str(response.status_code))
+        except ConnectionError:
+            pass
