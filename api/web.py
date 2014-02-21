@@ -7,6 +7,7 @@ from decimal import Decimal
 from datetime import datetime
 import collections
 import itertools
+import pytz
 
 engine = None
 # Session.configure(bind=create_engine(conn_string))
@@ -16,6 +17,11 @@ db = scoped_session(lambda: create_session(bind=engine))
 
 config = None
 
+invoicer = None
+
+DEFAULT_TIMEZONE = "Pacific/Auckland"
+
+current_region = "Wellington" # FIXME
 
 def get_app(conf):
     app = Flask(__name__)
@@ -23,14 +29,22 @@ def get_app(conf):
     engine = create_engine(config["main"]["database_uri"])
     global config
     config = conf
+
+    global invoicer
+
+    module, kls = config["main"]["export_provider"].split(":")
+    invoicer = __import__(module, globals(), locals(), [kls])
+
+    if config["main"].get("timezone"):
+        global DEFAULT_TIMEZONE
+        DEFAULT_TIMEZONE = config["main"]["timezone"]
+    
     return app
 
-invoicer = config["general"]["invoice_handler"]
-module, kls = invoice_type.split(":")
-invoicer = __import__(module, globals(), locals(), [kls])
+# invoicer = config["general"]["invoice_handler"]
+# module, kls = invoice_type.split(":")
+# invoicer = __import__(module, globals(), locals(), [kls])
 
-
-DEFAULT_TIMEZONE = "Pacific/Auckland"
 
 # Some useful constants
 
@@ -39,7 +53,6 @@ iso_date = "%Y-%m-%d"
 
 dawn_of_time = "2012-01-01"
 
-current_region = "Wellington" # FIXME
 
 class validators(object):
 

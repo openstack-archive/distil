@@ -1,6 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import Column, Text, DateTime, Boolean, DECIMAL
+from sqlalchemy import Column, Text, DateTime, Boolean, DECIMAL, ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
 from sqlalchemy import select, func, and_
@@ -12,40 +12,17 @@ import datetime
 from sqlalchemy.dialects.postgresql import ExcludeConstraint, TSRANGE
 
 
-class TSRange(TSRANGE):
-
-    def bind_expression(self, bindvalue):
-        # convert the bind's type from PGPString to
-        # String, so that it's passed to psycopg2 as is without
-        # a dbapi.Binary wrapper
-        # raise Exception("asdf")
-        bindvalue = type_coerce(bindvalue, String)
-        return func.tsrange(bindvalue)
-        # return "'%s::tsrange'" % bindvalue
-
-# ExcludeConstraint(
-#     ('tenant_id', '='),
-#     ('resource_id', '='),
-#     ('time', '&&')
-# ),
-
-    # __table_args__ = (
-    #     ExcludeConstraint(
-    #         ('tenant_id', '='),
-    #         ('resource_id', '='),
-    #         ('time', '&&')
-    #     ),
-    #     ForeignKeyConstraint(
-    #         ["resource_id", "tenant_id"],
-    #         ["resources.id", "resources.tenant_id"],
-    #         name="fk_resource", use_alter=True
-    #     ),
-    # )
-
-
-
 Base = declarative_base()
 #
+
+class Resource(Base):
+    """Database model for storing metadata associated with a resource."""
+    __tablename__ = 'resources'
+    id = Column(Text, primary_key=True)
+    tenant_id = Column(Text, ForeignKey("tenants.id"), primary_key=True )
+    info = Column(Text)
+    created = Column(DateTime, nullable=False)
+
 class Tenant(Base):
     """Model for storage of metadata related to a tenant."""
     __tablename__ = 'tenants'
@@ -62,13 +39,7 @@ class Tenant(Base):
     #
 
 
-class Resource(Base):
-    """Database model for storing metadata associated with a resource."""
-    __tablename__ = 'resources'
-    id = Column(Text, primary_key=True)
-    tenant_id = Column(Text, ForeignKey("tenants.id"), primary_key=True )
-    info = Column(Text)
-    created = Column(DateTime, nullable=False)
+
 
 
 class UsageEntry(Base):
