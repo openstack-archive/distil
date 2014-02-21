@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column, Text, DateTime, Boolean, DECIMAL, ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, event, DDL
 
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import ForeignKeyConstraint
@@ -22,25 +22,6 @@ class Resource(Base):
     tenant_id = Column(Text, ForeignKey("tenants.id"), primary_key=True )
     info = Column(Text)
     created = Column(DateTime, nullable=False)
-
-class Tenant(Base):
-    """Model for storage of metadata related to a tenant."""
-    __tablename__ = 'tenants'
-    # ID is a uuid
-    id = Column(Text, primary_key=True, nullable=False)
-    name = Column(Text, nullable=False)
-    info = Column(Text)
-    active = Column(Boolean, default=True)
-    created = Column(DateTime, nullable=False)
-
-    resources = relationship(Resource, backref="tenant")
-    usages = relationship(Usages, backref="tenant")
-    # Some reference data to something else?
-    #
-
-
-
-
 
 class UsageEntry(Base):
     """Simplified data store of usage information for a given service,
@@ -63,11 +44,11 @@ class UsageEntry(Base):
     tenant = relationship(Resource,
                           primaryjoin=(tenant_id == Resource.tenant_id))
 
-    __table_args__ = ForeignKeyConstraint(
-            ["resource_id", "tenant_id"],
-            ["resources.id", "resources.tenant_id"],
-            name="fk_resource", use_alter=True
-        )
+    __table_args__ = ( ForeignKeyConstraint(
+        ["resource_id", "tenant_id"],
+        ["resources.id", "resources.tenant_id"],
+        name="fk_resource", use_alter=True
+        ), )
 
     @hybrid_property
     def length(self):
@@ -77,13 +58,27 @@ class UsageEntry(Base):
     def intersects(self, other):
         return ( self.start <= other.end and other.start <= self.end )
 
+class Tenant(Base):
+    """Model for storage of metadata related to a tenant."""
+    __tablename__ = 'tenants'
+    # ID is a uuid
+    id = Column(Text, primary_key=True, nullable=False)
+    name = Column(Text, nullable=False)
+    info = Column(Text)
+    active = Column(Boolean, default=True)
+    created = Column(DateTime, nullable=False)
 
+    resources = relationship(Resource, backref="tenant")
+    usages = relationship(UsageEntry, backref="tenant")
+    # Some reference data to something else?
+    #
 
 # this might not be a needed model?
 class SalesOrder(Base):
     """Historic billing periods so that tenants cannot be rebuild accidentally."""
     __tablename__ = 'sales_orders'
-    tenant_id = Column(Text, ForeignKey("tenants.id"), primary_key=True)
+    tenant_id = Column(Text, primary_key=True)
+    resource_id = Column(Text, primary_key=True)
     start = Column(DateTime, nullable=False)
     end = Column(DateTime, nullable=False)
 
@@ -95,11 +90,11 @@ class SalesOrder(Base):
     def intersects(self, other):
         return ( self.start <= other.end and other.start <= self.end )
 
-    __table_args__ = ForeignKeyConstraint(
+    __table_args__ = (  ForeignKeyConstraint(
         ["resource_id", "tenant_id"],
         ["resources.id", "resources.tenant_id"],
         name="fk_resource", use_alter=True
-    )
+        ), )
 
 
 # Create a trigger in MySQL that enforces our range overlap constraints,
