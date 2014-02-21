@@ -9,6 +9,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
 
+    #main args:
     parser.add_argument('--os-username',
                         default=os.environ.get('OS_USERNAME'),
                         help='Defaults to env[OS_USERNAME]')
@@ -41,6 +42,7 @@ if __name__ == '__main__':
                         help="Config file",
                         default="/etc/artifice/conf.yaml")
 
+    # commands:
     subparsers = parser.add_subparsers(help='commands', dest='command')
 
     usage_parser = subparsers.add_parser('usage', help=('process usage' +
