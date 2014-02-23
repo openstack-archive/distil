@@ -1,4 +1,5 @@
 from flask import Flask
+from flask import current_app, Blueprint
 
 from artifice.models import UsageEntry, SalesOrder
 from sqlalchemy.orm import scoped_session, create_session
@@ -7,12 +8,15 @@ from datetime import datetime
 import collections
 import itertools
 import pytz
+import json
 
 engine = None
 # Session.configure(bind=create_engine(conn_string))
 
 db = scoped_session(lambda: create_session(bind=engine))
 # db = Session()
+
+app = Blueprint("main", __name__, url_prefix="/")
 
 config = None
 
@@ -23,7 +27,8 @@ DEFAULT_TIMEZONE = "Pacific/Auckland"
 current_region = "Wellington" # FIXME
 
 def get_app(conf):
-    app = Flask(__name__)
+    actual_app = Flask(__name__)
+    actual_app.register_blueprint(app, url_prefix="/")
     global engine
     engine = create_engine(config["main"]["database_uri"])
     global config
@@ -77,17 +82,18 @@ def keystone(func):
     """Will eventually provide a keystone wrapper for validating a query.
     Currently does not.
     """
-    admin_token = config.get("admin_token")
-    def _perform_keystone(*args, **kwargs):
-        headers = flask.request.headers
-        if not 'user_id' in headers:
-            flask.abort(401) # authentication required
-        
-        endpoint = fetch_endpoint( current_region )
-        keystone = keystoneclient.v2_0.client.Client(token=admin_token,
-                endpoint=endpoint)
+    return func # disabled for now
+    # admin_token = config.get("admin_token")
+    # def _perform_keystone(*args, **kwargs):
+    #     headers = flask.request.headers
+    #     if not 'user_id' in headers:
+    #         flask.abort(401) # authentication required
+    #     
+    #     endpoint = fetch_endpoint( current_region )
+    #     keystone = keystoneclient.v2_0.client.Client(token=admin_token,
+    #             endpoint=endpoint)
 
-    return _perform_keystone
+    # return _perform_keystone
 
 
 def must(*args, **kwargs):
@@ -151,7 +157,7 @@ def json_must(*args, **kwargs):
     return unpack
 
 
-@app.get("/usage")
+@app.route("/usage", methods=["GET"])
 # @app.get("/usage/{resource_id}") # also allow for querying by resource ID.
 @keystone
 @must("resource_id", "tenant")
@@ -202,7 +208,7 @@ def retrieve_usage(resource_id=None):
     }, cls=DecimalEncoder) ) # Specifically encode decimals appropriate, without float logic
 
 
-@app.post("/usage")
+@app.route("/usage", methods=["POST"])
 @keystone
 @json_must( tenants=validators.iterable )
 @returns_json
@@ -269,7 +275,7 @@ def run_usage_collection():
             resp["errors"] += 1
     return resp
 
-@app.post("/sales_order")
+@app.route("/sales_order", methods=["POST"])
 @keystone
 @json_must("tenants")
 def run_sales_order_generation():
@@ -339,7 +345,7 @@ def run_sales_order_generation():
     return json.dumps( resp )
 
 
-@app.get("/bills/{id}")
+@app.route("/bills/{id}", methods=["GET"])
 @keystone
 @must("tenant", "start", "end")
 def get_bill(id_):
@@ -392,7 +398,7 @@ def get_bill(id_):
     
     return (200, json.dumps(resp))
     
-@app.post("/usage/current")
+@app.route("/usage/current", methods=["GET"])
 @keystone
 @must("tenant_id")
 def get_current_usage():
@@ -405,7 +411,7 @@ def get_current_usage():
     """
     pass
 
-@app.post("/bill")
+@app.route("/bill", methods=["POST"])
 @keystone
 def make_a_bill():
     """Generates a bill for a given user.
