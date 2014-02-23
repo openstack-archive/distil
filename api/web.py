@@ -118,7 +118,7 @@ def must(*args, **kwargs):
                     return json.dumps({"error": "validation failed",
                                        "param": key}) 
             return func(*iargs, **ikwargs)
-        return funky
+        return decorator(funky, func) 
     return tester
 
 
