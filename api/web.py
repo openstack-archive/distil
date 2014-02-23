@@ -1,7 +1,7 @@
 from flask import Flask
 
 from artifice.models import UsageEntry, SalesOrder
-from sqlalchemy import scoped_session, create_session
+from sqlalchemy.orm import scoped_session, create_session
 from decimal import Decimal
 from datetime import datetime
 import collections
