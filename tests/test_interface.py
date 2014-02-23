@@ -9,7 +9,7 @@ from artifice.models import UsageEntry, Resource
 # import copy
 
 from sqlalchemy import create_engine
-from artifice.models import Session
+# from artifice.models import Session
 
 from datetime import datetime, timedelta
 

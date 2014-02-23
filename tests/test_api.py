@@ -1,8 +1,10 @@
 from webtest import TestApp
 import unittest
 from web import get_app
-from sqlalchemy import Session, create_engine
+from sqlalchemy import create_engine
 from api.models import Resources, Tenants, UsageEntry, SalesOrder
+
+from sqlalchemy.orm import sessionmaker
 
 master_config = {
  "ceilometer": {
@@ -35,7 +37,7 @@ master_config = {
 class TestApi(unittest.TestCase):
 
     def setUp(self):
-        self.db = Session( create_engine(master_config["main"]["database_uri"]) )
+        self.db = sessionmaker( create_engine(master_config["main"]["database_uri"]) )
         self.app = TestApp( get_app(master_config) )
     def tearDown(self):
         # self.db.execute()
