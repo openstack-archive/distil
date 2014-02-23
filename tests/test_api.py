@@ -2,7 +2,7 @@ from webtest import TestApp
 import unittest
 from api.web import get_app
 from sqlalchemy import create_engine
-from api.models import Resources, Tenants, UsageEntry, SalesOrder
+from artifice.models import Resources, Tenants, UsageEntry, SalesOrder
 
 from sqlalchemy.orm import sessionmaker
 
