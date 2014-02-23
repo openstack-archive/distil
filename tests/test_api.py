@@ -1,6 +1,6 @@
 from webtest import TestApp
 import unittest
-from web import get_app
+from api.web import get_app
 from sqlalchemy import create_engine
 from api.models import Resources, Tenants, UsageEntry, SalesOrder
 
