@@ -10,13 +10,15 @@ import itertools
 import pytz
 import json
 
+from decorator import decorator
+
 engine = None
 # Session.configure(bind=create_engine(conn_string))
 
 db = scoped_session(lambda: create_session(bind=engine))
 # db = Session()
 
-app = Blueprint("main", __name__, url_prefix="/")
+app = Blueprint("main", __name__)
 
 config = None
 
@@ -128,7 +130,7 @@ def returns_json(func):
             return json.dumps(r)
         return r
 
-    return jsonify
+    return decorator(jsonify, func)
 
 def json_must(*args, **kwargs):
     """Implements a simple validation system to allow for the required
@@ -153,7 +155,7 @@ def json_must(*args, **kwargs):
                                        "key": key})
             flask.request.body = body
             return func(*args)
-        return dejson
+        return decorator(dejson, func)
     return unpack
 
 
