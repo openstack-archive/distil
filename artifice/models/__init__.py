@@ -119,11 +119,11 @@ mysql_trigger = """CREATE TRIGGER usage_entry_range_constraint
 
 
 event.listen(
-        UsageEntry,
+        UsageEntry.__table__,
         "after_create",
         DDL(mysql_trigger % {"table": UsageEntry.__tablename__}).execute_if(dialect="mysql"))
 event.listen(
-        SalesOrder,
+        SalesOrder.__table__,
         "after_create",
         DDL(mysql_trigger % {"table": SalesOrder.__tablename__}).execute_if(dialect="mysql"))
 
@@ -157,52 +157,52 @@ CREATE TRIGGER $(table)s_exclusion_trigger BEFORE INSERT OR UPDATE ON $(table)s
 """
 
 event.listen(
-        UsageEntry,
+        UsageEntry.__table__,
         "after_create",
         DDL(pgsql_trigger_func % {"table": UsageEntry.__tablename__}).execute_if(dialect="postgresql")
 )
 event.listen(
-        UsageEntry,
+        UsageEntry.__table__,
         "after_create",
         DDL(pgsql_trigger % {"table": UsageEntry.__tablename__}).execute_if(dialect="postgresql")
         )
 
 event.listen(
-        SalesOrder,
+        SalesOrder.__table__,
         "after_create",
         DDL(pgsql_trigger_func % {"table": SalesOrder.__tablename__}).execute_if(dialect="postgresql")
 )
 
 event.listen(
-        SalesOrder,
+        SalesOrder.__table__,
         "after_create",
         DDL(pgsql_trigger % {"table": SalesOrder.__tablename__}).\
                 execute_if(dialect="postgresql")
 )
 
 event.listen(
-        UsageEntry,
+        UsageEntry.__table__,
         "before_drop",
         DDL("DROP TRIGGER %s_exclusion_trigger" % UsageEntry.__tablename__).\
                 execute_if(dialect="postgresql")
 )
 
 event.listen(
-        UsageEntry,
+        UsageEntry.__table__,
         "before_drop",
         DDL("DROP FUNCTION %s_exclusion_constraint_trigger()" % UsageEntry.__tablename__ ).\
                 execute_if(dialect="postgresql")
 )
 
 event.listen(
-        UsageEntry,
+        UsageEntry.__table__,
         "before_drop",
         DDL("DROP TRIGGER %s_exclusion_trigger()" % SalesOrder.__tablename__ ).\
                 execute_if(dialect="postgresql")
 )
 
 event.listen(
-        UsageEntry,
+        UsageEntry.__table__,
         "before_drop",
         DDL("DROP FUNCTION %s_exclusion_constraint_trigger()" % SalesOrder.__tablename__ ).\
                 execute_if(dialect="postgresql")
