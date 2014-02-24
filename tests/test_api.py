@@ -69,9 +69,23 @@ i = 0
 
 mappings = {}
 
+i = 0
+while True:
+    try:
+        fh = open(os.path.join(path, "data/map_fixture_%s.json" % i))
+        d = json.loads(fh.read(), parse_float=decimal.Decimal)
+        fh.close()
+        mappings.update(d)
+        i += 1
+    except IOError:
+        break
+
 hosts = set([resource["metadata"]["host"] for resource
              in resources if resource["metadata"].get("host")]),
 
+
+def get_usage(tenant, start, end):
+    pass
 
 class TestApi(unittest.TestCase):
 
@@ -99,6 +113,15 @@ class TestApi(unittest.TestCase):
         tenant_objs =[
                 interface.Tenant(t) for t in TENANTS
         ]
+
+        def get_usage(tenant, start, end):
+            global mappings
+            for url in mappings.keys():
+                pass
+        for tenant in tenant_objs:
+            tenant.usage = mock.Mock(
+                    return_value=get_usage(tenant))
+
         artifice.tenants.return_value = tenant_objs
         
         resp = self.app.post("/collect_usage", dict(tenants=[]))

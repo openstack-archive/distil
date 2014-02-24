@@ -1,6 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import Column, Text, DateTime, Boolean, DECIMAL, ForeignKey
+from sqlalchemy import Column, Text, DateTime, Boolean, DECIMAL, ForeignKey, String 
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
 from sqlalchemy import select, func, and_, event, DDL
@@ -18,8 +18,8 @@ Base = declarative_base()
 class Resource(Base):
     """Database model for storing metadata associated with a resource."""
     __tablename__ = 'resources'
-    id = Column(Text, primary_key=True)
-    tenant_id = Column(Text, ForeignKey("tenants.id"), primary_key=True )
+    id = Column(String(36), primary_key=True)
+    tenant_id = Column(String(36), ForeignKey("tenants.id"), primary_key=True )
     info = Column(Text)
     created = Column(DateTime, nullable=False)
 
@@ -31,10 +31,10 @@ class UsageEntry(Base):
 
     # Service is things like incoming vs. outgoing, as well as instance
     # flavour
-    service = Column(Text, primary_key=True)
+    service = Column(String(100), primary_key=True)
     volume = Column(DECIMAL, nullable=False)
-    resource_id = Column(Text, primary_key=True)
-    tenant_id = Column(Text, primary_key=True)
+    resource_id = Column(String(36), primary_key=True)
+    tenant_id = Column(String(36), primary_key=True)
     start = Column(DateTime, nullable=False)
     end = Column(DateTime, nullable=False)
     created = Column(DateTime, nullable=False)
@@ -62,7 +62,7 @@ class Tenant(Base):
     """Model for storage of metadata related to a tenant."""
     __tablename__ = 'tenants'
     # ID is a uuid
-    id = Column(Text, primary_key=True, nullable=False)
+    id = Column(String(36), primary_key=True, nullable=False)
     name = Column(Text, nullable=False)
     info = Column(Text)
     active = Column(Boolean, default=True)
@@ -77,8 +77,8 @@ class Tenant(Base):
 class SalesOrder(Base):
     """Historic billing periods so that tenants cannot be rebuild accidentally."""
     __tablename__ = 'sales_orders'
-    tenant_id = Column(Text, primary_key=True)
-    resource_id = Column(Text, primary_key=True)
+    tenant_id = Column(String(36), primary_key=True)
+    resource_id = Column(String(36), primary_key=True)
     start = Column(DateTime, nullable=False)
     end = Column(DateTime, nullable=False)
 
@@ -93,7 +93,7 @@ class SalesOrder(Base):
     __table_args__ = (  ForeignKeyConstraint(
         ["resource_id", "tenant_id"],
         ["resources.id", "resources.tenant_id"],
-        name="fk_resource", use_alter=True
+        name="fk_sales", use_alter=True
         ), )
 
 
@@ -102,15 +102,15 @@ class SalesOrder(Base):
 
 # Mysql trigger:
 mysql_trigger = """CREATE TRIGGER usage_entry_range_constraint
-               BEFORE INSERT OR UPDATE ON %(table)s
+               BEFORE %(type)s ON %(table)s
                FOR EACH ROW
                BEGIN
                 DECLARE c INT;
                 SET c = (select count(*) from %(table)s t 
                          WHERE ( NEW.start <= t.end
                                  AND t.start <= NEW.end )
-                           AND tenant_id == NEW.tenant_id
-                           AND resource_id == NEW.resource_id);
+                           AND tenant_id = NEW.tenant_id
+                           AND resource_id = NEW.resource_id);
                 IF c > 0 THEN
                     SET NEW.start = NULL
                     SET NEW.end = NULL
@@ -118,14 +118,17 @@ mysql_trigger = """CREATE TRIGGER usage_entry_range_constraint
                END;;""" 
 
 
-event.listen(
-        UsageEntry.__table__,
-        "after_create",
-        DDL(mysql_trigger % {"table": UsageEntry.__tablename__}).execute_if(dialect="mysql"))
-event.listen(
-        SalesOrder.__table__,
-        "after_create",
-        DDL(mysql_trigger % {"table": SalesOrder.__tablename__}).execute_if(dialect="mysql"))
+# before insert
+
+for table in (SalesOrder.__table__, UsageEntry.__table__):
+    for type_ in ("INSERT", "UPDATE"):
+        event.listen(
+            UsageEntry.__table__,
+            "after_create",
+            DDL(mysql_trigger % {
+                "table": table,
+                "type": type_}).\
+            execute_if(dialect="mysql"))
 
 
 # And the postgres constraints
@@ -138,7 +141,7 @@ CREATE FUNCTION %(table)s_exclusion_constraint_trigger() RETURNS trigger AS $tri
     DECLARE
         existing INTEGER = 0;
     BEGIN
-        SELECT count(*) INTO existing FROM $(tablename) t
+        SELECT count(*) INTO existing FROM %(table)s t
          WHERE t.tenant_id = NEW.tenant_id
            AND t.resource_id = NEW.resource_id
            AND ( NEW.start <= t.end
@@ -152,8 +155,8 @@ $trigger$ LANGUAGE PLPGSQL;
 
 
 pgsql_trigger = """
-CREATE TRIGGER $(table)s_exclusion_trigger BEFORE INSERT OR UPDATE ON $(table)s
-    FOR EACH ROW EXECUTE PROCEDURE $(table)s_exclusion_constraint_trigger();
+CREATE TRIGGER %(table)s_exclusion_trigger BEFORE INSERT OR UPDATE ON %(table)s
+    FOR EACH ROW EXECUTE PROCEDURE %(table)s_exclusion_constraint_trigger();
 """
 
 event.listen(
