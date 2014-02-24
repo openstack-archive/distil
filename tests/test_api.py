@@ -3,6 +3,7 @@ import unittest
 from api.web import get_app
 from sqlalchemy import create_engine
 from artifice.models import Resource, Tenant, UsageEntry, SalesOrder
+import mock
 
 from sqlalchemy.orm import sessionmaker
 
@@ -34,17 +35,72 @@ master_config = {
 # again.
 #
 
+TENANTS = [
+    {u'enabled': True,
+     u'description': None,
+     u'name': u'demo',
+     u'id': u'931dc699f9934021bb4a2b1088ba4d3b',
+     "data": {}},
+
+    {u'enabled': True,
+     u'description': None,
+     u'name': u'tester',
+     u'id': u'achoovian',
+     "data": {}}
+]
+
+DATACENTRE = "testcenter"
+
+import os
+try:
+    fn = os.path.abspath(__file__)
+    path, f = os.path.split(fn)
+except NameError:
+    path = os.getcwd()
+
+
+fh = open(os.path.join(path, "data/resources.json"))
+resources = json.loads(
+        fh.read(),
+        parse_float=decimal.Decimal )
+fh.close()
+
+i = 0
+
+mappings = {}
+
+hosts = set([resource["metadata"]["host"] for resource
+             in resources if resource["metadata"].get("host")]),
+
+
 class TestApi(unittest.TestCase):
 
     def setUp(self):
         self.db = sessionmaker( create_engine(master_config["main"]["database_uri"]) )
         self.app = TestApp( get_app(master_config) )
+
+        # Set up the datasets now, based on our
+        # original fixtures.
+
+        self.data = {
+                "tenants" : TENANTS
+        }
+         
     def tearDown(self):
         # self.db.execute()
         self.app = None
-
-    def test_usage_run_for_all(self):
+    
+    # Modify Artifice, the Ceilometer client
+    @mock.patch("artifice.interface.Artifice")
+    @mock.patch("ceilometerclient.v2_0.ResourceManager")
+    def test_usage_run_for_all(self, artifice):
         """Asserts a usage run generates data for all tenants"""
+        
+        tenant_objs =[
+                interface.Tenant(t) for t in TENANTS
+        ]
+        artifice.tenants.return_value = tenant_objs
+        
         resp = self.app.post("/collect_usage", dict(tenants=[]))
         self.assertEquals(resp.status_int, 201)
         

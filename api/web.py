@@ -142,7 +142,8 @@ def json_must(*args, **kwargs):
                 # We throw an exception
                 abort(403)
                 return json.dumps({"error": "must be in JSON format"})
-            body = json.loads( flask.request.body )
+            body = json.loads( flask.request.body, 
+                               parse_float=decimal.Decimal )
             for key in itertools.chain( args, kwargs.keys() ):
                 if not key in body:
                     abort(403)
@@ -211,7 +212,7 @@ def retrieve_usage(resource_id=None):
     }, cls=DecimalEncoder) ) # Specifically encode decimals appropriate, without float logic
 
 
-@app.route("/usage", methods=["POST"])
+@app.route("/collect_usage", methods=["POST"])
 @keystone
 @json_must( tenants=validators.iterable )
 @returns_json
@@ -232,9 +233,11 @@ def run_usage_collection():
     
     # Handled in a loop here for later movement to a Celery-based backend
     # system
+    #
 
+    tenants = artifice.tenants
     body = flask.request.body
-    tenants = session.query(Tenants).filter(Tenants.active)
+    
     if body["tenants"]:
         tenants.filter(Tenants.id.in_(body["tenants"]))
     
@@ -242,7 +245,13 @@ def run_usage_collection():
             "tenants": [],
             "errors": 0
            }
+    
+    # Okay, this is wrong.
+    # We actually need the list of tenants that have done
+    # stuff within a given time range.
+
     for tenant in tenants:
+        tenants = session.query(Tenants).filter(Tenants.active)
         
         start = session.query(func.max(UsageEntry.end).label("end")).\
                 filter(UsageEntry.tenant == tenant).end

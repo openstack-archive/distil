@@ -82,17 +82,16 @@ fh = open(os.path.join(path, "data/resources.json"))
 resources = json.loads(fh.read())
 fh.close()
 
-i = 0
-
 mappings = {}
 
 hosts = set([resource["metadata"]["host"] for resource
              in resources if resource["metadata"].get("host")])
 
+i = 0
 while True:
     try:
         fh = open(os.path.join(path, "data/map_fixture_%s.json" % i))
-        d = json.loads(fh.read())
+        d = json.loads(fh.read(), parse_float=decimal.Decimal)
         fh.close()
         mappings.update(d)
         i += 1
