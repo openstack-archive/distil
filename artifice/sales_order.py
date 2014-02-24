@@ -14,7 +14,7 @@ from decimal import Decimal
 import csv
 
 
-class Invoice(object):
+class SalesOrder(object):
 
     # __metaclass__ = requirements
 

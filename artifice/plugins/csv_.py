@@ -1,11 +1,11 @@
 import os
 from csv import writer
-from artifice import invoice
+from artifice import sales_order
 # from artifice import clerk_mixins
 from decimal import *
 
 
-class Csv(invoice.RatesFileMixin, invoice.Invoice):
+class Csv(sales_order.RatesFileMixin, sales_order.SalesOrder):
 
     def __init__(self, start, end, config):
         super(Csv, self).__init__(start, end, config)
