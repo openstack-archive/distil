@@ -33,7 +33,7 @@ def get_app(conf):
     actual_app = Flask(__name__)
     actual_app.register_blueprint(app, url_prefix="/")
     global engine
-    engine = create_engine(config["main"]["database_uri"])
+    engine = create_engine(conf["main"]["database_uri"])
     global config
     config = conf
 
