@@ -2,6 +2,7 @@ from flask import Flask
 from flask import current_app, Blueprint
 
 from artifice.models import UsageEntry, SalesOrder
+from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, create_session
 from decimal import Decimal
 from datetime import datetime
