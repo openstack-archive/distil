@@ -31,6 +31,8 @@ class Service(object):
 
 
 def build_billable(entries, session):
+    """Builds a Tenant object and its resources.
+       Assumes that all entries are for the same tenant."""
     tenant = None
     for entry in entries:
         service = Service(entry.service, entry.volume)
