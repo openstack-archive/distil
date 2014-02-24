@@ -3,7 +3,7 @@ from artifice import database
 from artifice.models import Tenant
 from sqlalchemy.ext.declarative import declarative_base
 
-from artifice.billing import csv_invoice
+from artifice.plugins import csv_
 
 Base = declarative_base()
 
@@ -47,7 +47,7 @@ class TestCSVInvoice(test_interface.TestInterface):
                              ("3f7b702e4ca14cd99aebf4c4320e00ec",))
         print
         for tenant in tenants:
-            invoice = csv_invoice.Csv(tenant, self.start, self.end,
-                                      config)
-            invoice.bill()
+            invoice = csv_.Csv(self.start, self.end,
+                               config)
+            invoice.bill(tenant)
             invoice.close()
