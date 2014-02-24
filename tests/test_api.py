@@ -11,7 +11,7 @@ master_config = {
     "host": "http://localhost:8777/"
  }, 
  "main": {
-    "export_provider": "artifice.plugins.csv:Csv",
+    "export_provider": "artifice.plugins.csv_:Csv",
     "database_uri": "postgres://artifice:password@localhost:5432/artifice"
  }, 
  "openstack": {
