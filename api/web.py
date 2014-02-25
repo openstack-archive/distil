@@ -343,8 +343,8 @@ def run_sales_order_generation():
         # This is non-portable and very much tied to the CSV exporter
         # and will probably result in the CSV exporter being changed.
         billable = billing.build_billable(usage, session)
-        generator = invoicer(billable, start, end, config)
-        generator.bill()
+        generator = invoicer(start, end, config)
+        generator.bill(billable)
         generator.close()
         resp["tenants"].append({
                 "id": tenant.id,

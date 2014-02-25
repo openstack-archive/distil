@@ -6,10 +6,11 @@ import random
 import json
 from artifice.models import Tenant as tenant_model
 from artifice.models import UsageEntry, Resource
+import decimal
 # import copy
 
 from sqlalchemy import create_engine
-# from artifice.models import Session
+from sqlalchemy.orm import sessionmaker
 
 from datetime import datetime, timedelta
 
@@ -178,7 +179,7 @@ class TestInterface(unittest.TestCase):
     def setUp(self):
 
         engine = create_engine(os.environ["DATABASE_URL"])
-        Session.configure(bind=engine)
+        Session = sessionmaker(bind=engine)
         Base.metadata.create_all(engine)
         self.session = Session()
         self.objects = []
@@ -193,21 +194,18 @@ class TestInterface(unittest.TestCase):
 
     def tearDown(self):
 
-        self.session.query(UsageEntry).delete()
-        self.session.query(tenant_model).delete()
-        self.session.query(Resource).delete()
-        self.session.commit()
+        # self.session.query(UsageEntry).delete()
+        # self.session.query(tenant_model).delete()
+        # self.session.query(Resource).delete()
+        # self.session.commit()
         self.contents = None
         self.resources = []
         self.artifice = None
         self.usage = None
 
-    @mock.patch("artifice.models.Session")
-    # @mock.patch("artifice.interface.get_meter")
-    # I don't think this will work
     @mock.patch("artifice.interface.keystone")
     @mock.patch("sqlalchemy.create_engine")
-    def test_get_usage(self, sqlmock, keystone, session):
+    def test_get_usage(self, sqlmock, keystone):
 
         # At this point, we prime the ceilometer/requests response
         # system, so that what we return to usage is what we expect

@@ -1,25 +1,25 @@
 import os
 from csv import writer
-from artifice import invoice
+from artifice import sales_order
 # from artifice import clerk_mixins
 from decimal import *
 
 
-class Csv(invoice.RatesFileMixin, invoice.Invoice):
+class Csv(sales_order.RatesFileMixin, sales_order.SalesOrder):
 
-    def __init__(self, tenant, start, end, config):
-        self.config = config
-        self.tenant = tenant
+    def __init__(self, start, end, config):
+        super(Csv, self).__init__(start, end, config)
         self.lines = {}
-        self.closed = False
-        self.start = start
-        self.end = end
         self.total = Decimal(0.0)
 
-    def bill(self):
-        """Genearates the lines for a sales order for the stored tenant."""
+    def _bill(self, tenant):
+        """Generates the lines for a sales order for the tenant."""
+
+        if self.tenant is not None:
+            raise AttributeError("Sales order already has a tenant.")
+
         # Usage is one of VMs, Storage, or Volumes.
-        for resource in self.tenant.resources.values():
+        for resource in tenant.resources.values():
             print " * " + resource.metadata['type']
 
             print "   - resource id: " + str(resource.id)
@@ -68,6 +68,7 @@ class Csv(invoice.RatesFileMixin, invoice.Invoice):
 
             # adds resource total to sales-order total.
             self.total += total_cost
+        self.tenant = tenant
 
     def add_line(self, res_type, line):
         """Adds a line to the given resource type list."""
@@ -81,6 +82,9 @@ class Csv(invoice.RatesFileMixin, invoice.Invoice):
 
     @property
     def filename(self):
+        if tenant is None:
+            raise AttributeError("CSV has no billed tenant.")
+
         fn_dict = dict(tenant=self.tenant.name, start=self.start,
                        end=self.end)
 
@@ -92,6 +96,9 @@ class Csv(invoice.RatesFileMixin, invoice.Invoice):
 
     def close(self):
         """Closes the sales order, and exports the lines to a csv file."""
+        if tenant is None:
+            raise AttributeError("CSV has no billed tenant.")
+
         try:
             open(self.filename)
             raise RuntimeError("Can't write to an existing file!")
