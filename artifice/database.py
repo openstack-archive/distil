@@ -30,11 +30,10 @@ class Database(object):
 
                 #  Have we seen this resource before?
                 query = self.session.query(Resource).\
-                    filter(Resource.resource_id == resource.get("resource_id"))
+                    filter(Resource.id == resource_id)
                 if query.count() == 0:
                     info = json.dumps(resource.info)
-                    self.session.add(Resource(resource_id=
-                                              resource.get("resource_id"),
+                    self.session.add(Resource(id=resource_id,
                                               info=str(info),
                                               tenant_id=tenant_id
                                               ))
