@@ -149,11 +149,12 @@ CREATE FUNCTION %(table)s_exclusion_constraint_trigger() RETURNS trigger AS $tri
         SELECT count(*) INTO existing FROM %(table)s t
          WHERE t.tenant_id = NEW.tenant_id
            AND t.resource_id = NEW.resource_id
-           AND ( NEW.start <= t.end
-                 AND t.start <= NEW.end );
+           AND ( NEW.start <= t."end"
+                 AND t.start <= NEW."end" );
         IF existing > 0 THEN
             RAISE SQLSTATE '23P01';
         END IF;
+        RETURN NEW;
     END;
 $trigger$ LANGUAGE PLPGSQL;
 """
