@@ -92,7 +92,14 @@ class db(unittest.TestCase):
         except Exception as e:
             self.fail("Exception: %s" % e)
     def test_overlapping_usage_entry_fails(self):
-        pass
+        self.test_insert_usage_entry()
+        try:
+            self.test_insert_usage_entry()
+            # we fail here
+            self.fail("Inserted overlapping row; failing")
+        except Exception as e:
+            self.db.rollback()
+            self.assertEqual(self.db.query(UsageEntry).count(), 1)
 
     def test_insert_salesorder(self):
         pass

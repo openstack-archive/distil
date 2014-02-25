@@ -153,6 +153,7 @@ CREATE FUNCTION %(table)s_exclusion_constraint_trigger() RETURNS trigger AS $tri
                  AND t.start <= NEW."end" );
         IF existing > 0 THEN
             RAISE SQLSTATE '23P01';
+            RETURN NULL;
         END IF;
         RETURN NEW;
     END;
