@@ -1,6 +1,7 @@
 from sqlalchemy import func
 from .models import Resource, UsageEntry
 import json
+from datetime import datetime
 
 
 class Database(object):
@@ -35,7 +36,8 @@ class Database(object):
                     info = json.dumps(resource.info)
                     self.session.add(Resource(id=resource_id,
                                               info=str(info),
-                                              tenant_id=tenant_id
+                                              tenant_id=tenant_id,
+                                              created=datetime.now()
                                               ))
 
                 entry = UsageEntry(service=service,
@@ -43,7 +45,8 @@ class Database(object):
                                    resource_id=resource_id,
                                    tenant_id=tenant_id,
                                    start=start,
-                                   end=end
+                                   end=end,
+                                   created=datetime.now()
                                    )
                 self.session.add(entry)
         self.session.commit()
