@@ -83,6 +83,11 @@ class SalesOrder(Base):
     start = Column(DateTime, nullable=False)
     end = Column(DateTime, nullable=False)
 
+    resource = relationship(Resource,
+                            primaryjoin=(resource_id == Resource.id))
+    tenant = relationship(Resource,
+                          primaryjoin=(tenant_id == Resource.tenant_id))
+
     @hybrid_property
     def length(self):
         return self.end - self.start

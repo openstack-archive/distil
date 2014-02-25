@@ -102,11 +102,28 @@ class db(unittest.TestCase):
             self.assertEqual(self.db.query(UsageEntry).count(), 1)
 
     def test_insert_salesorder(self):
-        pass
-
+        self.test_insert_usage_entry()
+        self.db.begin()
+        usage = self.db.query(UsageEntry)[0]
+        so = SalesOrder(tenant = usage.tenant,
+                        resource = usage.resource,
+                        start = usage.start,
+                        end = usage.end)
+        self.db.add(so)
+        self.db.commit()
+        so2 = self.db.query(SalesOrder)[0]
+        self.assertTrue(so2.tenant.id == so.tenant.id)
+        self.assertTrue(so2.resource.id == so.resource.id)
+        self.assertTrue(so2.start == so.start)
+        self.assertTrue(so2.end == so.end)
     def test_overlap_sales_order_fails(self):
-        pass
-
+        self.test_insert_salesorder()
+        try:
+            self.test_insert_salesorder()
+            self.fail("Inserted twice")
+        except Exception as e:
+            self.db.rollback()
+            self.assertEqual(self.db.query(SalesOrder).count(), 1)
 
 class TestDatabaseModelsPostgres(db):
 
