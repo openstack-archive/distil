@@ -23,6 +23,7 @@ class Resource(Base):
     info = Column(Text)
     created = Column(DateTime, nullable=False)
 
+
 class UsageEntry(Base):
     """Simplified data store of usage information for a given service,
        in a resource, in a tenant. Similar to ceilometer datastore,
@@ -69,7 +70,7 @@ class Tenant(Base):
     created = Column(DateTime, nullable=False)
 
     resources = relationship(Resource, backref="tenant")
-    usages = relationship(UsageEntry, backref="tenant")
+    # usages = relationship(UsageEntry, backref="tenant", primaryjoin=(id == UsageEntry.tenant_id))
     # Some reference data to something else?
     #
 
@@ -101,33 +102,37 @@ class SalesOrder(Base):
 # since MySQL lacks a native range overlap type.
 
 # Mysql trigger:
-mysql_trigger = """CREATE TRIGGER usage_entry_range_constraint
-               BEFORE %(type)s ON %(table)s
+mysql_trigger = """
+            CREATE TRIGGER %(table)s_%(funcname)s_range_constraint
+               BEFORE %(type)s ON `%(table)s`
                FOR EACH ROW
                BEGIN
-                DECLARE c INT;
-                SET c = (select count(*) from %(table)s t 
+                DECLARE existing INT;
+                SET existing = ( SELECT COUNT(*) FROM `%(table)s` t 
                          WHERE ( NEW.start <= t.end
                                  AND t.start <= NEW.end )
                            AND tenant_id = NEW.tenant_id
-                           AND resource_id = NEW.resource_id);
-                IF c > 0 THEN
-                    SET NEW.start = NULL
-                    SET NEW.end = NULL
-                END;
-               END;;""" 
+                           AND resource_id = NEW.resource_id );
+                IF existing > 0 THEN
+                    SET NEW.start = NULL;
+                    SET NEW.end = NULL;
+                END IF;
+               END;
+""" 
 
 
 # before insert
 
+funcmaps = {"INSERT" : "entry", "UPDATE": "change"}
 for table in (SalesOrder.__table__, UsageEntry.__table__):
     for type_ in ("INSERT", "UPDATE"):
         event.listen(
-            UsageEntry.__table__,
+            table,
             "after_create",
             DDL(mysql_trigger % {
                 "table": table,
-                "type": type_}).\
+                "type": type_,
+                "funcname": funcmaps[type_]}).\
             execute_if(dialect="mysql"))
 
 
