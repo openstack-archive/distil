@@ -18,8 +18,8 @@ Base = declarative_base()
 class Resource(Base):
     """Database model for storing metadata associated with a resource."""
     __tablename__ = 'resources'
-    id = Column(String(36), primary_key=True)
-    tenant_id = Column(String(36), ForeignKey("tenants.id"), primary_key=True )
+    id = Column(String(100), primary_key=True)
+    tenant_id = Column(String(100), ForeignKey("tenants.id"), primary_key=True )
     info = Column(Text)
     created = Column(DateTime, nullable=False)
 
@@ -34,8 +34,8 @@ class UsageEntry(Base):
     # flavour
     service = Column(String(100), primary_key=True)
     volume = Column(DECIMAL, nullable=False)
-    resource_id = Column(String(36), primary_key=True)
-    tenant_id = Column(String(36), primary_key=True)
+    resource_id = Column(String(100), primary_key=True)
+    tenant_id = Column(String(100), primary_key=True)
     start = Column(DateTime, nullable=False)
     end = Column(DateTime, nullable=False)
     created = Column(DateTime, nullable=False)
@@ -63,7 +63,7 @@ class Tenant(Base):
     """Model for storage of metadata related to a tenant."""
     __tablename__ = 'tenants'
     # ID is a uuid
-    id = Column(String(36), primary_key=True, nullable=False)
+    id = Column(String(100), primary_key=True, nullable=False)
     name = Column(Text, nullable=False)
     info = Column(Text)
     active = Column(Boolean, default=True)
@@ -78,8 +78,8 @@ class Tenant(Base):
 class SalesOrder(Base):
     """Historic billing periods so that tenants cannot be rebuild accidentally."""
     __tablename__ = 'sales_orders'
-    tenant_id = Column(String(36), primary_key=True)
-    resource_id = Column(String(36), primary_key=True)
+    tenant_id = Column(String(100), primary_key=True)
+    resource_id = Column(String(100), primary_key=True)
     start = Column(DateTime, nullable=False)
     end = Column(DateTime, nullable=False)
 
@@ -152,7 +152,8 @@ CREATE FUNCTION %(table)s_exclusion_constraint_trigger() RETURNS trigger AS $tri
         existing INTEGER = 0;
     BEGIN
         SELECT count(*) INTO existing FROM %(table)s t
-         WHERE t.tenant_id = NEW.tenant_id
+         WHERE t.service = NEW.service
+           AND t.tenant_id = NEW.tenant_id
            AND t.resource_id = NEW.resource_id
            AND ( NEW.start <= t."end"
                  AND t.start <= NEW."end" );
@@ -182,18 +183,18 @@ event.listen(
         DDL(pgsql_trigger % {"table": UsageEntry.__tablename__}).execute_if(dialect="postgresql")
         )
 
-event.listen(
-        SalesOrder.__table__,
-        "after_create",
-        DDL(pgsql_trigger_func % {"table": SalesOrder.__tablename__}).execute_if(dialect="postgresql")
-)
+# event.listen(
+#         SalesOrder.__table__,
+#         "after_create",
+#         DDL(pgsql_trigger_func % {"table": SalesOrder.__tablename__}).execute_if(dialect="postgresql")
+# )
 
-event.listen(
-        SalesOrder.__table__,
-        "after_create",
-        DDL(pgsql_trigger % {"table": SalesOrder.__tablename__}).\
-                execute_if(dialect="postgresql")
-)
+# event.listen(
+#         SalesOrder.__table__,
+#         "after_create",
+#         DDL(pgsql_trigger % {"table": SalesOrder.__tablename__}).\
+#                 execute_if(dialect="postgresql")
+# )
 
 event.listen(
         UsageEntry.__table__,
