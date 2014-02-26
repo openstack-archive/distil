@@ -35,28 +35,28 @@ This will require an active Ceilometer with data in it, or,
 #     # from artifice.models import usage
 
 config = {
-    "main": {
-        "host_mapper": None
+    "ceilometer": {
+        "host": "http://localhost:8777/"
     },
-    "database": {
-        "username": "aurynn",
-        "password": "aurynn",
-        "host": "localhost",
-        "port": "5433",
-        "database": "artifice"
+    "main": {
+        "export_provider": "artifice.plugins.csv_:Csv",
+        "database_uri": "postgresql://aurynn:aurynn@localhost/test_artifice"
     },
     "openstack": {
-        "username": "foo",
-        "password": "bar",
-        "default_tenant": "asdf",
-        "authentication_url": "http://foo"
+        "username": "admin",
+        "authentication_url": "http://localhost:35357/v2.0",
+        "password": "openstack",
+        "default_tenant": "demo"
     },
-    "ceilometer": {
-        "host": 'http://whee'
+    "export_config": {
+        "output_path": "./",
+        "delimiter": ",",
+        "output_file": "%(tenant)s-%(start)s-%(end)s.csv",
+        "rates": {
+            "file": "/etc/artifice/csv_rates.csv"
+        }
     },
-    "invoices": {
-        "plugin": "json"
-    }
+    "artifice": {}
 }
 
 # Enter in a whoooooole bunch of mock data.
@@ -178,7 +178,7 @@ class TestInterface(unittest.TestCase):
 
     def setUp(self):
 
-        engine = create_engine(os.environ["DATABASE_URL"])
+        engine = create_engine(config["main"]["database_uri"])
         Session = sessionmaker(bind=engine)
         Base.metadata.create_all(engine)
         self.session = Session()
@@ -197,7 +197,6 @@ class TestInterface(unittest.TestCase):
         self.session.query(UsageEntry).delete()
         self.session.query(Resource).delete()
         self.session.query(tenant_model).delete()
-        
         self.session.commit()
         self.contents = None
         self.resources = []
@@ -247,8 +246,7 @@ class TestInterface(unittest.TestCase):
         # self.assertEqual ( len(tenants.vms), 1 )
 
         self.assertEqual(len(tenants), 1)
-        k = tenants.keys()[0]
-        t = tenants[k]  # First tenant
+        t = tenants[0]  # First tenant
         self.assertTrue(isinstance(t, interface.Tenant))
 
         # t.resources = resources_replacement(self)
