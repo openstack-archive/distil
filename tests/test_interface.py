@@ -6,6 +6,7 @@ import random
 import json
 from artifice.models import Tenant as tenant_model
 from artifice.models import UsageEntry, Resource
+from sqlalchemy.pool import NullPool
 import decimal
 # import copy
 
@@ -17,6 +18,8 @@ from datetime import datetime, timedelta
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
+
+from . import PG_DATABASE_URI
 
 
 """
@@ -178,9 +181,10 @@ class TestInterface(unittest.TestCase):
 
     def setUp(self):
 
-        engine = create_engine(os.environ["DATABASE_URL"])
+        engine = create_engine(PG_DATABASE_URI, poolclass=NullPool)
         Session = sessionmaker(bind=engine)
-        Base.metadata.create_all(engine)
+        # Database is expected to be setup by default
+        # Base.metadata.create_all(engine)
         self.session = Session()
         self.objects = []
         self.session.rollback()
