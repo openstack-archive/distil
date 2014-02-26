@@ -6,18 +6,13 @@ from artifice.models import Resource, Tenant, UsageEntry, SalesOrder, Base
 import datetime
 import subprocess
 
-from . import DATABASE_NAME
+from . import DATABASE_NAME, PG_DATABASE_URI, MY_DATABASE_URI
 
 
 pg_engine = None
 mysql_engine = None
 
-PG_DATABASE_URI = "postgresql://aurynn:postgres@localhost/%s" % DATABASE_NAME
-MY_DATABASE_URI = "mysql://root:password@localhost/%s" % DATABASE_NAME
-
 def setUp():
-    # subprocess.call(["/usr/bin/createdb","%s" % DATABASE_NAME]) 
-    # subprocess.call(["mysql", "-u", "root","--password=password", "-e", "CREATE DATABASE %s" % DATABASE_NAME]) 
     global mysql_engine
     mysql_engine = create_engine(MY_DATABASE_URI, poolclass=NullPool)
     global pg_engine
@@ -32,7 +27,6 @@ class db(unittest.TestCase):
     
     __test__ = False
     def setUp(self):
-        # self.maker = sessionmaker(bind=self.engine)
         self.db = self.session()
 
     def tearDown(self):
@@ -48,8 +42,6 @@ class db(unittest.TestCase):
         self.db.close()
         # self.session.close_all()
         self.db = None
-        # self.maker.close_all()
-        # self.maker = None
 
     def test_create_tenant(self):
         self.db.begin()
