@@ -3,6 +3,8 @@ from . import test_interface
 from api.web import get_app
 from artifice import models
 from artifice import interface
+from datetime import datetime, timedelta
+from random import randint 
 import mock
 
 import unittest
@@ -17,6 +19,34 @@ class TestApi(test_interface.TestInterface):
     def tearDown(self):
         super(TestApi, self).tearDown()
         self.app = None
+
+    def fill_db(self, numb_tenants, numb_resources, now):
+        self.session.begin(subtransactions=True)
+        for i in range(numb_tenants):
+            self.session.add(models.Tenant(
+                id="tenant_id_" + str(i),
+                info="metadata",
+                name="tenant_name_" + str(i),
+                created=now
+            ))
+            for ii in range(numb_resources):
+                self.session.add(models.Resource(
+                    id="resource_id_" + str(ii),
+                    info=str({"type": "Resource" + str(ii)}),
+                    tenant_id="tenant_id_" + str(i),
+                    created=now
+                ))
+                self.session.add(models.UsageEntry(
+                    service="service" + str(ii),
+                    volume=5,
+                    resource_id="resource_id_" + str(ii),
+                    tenant_id="tenant_id_" + str(i),
+                    start=(now - timedelta(days=30)),
+                    end=now,
+                    created=now
+                ))
+        self.session.commit()
+
     
     # Modify Artifice, the Ceilometer client
     @mock.patch("artifice.interface.keystone")
@@ -46,12 +76,14 @@ class TestApi(test_interface.TestInterface):
 
             tenants = self.session.query(models.Tenant)
             self.assertTrue(tenants.count() > 0)
-            # for tenant in tenants:
-            #     self.assertEqual(
-            #         len(tenant.usages) ==
-            #         len(self.data["tenants"][tenant]["resources"]))
+
             usages = self.session.query(models.UsageEntry)
             self.assertTrue(usages.count() > 0)
+            resources = self.session.query(models.Resource)
+            count = 0
+            for res_type in self.usage.values():
+                count += len(res_type)
+            self.assertEquals(resources.count(), count)
 
     @unittest.skip
     def test_sales_run_for_all(self):
@@ -66,12 +98,12 @@ class TestApi(test_interface.TestInterface):
         for tenant in tenants:
             self.assertTrue(len( tenant.orders ) == 1) # One sales order only
 
-    @unittest.skip
     def test_sales_run_single(self):
         """Assertion that a sales run generates one tenant only"""
 
-        self.test_usage_run_for_all()
-        resp = self.app.post("/sales_order", dict(tenants=[self.tenant]))
+        now = datetime.now()
+        self.fill_db(1, 3, now)
+        resp = self.app.post("/sales_order", dict(tenants=["tenant_name_0"]))
 
         self.assertEquals(resp.status_int, 201)
         
@@ -79,11 +111,13 @@ class TestApi(test_interface.TestInterface):
         order_count = self.session.query(models.SalesOrder).count()
         self.assertEqual(order_count, 1)
     
+    @unittest.skip
     def test_no_usage_body_raises_403(self):
         """Assertion that no body on usage request raises 403"""
         resp = self.app.post("/collect_usage")
         self.assertTrue(resp.status_int, 403)
 
+    @unittest.skip
     def test_no_sales_body_raises_403(self):
         """Assertion that no body on sales request raises 403"""
         resp = self.app.post("/generate_sales_order")
