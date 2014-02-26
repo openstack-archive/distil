@@ -17,7 +17,7 @@ class TestDatabaseModels(test_interface.TestInterface):
     def test_artifice_start_session(self):
         """Loading and instancing the database module works as expected: """
         try:
-            db = database.Database(None, self.session)
+            db = database.Database(self.session)
         except ImportError as e:
             self.fail("Couldn't import: %s" % e)
         return db
