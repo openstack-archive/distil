@@ -166,10 +166,10 @@ class Artifice(object):
         """All the tenants in our system"""
         # print "tenant list is %s" % self.auth.tenants.list()
         if not self._tenancy:
-            self._tenancy = {}
+            self._tenancy = []
             for tenant in self.auth.tenants.list():
                 t = Tenant(tenant, self)
-                self._tenancy[t["name"]] = t
+                self._tenancy.append(t)
         return self._tenancy
 
 
