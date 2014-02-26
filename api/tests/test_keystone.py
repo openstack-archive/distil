@@ -1,7 +1,7 @@
 from webtest import TestApp
 import unittest
-from web import get_app
 
+@unittest.skip
 class TestKeystone(unittest.TestCase):
     """Requires a running environment and a running Keystone that
     we can perform requests against.

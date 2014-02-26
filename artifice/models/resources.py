@@ -74,10 +74,7 @@ class VM(BaseModelConstruct):
     @property
     def info(self):
         return {"name": self.name,
-                "type": self.type,
-                "image_id": self._raw["metadata"]["image_meta.base_image_ref"],
-                "availability_zone":
-                self._raw["metadata"]["availability_zone"]}
+                "type": self.type}
 
     @property
     def uptime(self):

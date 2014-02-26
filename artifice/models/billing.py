@@ -1,6 +1,6 @@
 
-from .models import Tenant as TenantModel
-from .models import Resource as ResourceModel
+from . import Tenant as TenantModel
+from . import Resource as ResourceModel
 import json
 
 
