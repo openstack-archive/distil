@@ -1,22 +1,36 @@
 from sqlalchemy import func
-from .models import Resource, UsageEntry
+from .models import Resource, UsageEntry, Tenant
 import json
 from datetime import datetime
 
 
 class Database(object):
 
-    def __init__(self, config, session):
+    def __init__(self, session):
         self.session = session
         # engine = create_engine(os.environ["DATABASE_URL"])
         # Base.metadata.create_all(engine)
+
+    def insert_tenant(self, tenant_id, tenant_name, metadata):
+        """Checks if a tenant exists does nothing,
+           and if it doesn't, creates and inserts it."""
+        #  Have we seen this tenant before?
+        query = self.session.query(Tenant).\
+            filter(Tenant.id == tenant_id)
+        if query.count() == 0:
+            self.session.add(Tenant(id=tenant_id,
+                                    info=metadata,
+                                    name=tenant_name,
+                                    created=datetime.now()
+                                    ))
+            self.session.flush()
 
     def enter(self, usage, start, end):
         """Creates a new database entry for every usage strategy
            in a resource, for all the resources given"""
 
-        # self.session.begin()
         # Seems to expect somethig else
+
         for resource in usage:
             # This is where possibly injectable strategies can happen
             for key in resource.usage_strategies:
@@ -31,7 +45,8 @@ class Database(object):
 
                 #  Have we seen this resource before?
                 query = self.session.query(Resource).\
-                    filter(Resource.id == resource_id)
+                    filter(Resource.id == resource_id,
+                           Resource.tenant_id == tenant_id)
                 if query.count() == 0:
                     info = json.dumps(resource.info)
                     self.session.add(Resource(id=resource_id,
@@ -49,7 +64,7 @@ class Database(object):
                                    created=datetime.now()
                                    )
                 self.session.add(entry)
-        self.session.commit()
+                self.session.flush()
 
     def usage(self, start, end, tenant):
         """Returns a query of usage entries for a given tenant,

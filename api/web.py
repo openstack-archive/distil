@@ -1,8 +1,10 @@
 from flask import Flask
 from flask import current_app, Blueprint
+from artifice import interface, database
 
 from artifice.models import UsageEntry, SalesOrder
-from sqlalchemy import create_engine
+import sqlalchemy
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import scoped_session, create_session
 from decimal import Decimal
 from datetime import datetime
@@ -16,7 +18,7 @@ from decorator import decorator
 engine = None
 # Session.configure(bind=create_engine(conn_string))
 
-db = scoped_session(lambda: create_session(bind=engine))
+session = scoped_session(lambda: create_session(bind=engine))
 # db = Session()
 
 app = Blueprint("main", __name__)
@@ -46,7 +48,7 @@ def get_app(conf):
         global DEFAULT_TIMEZONE
         DEFAULT_TIMEZONE = config["main"]["timezone"]
     
-    return app
+    return actual_app
 
 # invoicer = config["general"]["invoice_handler"]
 # module, kls = invoice_type.split(":")
@@ -212,10 +214,8 @@ def retrieve_usage(resource_id=None):
     }, cls=DecimalEncoder) ) # Specifically encode decimals appropriate, without float logic
 
 
-@app.route("/collect_usage", methods=["POST"])
+@app.route("collect_usage", methods=["POST"])
 @keystone
-@json_must( tenants=validators.iterable )
-@returns_json
 def run_usage_collection():
     """
     Adds usage for a given tenant T and resource R.
@@ -225,67 +225,53 @@ def run_usage_collection():
     """
     
     # TODO
-    artifice = interface.Artifice( config["artifice"] )
-    start = datetime.strptime(start, iso_date)
-    end = datetime.strptime(end, iso_date)
-
-    d = Database(session)
-    
-    # Handled in a loop here for later movement to a Celery-based backend
-    # system
-    #
-
+    artifice = interface.Artifice(config)
+    d = database.Database(session)
+ 
     tenants = artifice.tenants
-    body = flask.request.body
+        
+    resp = {"tenants": [],
+            "errors": 0}
     
-    if body["tenants"]:
-        tenants.filter(Tenants.id.in_(body["tenants"]))
-    
-    resp = {
-            "tenants": [],
-            "errors": 0
-           }
-    
-    # Okay, this is wrong.
-    # We actually need the list of tenants that have done
-    # stuff within a given time range.
-
     for tenant in tenants:
-        tenants = session.query(Tenants).filter(Tenants.active)
-        
-        start = session.query(func.max(UsageEntry.end).label("end")).\
-                filter(UsageEntry.tenant == tenant).end
+        d.insert_tenant(tenant.conn['id'], tenant.conn['name'],
+                        tenant.conn['description'])
+        session.begin(subtransactions=True)
+        start = session.query(func.max(UsageEntry.end).label('end')).\
+            filter(UsageEntry.tenant_id == tenant.conn['id']).first().end
+        if not start:
+            start = datetime.strptime(dawn_of_time, iso_date)
 
-        end = datetime.now(pytz.timezone( DEFAULT_TIMEZONE )) \
-            .replace(minute=0, second=0, microsecond=0)
-        
-        usage = artifice.tenant(tenant.id).usage(start, end)
+        end = datetime.now(pytz.timezone(DEFAULT_TIMEZONE)).\
+            replace(minute=0, second=0, microsecond=0)
+
+        usage = tenant.usage(start, end)
         # .values() returns a tuple of lists of entries of artifice Resource models
         # enter expects a list of direct resource models.
         # So, unwind the list.
         for resource in usage.values():
-            d.enter( t , resource )
+            d.enter(resource, start, end)
         try:
             session.commit()
             resp["tenants"].append(
-                    {"id": tenant.id,
-                     "updated": True,
-                     "start": start.strftime(iso_time),
-                     "end":   end.strftime(iso_time)
-                    }
+                {"id": tenant.conn['id'],
+                 "updated": True,
+                 "start": start.strftime(iso_time),
+                 "end": end.strftime(iso_time)
+                 }
             )
         except sqlalchemy.exc.IntegrityError:
             # this is fine.
             resp["tenants"].append(
-                    {"id": tenant.id,
-                     "updated": False,
-                     "error": "Integrity error",
-                     "start": start.strftime(iso_time),
-                     "end":   end.strftime(iso_time)
-                    }
+                {"id": tenant.conn['id'],
+                 "updated": False,
+                 "error": "Integrity error",
+                 "start": start.strftime(iso_time),
+                 "end": end.strftime(iso_time)
+                 }
             )
             resp["errors"] += 1
-    return resp
+    return json.dumps(resp)
 
 @app.route("/sales_order", methods=["POST"])
 @keystone
