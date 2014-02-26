@@ -6,31 +6,27 @@ from artifice.models import Resource, Tenant, UsageEntry, SalesOrder, Base
 import datetime
 import subprocess
 
-DATABASE_NAME = "test_artifice"
+from . import DATABASE_NAME
+
 
 pg_engine = None
 mysql_engine = None
 
 PG_DATABASE_URI = "postgresql://aurynn:postgres@localhost/%s" % DATABASE_NAME
-MY_DATABASE_URI = "mysql://root@localhost/%s" % DATABASE_NAME
+MY_DATABASE_URI = "mysql://root:password@localhost/%s" % DATABASE_NAME
 
 def setUp():
-    subprocess.call(["/usr/bin/createdb","%s" % DATABASE_NAME]) 
-    subprocess.call(["mysql", "-u", "root", "-e", "CREATE DATABASE %s" % DATABASE_NAME]) 
+    # subprocess.call(["/usr/bin/createdb","%s" % DATABASE_NAME]) 
+    # subprocess.call(["mysql", "-u", "root","--password=password", "-e", "CREATE DATABASE %s" % DATABASE_NAME]) 
     global mysql_engine
     mysql_engine = create_engine(MY_DATABASE_URI, poolclass=NullPool)
     global pg_engine
     pg_engine = create_engine(PG_DATABASE_URI, poolclass=NullPool)
 
-    Base.metadata.create_all(bind=mysql_engine)
-    Base.metadata.create_all(bind=pg_engine)
-
 
 def tearDown():
     pg_engine.dispose()
     mysql_engine.dispose()
-    # subprocess.call(["/usr/bin/dropdb","%s" % DATABASE_NAME])  
-    # subprocess.call(["mysql", "-u", "root", "-e", "DROP DATABASE %s" % DATABASE_NAME])
 
 class db(unittest.TestCase):
     
@@ -105,15 +101,14 @@ class db(unittest.TestCase):
         self.test_insert_usage_entry()
         self.db.begin()
         usage = self.db.query(UsageEntry)[0]
-        so = SalesOrder(tenant = usage.tenant,
-                        resource = usage.resource,
+        tenant =self.db.query(Tenant).get("asfd") 
+        so = SalesOrder(tenant = tenant,
                         start = usage.start,
                         end = usage.end)
         self.db.add(so)
         self.db.commit()
         so2 = self.db.query(SalesOrder)[0]
         self.assertTrue(so2.tenant.id == so.tenant.id)
-        self.assertTrue(so2.resource.id == so.resource.id)
         self.assertTrue(so2.start == so.start)
         self.assertTrue(so2.end == so.end)
     def test_overlap_sales_order_fails(self):
