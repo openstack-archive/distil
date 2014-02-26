@@ -68,7 +68,7 @@ TENANTS = [
     {u'enabled': True,
      u'description': None,
      u'name': u'demo',
-     u'id': u'931dc699f9934021bb4a2b1088ba4d3b'}
+     u'id': u'3f7b702e4ca14cd99aebf4c4320e00ec'}
 ]
 
 DATACENTRE = "testcenter"
