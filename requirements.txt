@@ -5,3 +5,8 @@ pyaml==13.07
 python-ceilometerclient==1.0.3
 python-keystoneclient==0.3.2
 urllib3==1.5
+Flask==0.10.1
+WebTest==2.0.14
+decorator==3.4.0
+mock==1.0.1
+pytz==2013.9
