@@ -2,7 +2,7 @@ from flask import Flask, abort
 from flask import current_app, Blueprint
 from artifice import interface, database
 
-from artifice.models import UsageEntry, SalesOrder
+from artifice.models import UsageEntry, SalesOrder, Tenant
 import sqlalchemy
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import scoped_session, create_session
@@ -131,28 +131,26 @@ def must(*args, **kwargs):
     return tester
 
 
-def returns_json(func):
-    def jsonify(*args, **kwargs):
-        r = func(*args, **kwargs)
-        if isinstance(r, dict):
-            flask.response.headers["Content-type"] = "application/json"
-            return json.dumps(r)
-        return r
-
-    return decorator(jsonify, func)
+@decorator
+def returns_json(func, *args, **kwargs):
+    status, content = func(*args, **kwargs)
+    response = flask.make_response(
+        json.dumps(content), status)
+    response.headers['Content-type'] = 'application/json'
+    return response
 
 
 def json_must(*args, **kwargs):
     """Implements a simple validation system to allow for the required
        keys to be detected on a given callable."""
     def unpack(func):
-        def dejson(*iargs):
+        def dejson(f, *iargs):
             if flask.request.headers["content-type"] != "application/json":
                 # We throw an exception
                 abort(403)
                 return json.dumps({"error": "must be in JSON format"})
-            body = json.loads(flask.request.data,
-                              parse_float=decimal.Decimal)
+            # todo -- parse_float was handled specially
+            body = flask.request.json
             for key in itertools.chain(args, kwargs.keys()):
                 if not key in body:
                     abort(403)
@@ -164,8 +162,8 @@ def json_must(*args, **kwargs):
                     abort(403)
                     return json.dumps({"error": "validation failed",
                                        "key": key})
-            flask.request.body = body
-            return func(*args)
+
+            return func(*iargs)
         return decorator(dejson, func)
     return unpack
 
@@ -286,20 +284,18 @@ def run_usage_collection():
 @app.route("sales_order", methods=["POST"])
 @keystone
 @json_must("tenants")
+@returns_json
 def run_sales_order_generation():
     
     # get
-    start = datetime.strptime(start, iso_date)
-    end = datetime.strptime(end, iso_date)
-    d = Database(session)
+    session = Session()
+    d = database.Database(session)
     current_tenant = None
 
-    body = json.loads(request.body)
-
-    t = body.get( "tenants", None )
+    t = flask.request.json.get( "tenants", None )
     tenants = session.query(Tenant).filter(Tenant.active == True)
     if t:
-        t.filter( Tenants.id.in_(t) )
+        tenants = tenants.filter( Tenant.id.in_(t) )
     
     # Handled like this for a later move to Celery distributed workers
     
@@ -348,9 +344,7 @@ def run_sales_order_generation():
                 "start": start,
                 "end": end})
 
-    status(201) # created
-    response.headers[ "Content-type" ] = "application/json"
-    return json.dumps( resp )
+    return 200, resp
 
 
 @app.route("/bills/{id}", methods=["GET"])
