@@ -76,7 +76,7 @@ class Tenant(Base):
 
 # this might not be a needed model?
 class SalesOrder(Base):
-    """Historic billing periods so that tenants cannot be rebuild accidentally."""
+    """Historic billing periods so that tenants cannot be rebilled accidentally."""
     __tablename__ = 'sales_orders'
     tenant_id = Column(
             String(100),
