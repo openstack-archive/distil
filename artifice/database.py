@@ -66,7 +66,7 @@ class Database(object):
                 self.session.add(entry)
                 self.session.flush()
 
-    def usage(self, start, end, tenant):
+    def usage(self, start, end, tenant_id):
         """Returns a query of usage entries for a given tenant,
            in the given range.
            start, end: define the range to query
@@ -82,7 +82,7 @@ class Database(object):
                                    UsageEntry.service,
                                    func.sum(UsageEntry.volume).label("volume")).\
             filter(UsageEntry.start >= start, UsageEntry.end <= end).\
-            filter(UsageEntry.tenant_id == tenant).\
+            filter(UsageEntry.tenant_id == tenant_id).\
             group_by(UsageEntry.tenant_id, UsageEntry.resource_id,
                      UsageEntry.service)
 
