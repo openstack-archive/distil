@@ -22,7 +22,6 @@ class TestApi(test_interface.TestInterface):
         self.app = None
 
     def fill_db(self, numb_tenants, numb_resources, now):
-        self.session.begin(subtransactions=True)
         for i in range(numb_tenants):
             self.session.add(models.Tenant(
                 id="tenant_id_" + str(i),
@@ -33,7 +32,7 @@ class TestApi(test_interface.TestInterface):
             for ii in range(numb_resources):
                 self.session.add(models.Resource(
                     id="resource_id_" + str(ii),
-                    info=str({"type": "Resource" + str(ii)}),
+                    info=json.dumps({"type": "Resource" + str(ii)}),
                     tenant_id="tenant_id_" + str(i),
                     created=now
                 ))
@@ -102,25 +101,20 @@ class TestApi(test_interface.TestInterface):
     def test_sales_run_single(self):
         """Assertion that a sales run generates one tenant only"""
 
-        now = datetime.now()
-        self.fill_db(1, 3, now)
+        now = datetime.now().\
+            replace(hour=0, minute=0, second=0, microsecond=0)
+        self.fill_db(5, 5, now)
         resp = self.app.post("/sales_order",
-                             params=json.dumps({"tenants": ["tenant_name_0"]}),
+                             params=json.dumps({"tenants": ["tenant_id_0"]}),
                              content_type="application/json")
 
         self.assertEquals(resp.status_int, 200)
 
         # todo: assert that a salesorder was created
         # todo: assert things in the response
-    
-    @unittest.skip
-    def test_no_usage_body_raises_403(self):
-        """Assertion that no body on usage request raises 403"""
-        resp = self.app.post("/collect_usage")
-        self.assertTrue(resp.status_int, 403)
 
     @unittest.skip
-    def test_no_sales_body_raises_403(self):
-        """Assertion that no body on sales request raises 403"""
-        resp = self.app.post("/generate_sales_order")
-        self.assertTrue(resp.status_int, 403)
+    def test_sales_raises_400(self):
+        """Assertion that 400 is being thrown if content is not json."""
+        resp = self.app.post("/sales_order")
+        self.assertTrue(resp.status_int, 400)

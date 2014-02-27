@@ -1,5 +1,5 @@
 import flask
-from flask import Flask, abort, Blueprint
+from flask import Flask, Blueprint
 from artifice import interface, database
 from artifice.models import UsageEntry, SalesOrder, Tenant, billing
 import sqlalchemy
@@ -8,9 +8,8 @@ from sqlalchemy.orm import scoped_session, create_session
 from sqlalchemy.pool import NullPool
 from decimal import Decimal
 from datetime import datetime
-from decorator import decorator
+import importlib
 import collections
-import itertools
 import pytz
 import json
 
@@ -49,7 +48,7 @@ def get_app(conf):
 
     global invoicer
     module, kls = config["main"]["export_provider"].split(":")
-    invoicer = __import__(module, globals(), locals(), [kls])
+    invoicer = getattr(importlib.import_module(module), kls)
 
     if config["main"].get("timezone"):
         global DEFAULT_TIMEZONE
@@ -168,15 +167,16 @@ def run_usage_collection():
 
 @app.route("sales_order", methods=["POST"])
 @keystone
-@json_must("tenants")
+@json_must()
 @returns_json
 def run_sales_order_generation():
 
     session = Session()
-    d = database.Database(session)
+    db = database.Database(session)
 
     t = flask.request.json.get("tenants", None)
     tenants = session.query(Tenant)
+
     if t:
         tenants = tenants.filter(Tenant.id.in_(t))
 
@@ -185,21 +185,25 @@ def run_sales_order_generation():
     resp = {"tenants": []}
 
     for tenant in tenants:
+        session.begin()
         # Get the last sales order for this tenant, to establish
         # the proper ranging
 
-        last = session.Query(SalesOrder).filter(SalesOrder.tenant == tenant)
-        start = last.end
+        start = session.query(func.max(SalesOrder.end).label('end')).\
+            filter(SalesOrder.tenant == tenant).first().end
+        if not start:
+            start = datetime.strptime(dawn_of_time, iso_date)
         # Today, the beginning of.
-        end = datetime.now(pytz.timezone(DEFAULT_TIMEZONE)).\
+        end = datetime.now().\
             replace(hour=0, minute=0, second=0, microsecond=0)
 
         # Invoicer is pulled from the configfile and set up above.
-        usage = d.usage(start, end, tenant)
-        so = SalesOrder()
-        so.tenant = tenant
-        so.range = (start, end)
-        session.add(so)
+        usage = db.usage(start, end, tenant.id)
+        order = SalesOrder()
+        order.tenant = tenant
+        order.range = (start, end)
+        session.add(order)
+
         # Commit the record before we generate the bill, to mark this as a
         # billed region of data. Avoids race conditions by marking a tenant
         # BEFORE we start to generate the data for it.
@@ -211,21 +215,22 @@ def run_sales_order_generation():
             resp["tenants"].append({
                 "id": tenant.id,
                 "generated": False,
-                "start": start,
-                "end": end})
+                "start": str(start),
+                "end": str(end)})
             next
+
         # Transform the query result into a billable dict.
         # This is non-portable and very much tied to the CSV exporter
         # and will probably result in the CSV exporter being changed.
         billable = billing.build_billable(usage, session)
-        generator = invoicer(start, end, config)
-        generator.bill(billable)
-        generator.close()
+        exporter = invoicer(start, end, config["export_config"])
+        exporter.bill(billable)
+        exporter.close()
         resp["tenants"].append({
             "id": tenant.id,
             "generated": True,
-            "start": start,
-            "end": end})
+            "start": str(start),
+            "end": str(end)})
 
     return 200, resp
 

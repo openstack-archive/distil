@@ -56,7 +56,7 @@ config = {
         "delimiter": ",",
         "output_file": "%(tenant)s-%(start)s-%(end)s.csv",
         "rates": {
-            "file": "/etc/artifice/csv_rates.csv"
+            "file": "examples/test_rates.csv"
         }
     },
     "artifice": {}
