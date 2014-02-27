@@ -43,7 +43,7 @@ config = {
     },
     "main": {
         "export_provider": "artifice.plugins.csv_:Csv",
-        "database_uri": "postgresql://aurynn:aurynn@localhost/test_artifice"
+        "database_uri": PG_DATABASE_URI
     },
     "openstack": {
         "username": "admin",
@@ -202,6 +202,7 @@ class TestInterface(unittest.TestCase):
         self.session.query(Resource).delete()
         self.session.query(tenant_model).delete()
         self.session.commit()
+        self.session.close()
         self.contents = None
         self.resources = []
         self.artifice = None

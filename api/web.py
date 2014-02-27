@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, abort
 from flask import current_app, Blueprint
 from artifice import interface, database
 
@@ -8,17 +8,20 @@ from sqlalchemy import create_engine, func
 from sqlalchemy.orm import scoped_session, create_session
 from decimal import Decimal
 from datetime import datetime
+from sqlalchemy.pool import NullPool
 import collections
 import itertools
 import pytz
 import json
+import flask
+import decimal
 
 from decorator import decorator
 
 engine = None
 # Session.configure(bind=create_engine(conn_string))
 
-session = scoped_session(lambda: create_session(bind=engine))
+Session = None
 # db = Session()
 
 app = Blueprint("main", __name__)
@@ -35,9 +38,12 @@ def get_app(conf):
     actual_app = Flask(__name__)
     actual_app.register_blueprint(app, url_prefix="/")
     global engine
-    engine = create_engine(conf["main"]["database_uri"])
+    engine = create_engine(conf["main"]["database_uri"], poolclass=NullPool)
     global config
     config = conf
+
+    global Session
+    Session = scoped_session(lambda: create_session(bind=engine))
 
     global invoicer
 
@@ -126,8 +132,8 @@ def must(*args, **kwargs):
 
 
 def returns_json(func):
-    def jsonify(*args,**kwargs):
-        r = func(*args,**kwargs)
+    def jsonify(*args, **kwargs):
+        r = func(*args, **kwargs)
         if isinstance(r, dict):
             flask.response.headers["Content-type"] = "application/json"
             return json.dumps(r)
@@ -135,25 +141,26 @@ def returns_json(func):
 
     return decorator(jsonify, func)
 
+
 def json_must(*args, **kwargs):
     """Implements a simple validation system to allow for the required
        keys to be detected on a given callable."""
     def unpack(func):
         def dejson(*iargs):
-            if flask.request.headers["content-encoding"] != "application/json":
+            if flask.request.headers["content-type"] != "application/json":
                 # We throw an exception
                 abort(403)
                 return json.dumps({"error": "must be in JSON format"})
-            body = json.loads( flask.request.body, 
-                               parse_float=decimal.Decimal )
-            for key in itertools.chain( args, kwargs.keys() ):
+            body = json.loads(flask.request.data,
+                              parse_float=decimal.Decimal)
+            for key in itertools.chain(args, kwargs.keys()):
                 if not key in body:
                     abort(403)
                     return json.dumps({"error": "missing key",
                                        "key": key})
             for key, val in kwargs.iteritems():
                 input_ = body[key]
-                if not val( input_ ):
+                if not val(input_):
                     abort(403)
                     return json.dumps({"error": "validation failed",
                                        "key": key})
@@ -223,6 +230,8 @@ def run_usage_collection():
 
     The volume will be parsed from JSON as a Decimal object.
     """
+
+    session = Session()
     
     # TODO
     artifice = interface.Artifice(config)
@@ -271,9 +280,10 @@ def run_usage_collection():
                  }
             )
             resp["errors"] += 1
+    session.close()
     return json.dumps(resp)
 
-@app.route("/sales_order", methods=["POST"])
+@app.route("sales_order", methods=["POST"])
 @keystone
 @json_must("tenants")
 def run_sales_order_generation():

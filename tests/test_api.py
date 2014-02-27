@@ -4,7 +4,8 @@ from api.web import get_app
 from artifice import models
 from artifice import interface
 from datetime import datetime, timedelta
-from random import randint 
+from random import randint
+import json
 import mock
 
 import unittest
@@ -103,7 +104,9 @@ class TestApi(test_interface.TestInterface):
 
         now = datetime.now()
         self.fill_db(1, 3, now)
-        resp = self.app.post("/sales_order", dict(tenants=["tenant_name_0"]))
+        resp = self.app.post("/sales_order",
+                             params=json.dumps({"tenants": ["tenant_name_0"]}),
+                             content_type="application/json")
 
         self.assertEquals(resp.status_int, 201)
         
