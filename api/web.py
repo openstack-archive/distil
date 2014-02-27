@@ -106,6 +106,14 @@ def keystone(func):
 
     # return _perform_keystone
 
+def _validate(data, *args, **kwargs):
+    for key in itertools.chain(args, kwargs.keys()):
+        if not key in data:
+            abort(403, json.dumps({'error': 'missing parameter',
+                'param': key}))
+        for key, val in kwargs.iteritems():
+            abort(403, json.dumps({'error': 'validation failed',
+                'param': key}))
 
 def must(*args, **kwargs):
     """
@@ -115,17 +123,7 @@ def must(*args, **kwargs):
     def tester(func):
         def funky(*iargs, **ikwargs):
             body = flask.request.params
-            for key in itertools.chain( args, kwargs.keys() ):
-                if not key in body:
-                    abort(403)
-                    return json.dumps({"error": "missing parameter",
-                                       "param": key})
-            for key, val in kwargs.iteritems():
-                input_ = body[key]
-                if not val( input_ ):
-                    abort(403)
-                    return json.dumps({"error": "validation failed",
-                                       "param": key}) 
+            _validate(flask.request.params, *args, **kwargs)
             return func(*iargs, **ikwargs)
         return decorator(funky, func) 
     return tester
@@ -148,16 +146,7 @@ def json_must(*args, **kwargs):
             if flask.request.headers["content-type"] != "application/json":
                 abort(403, json.dumps({"error": "must be in JSON format"}))
             # todo -- parse_float was handled specially
-            body = flask.request.json
-            for key in itertools.chain(args, kwargs.keys()):
-                if not key in body:
-                    abort(403, json.dumps({"error": "missing key",
-                                       "key": key}))
-            for key, val in kwargs.iteritems():
-                input_ = body[key]
-                if not val(input_):
-                    abort(403, json.dumps({"error": "validation failed",
-                                       "key": key}))
+            _validate(flask.request.json, *args, **kwargs)
 
             return func(*iargs)
         return decorator(dejson, func)
