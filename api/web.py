@@ -146,22 +146,18 @@ def json_must(*args, **kwargs):
     def unpack(func):
         def dejson(f, *iargs):
             if flask.request.headers["content-type"] != "application/json":
-                # We throw an exception
-                abort(403)
-                return json.dumps({"error": "must be in JSON format"})
+                abort(403, json.dumps({"error": "must be in JSON format"}))
             # todo -- parse_float was handled specially
             body = flask.request.json
             for key in itertools.chain(args, kwargs.keys()):
                 if not key in body:
-                    abort(403)
-                    return json.dumps({"error": "missing key",
-                                       "key": key})
+                    abort(403, json.dumps({"error": "missing key",
+                                       "key": key}))
             for key, val in kwargs.iteritems():
                 input_ = body[key]
                 if not val(input_):
-                    abort(403)
-                    return json.dumps({"error": "validation failed",
-                                       "key": key})
+                    abort(403, json.dumps({"error": "validation failed",
+                                       "key": key}))
 
             return func(*iargs)
         return decorator(dejson, func)
