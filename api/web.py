@@ -165,72 +165,102 @@ def run_usage_collection():
     return json.dumps(resp)
 
 
-@app.route("sales_order", methods=["POST"])
-@keystone
-@json_must()
-@returns_json
-def run_sales_order_generation():
-
-    session = Session()
+def generate_sales_order(tenant, session):
     db = database.Database(session)
 
-    t = flask.request.json.get("tenants", None)
-    tenants = session.query(Tenant)
+    session.begin()
+    # Get the last sales order for this tenant, to establish
+    # the proper ranging
+    start = session.query(func.max(SalesOrder.end).label('end')).\
+        filter(SalesOrder.tenant == tenant).first().end
+    if not start:
+        start = datetime.strptime(dawn_of_time, iso_date)
+    # Today, the beginning of.
+    end = datetime.now().\
+        replace(hour=0, minute=0, second=0, microsecond=0)
+    # Invoicer is pulled from the configfile and set up above.
+    usage = db.usage(start, end, tenant.id)
+    order = SalesOrder(tenant_id=tenant.id, start=start, end=end)
+    session.add(order)
 
-    if t:
-        tenants = tenants.filter(Tenant.id.in_(t))
-
-    # Handled like this for a later move to Celery distributed workers
-
-    resp = {"tenants": []}
-
-    for tenant in tenants:
-        session.begin()
-        # Get the last sales order for this tenant, to establish
-        # the proper ranging
-
-        start = session.query(func.max(SalesOrder.end).label('end')).\
-            filter(SalesOrder.tenant == tenant).first().end
-        if not start:
-            start = datetime.strptime(dawn_of_time, iso_date)
-        # Today, the beginning of.
-        end = datetime.now().\
-            replace(hour=0, minute=0, second=0, microsecond=0)
-
-        # Invoicer is pulled from the configfile and set up above.
-        usage = db.usage(start, end, tenant.id)
-        order = SalesOrder()
-        order.tenant = tenant
-        order.range = (start, end)
-        session.add(order)
-
+    try:
         # Commit the record before we generate the bill, to mark this as a
         # billed region of data. Avoids race conditions by marking a tenant
         # BEFORE we start to generate the data for it.
-
-        try:
-            session.commit()
-        except sqlalchemy.exc.IntegrityError:
-            session.rollback()
-            resp["tenants"].append({
-                "id": tenant.id,
-                "generated": False,
-                "start": str(start),
-                "end": str(end)})
-            next
+        session.commit()
 
         # Transform the query result into a billable dict.
         # This is non-portable and very much tied to the CSV exporter
         # and will probably result in the CSV exporter being changed.
         billable = billing.build_billable(usage, session)
+        session.close()
         exporter = invoicer(start, end, config["export_config"])
         exporter.bill(billable)
         exporter.close()
-        resp["tenants"].append({
-            "id": tenant.id,
-            "generated": True,
-            "start": str(start),
-            "end": str(end)})
+        return {"id": tenant.id,
+                "generated": True,
+                "start": str(start),
+                "end": str(end)}
+
+    except sqlalchemy.exc.IntegrityError:
+        session.rollback()
+        session.close()
+        return {"id": tenant.id,
+                "generated": False,
+                "start": str(start),
+                "end": str(end)}
+
+
+@app.route("sales_order", methods=["POST"])
+@keystone
+@json_must()
+@returns_json
+def run_sales_order_generation():
+    session = Session()
+
+    # TODO: ensure cases work as follows:
+    # if no body or content type: generate orders for all
+    # if no body and json content type: throw 400? Or should this order all?
+    # if body, and json, and parsed, but no tenants, throw 400? Or order all.
+
+    # If request has body, content type must be json.
+    # else: throw 400
+    # if request has body and content type json, body must parse to json
+    # else: throw 400
+
+    # if 'tenants' is not None, and not a list, throw a 400 response.
+
+    # if the list is empty, throw 400 and invalid parameter 'list is empty'.
+    # Or allow return 200 and resp['tenants'] will just be empty?
+
+    # if list isn't empty, but query produces no results, throw 400?
+    # Or allow return 200 and resp['tenants'] will just be empty?
+
+    # any missing cases? Any cases not worth covering?
+
+    # should these checks be here, or in decorators.
+    # if in decorators can we make these as parameters for the decorators,
+    # to keep them fairly generic, or are these cases too specific?
+
+    tenants = flask.request.json.get("tenants", None)
+    tenant_query = session.query(Tenant)
+
+    if tenants is not None:
+        try:
+            tenant_query = tenant_query.filter(Tenant.id.in_(tenants))
+            if tenant_query.count() == 0:
+                return 400, {"errors": ["No tenants found from given list."]}
+        except TypeError:
+            # TODO: make an invalid parameters helper function
+            return 400, {"invalid parameters": {"tenants": "Must be a list."}}
+    else:
+        return 400, {"missing parameters": {"tenants": "A list of tenant ids."}}
+
+    # Handled like this for a later move to Celery distributed workers
+    resp = {"tenants": []}
+
+    for tenant in tenant_query:
+        resp['tenants'].append(generate_sales_order(tenant, session))
 
     return 200, resp
 

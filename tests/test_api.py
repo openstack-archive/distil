@@ -85,18 +85,27 @@ class TestApi(test_interface.TestInterface):
                 count += len(res_type)
             self.assertEquals(resources.count(), count)
 
-    @unittest.skip
     def test_sales_run_for_all(self):
-        """"Assertion that a sales run generates all tenant information"""
-        # We need to set up the usage information first
+        """"Assertion that a sales run generates all tenant orders"""
 
-        self.test_usage_run_for_all()
-        resp = self.app.post("/sales_order", dict(tenants=[]))
-        self.assertEquals(resp.status_int, 201)
-        
-        tenants = self.db.query(models.Tenant)
-        for tenant in tenants:
-            self.assertTrue(len( tenant.orders ) == 1) # One sales order only
+        now = datetime.now().\
+            replace(hour=0, minute=0, second=0, microsecond=0)
+        self.fill_db(7, 5, now)
+        resp = self.app.post("/sales_order")
+        resp_json = json.loads(resp.body)
+
+        self.assertEquals(resp.status_int, 200)
+
+        query = self.session.query(models.SalesOrder)
+        self.assertEquals(query.count(), 7)
+
+        self.assertEquals(len(resp_json['tenants']), 7)
+
+        i = 0
+        for tenant in resp_json['tenants']:
+            self.assertTrue(tenant['generated'])
+            self.assertEquals(tenant['id'], 'tenant_id_' + str(i))
+            i += 1
 
     def test_sales_run_single(self):
         """Assertion that a sales run generates one tenant only"""
@@ -107,11 +116,16 @@ class TestApi(test_interface.TestInterface):
         resp = self.app.post("/sales_order",
                              params=json.dumps({"tenants": ["tenant_id_0"]}),
                              content_type="application/json")
+        resp_json = json.loads(resp.body)
 
         self.assertEquals(resp.status_int, 200)
 
-        # todo: assert that a salesorder was created
+        query = self.session.query(models.SalesOrder)
+        self.assertEquals(query.count(), 1)
         # todo: assert things in the response
+        self.assertEquals(len(resp_json['tenants']), 1)
+        self.assertTrue(resp_json['tenants'][0]['generated'])
+        self.assertEquals(resp_json['tenants'][0]['id'], 'tenant_id_0')
 
     @unittest.skip
     def test_sales_raises_400(self):

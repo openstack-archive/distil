@@ -5,7 +5,7 @@ import mock
 import random
 import json
 from artifice.models import Tenant as tenant_model
-from artifice.models import UsageEntry, Resource
+from artifice.models import UsageEntry, Resource, SalesOrder
 from sqlalchemy.pool import NullPool
 import decimal
 # import copy
@@ -200,6 +200,7 @@ class TestInterface(unittest.TestCase):
 
         self.session.query(UsageEntry).delete()
         self.session.query(Resource).delete()
+        self.session.query(SalesOrder).delete()
         self.session.query(tenant_model).delete()
         self.session.commit()
         self.session.close()
