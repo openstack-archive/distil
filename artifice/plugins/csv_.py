@@ -11,6 +11,7 @@ class Csv(sales_order.RatesFileMixin, sales_order.SalesOrder):
         super(Csv, self).__init__(start, end, config)
         self.lines = {}
         self.total = Decimal(0.0)
+        self.tenant = None
 
     def _bill(self, tenant):
         """Generates the lines for a sales order for the tenant."""
@@ -72,19 +73,13 @@ class Csv(sales_order.RatesFileMixin, sales_order.SalesOrder):
 
     def add_line(self, res_type, line):
         """Adds a line to the given resource type list."""
-        if not self.closed:
-            try:
-                self.lines[res_type].append(line)
-            except KeyError:
-                self.lines[res_type] = [line]
-            return
-        raise AttributeError("Can't add to a closed invoice")
+        try:
+            self.lines[res_type].append(line)
+        except KeyError:
+            self.lines[res_type] = [line]
 
     @property
     def filename(self):
-        if tenant is None:
-            raise AttributeError("CSV has no billed tenant.")
-
         fn_dict = dict(tenant=self.tenant.name, start=self.start,
                        end=self.end)
 
@@ -96,8 +91,6 @@ class Csv(sales_order.RatesFileMixin, sales_order.SalesOrder):
 
     def close(self):
         """Closes the sales order, and exports the lines to a csv file."""
-        if tenant is None:
-            raise AttributeError("CSV has no billed tenant.")
 
         try:
             open(self.filename)
@@ -122,4 +115,3 @@ class Csv(sales_order.RatesFileMixin, sales_order.SalesOrder):
         csvwriter.writerow(["invoice total cost: ", round(self.total, 2)])
 
         fh.close()
-        self.closed = True
