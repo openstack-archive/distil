@@ -42,7 +42,7 @@ config = {
         "host": "http://localhost:8777/"
     },
     "main": {
-        "export_provider": "artifice.plugins.csv_:Csv",
+        "export_provider": "tests.mock_exporter:MockExporter",
         "database_uri": PG_DATABASE_URI
     },
     "openstack": {
