@@ -1,22 +1,19 @@
-from flask import Flask, abort
-from flask import current_app, Blueprint
+import flask
+from flask import Flask, abort, Blueprint
 from artifice import interface, database
-
-from artifice.models import UsageEntry, SalesOrder, Tenant
+from artifice.models import UsageEntry, SalesOrder, Tenant, billing
 import sqlalchemy
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import scoped_session, create_session
+from sqlalchemy.pool import NullPool
 from decimal import Decimal
 from datetime import datetime
-from sqlalchemy.pool import NullPool
+from decorator import decorator
 import collections
 import itertools
 import pytz
 import json
-import flask
-import decimal
 
-from decorator import decorator
 
 engine = None
 # Session.configure(bind=create_engine(conn_string))
@@ -32,13 +29,16 @@ invoicer = None
 
 DEFAULT_TIMEZONE = "Pacific/Auckland"
 
-current_region = "Wellington" # FIXME
+current_region = "Wellington"  # FIXME
+
 
 def get_app(conf):
     actual_app = Flask(__name__)
     actual_app.register_blueprint(app, url_prefix="/")
+
     global engine
     engine = create_engine(conf["main"]["database_uri"], poolclass=NullPool)
+
     global config
     config = conf
 
@@ -46,26 +46,19 @@ def get_app(conf):
     Session = scoped_session(lambda: create_session(bind=engine))
 
     global invoicer
-
     module, kls = config["main"]["export_provider"].split(":")
     invoicer = __import__(module, globals(), locals(), [kls])
 
     if config["main"].get("timezone"):
         global DEFAULT_TIMEZONE
         DEFAULT_TIMEZONE = config["main"]["timezone"]
-    
-    return actual_app
 
-# invoicer = config["general"]["invoice_handler"]
-# module, kls = invoice_type.split(":")
-# invoicer = __import__(module, globals(), locals(), [kls])
+    return actual_app
 
 
 # Some useful constants
-
 iso_time = "%Y-%m-%dT%H:%M:%S"
 iso_date = "%Y-%m-%d"
-
 dawn_of_time = "2012-01-01"
 
 
@@ -74,6 +67,7 @@ class validators(object):
     @classmethod
     def iterable(cls, val):
         return isinstance(val, collections.Iterable)
+
 
 class DecimalEncoder(json.JSONEncoder):
     """Simple encoder which handles Decimal objects, rendering them to strings.
@@ -84,22 +78,23 @@ class DecimalEncoder(json.JSONEncoder):
             return str(obj)
         return json.JSONEncoder.default(self, obj)
 
+
 def fetch_endpoint(region):
     return config.get("keystone_endpoint")
     # return "http://0.0.0.0:35357/v2.0" # t\/his ought to be in config. #FIXME
 
+
 def keystone(func):
-    
     """Will eventually provide a keystone wrapper for validating a query.
     Currently does not.
     """
-    return func # disabled for now
+    return func  # disabled for now
     # admin_token = config.get("admin_token")
     # def _perform_keystone(*args, **kwargs):
     #     headers = flask.request.headers
     #     if not 'user_id' in headers:
     #         flask.abort(401) # authentication required
-    #     
+    #
     #     endpoint = fetch_endpoint( current_region )
     #     keystone = keystoneclient.v2_0.client.Client(token=admin_token,
     #             endpoint=endpoint)
@@ -115,19 +110,19 @@ def must(*args, **kwargs):
     def tester(func):
         def funky(*iargs, **ikwargs):
             body = flask.request.params
-            for key in itertools.chain( args, kwargs.keys() ):
+            for key in itertools.chain(args, kwargs.keys()):
                 if not key in body:
                     abort(403)
                     return json.dumps({"error": "missing parameter",
                                        "param": key})
             for key, val in kwargs.iteritems():
                 input_ = body[key]
-                if not val( input_ ):
+                if not val(input_):
                     abort(403)
                     return json.dumps({"error": "validation failed",
-                                       "param": key}) 
+                                       "param": key})
             return func(*iargs, **ikwargs)
-        return decorator(funky, func) 
+        return decorator(funky, func)
     return tester
 
 
@@ -152,67 +147,16 @@ def json_must(*args, **kwargs):
             for key in itertools.chain(args, kwargs.keys()):
                 if not key in body:
                     abort(403, json.dumps({"error": "missing key",
-                                       "key": key}))
+                                           "key": key}))
             for key, val in kwargs.iteritems():
                 input_ = body[key]
                 if not val(input_):
                     abort(403, json.dumps({"error": "validation failed",
-                                       "key": key}))
+                                           "key": key}))
 
             return func(*iargs)
         return decorator(dejson, func)
     return unpack
-
-
-@app.route("/usage", methods=["GET"])
-# @app.get("/usage/{resource_id}") # also allow for querying by resource ID.
-@keystone
-@must("resource_id", "tenant")
-def retrieve_usage(resource_id=None):
-    """Retrieves usage for a given tenant ID.
-    Tenant ID will be passed in via the query string.
-    Expects a keystone auth string in the headers
-    and will attempt to perform keystone auth
-    """
-    tenant = flask.request.params.get("tenant", None)
-    if not tenant:
-        flask.abort(403, json.dumps({"error":"tenant ID required"})) # Bad request
-    
-    # expect a start and an end timepoint
-    
-    start = flask.request.params.get("start", None)
-    end = flask.request.params.get("end", None)
-
-    if not end:
-        end = datetime.now().strftime(iso_date)
-
-    if not start:
-        # Hmm. I think this is okay.
-        # We just make a date in the dawn of time.
-        start = dawn_of_time
-    
-    start = datetime.strptime(start, iso_date)
-    end = datetime.strptime(end, iso_date)
-    usages = session.query(usage.Usage)\
-            .filter(Usage.tenant_id == tenant)\
-            .filter(Usage.time.contained_by(start, end))
-
-    if resource_id:
-        usages.filter(usage.Usage.resource_id == resource_id)
-
-    resource = None
-    usages = defaultdict(Decimal)
-    for usage in usages:
-        if usage.resource_id != resource:
-            resource = usage.resource_id
-        usages[resource] += Decimal(usage.volume)
-
-    # 200 okay
-    return ( 200, json.dumps({
-        "status":"ok",
-        "tenant": tenant,
-        "total": usages
-    }, cls=DecimalEncoder) ) # Specifically encode decimals appropriate, without float logic
 
 
 @app.route("collect_usage", methods=["POST"])
@@ -226,16 +170,15 @@ def run_usage_collection():
     """
 
     session = Session()
-    
-    # TODO
+
     artifice = interface.Artifice(config)
     d = database.Database(session)
- 
+
     tenants = artifice.tenants
-        
+
     resp = {"tenants": [],
             "errors": 0}
-    
+
     for tenant in tenants:
         d.insert_tenant(tenant.conn['id'], tenant.conn['name'],
                         tenant.conn['description'])
@@ -249,7 +192,7 @@ def run_usage_collection():
             replace(minute=0, second=0, microsecond=0)
 
         usage = tenant.usage(start, end)
-        # .values() returns a tuple of lists of entries of artifice Resource models
+        # .values() returns a tuple of lists of artifice Resource models
         # enter expects a list of direct resource models.
         # So, unwind the list.
         for resource in usage.values():
@@ -277,36 +220,34 @@ def run_usage_collection():
     session.close()
     return json.dumps(resp)
 
+
 @app.route("sales_order", methods=["POST"])
 @keystone
 @json_must("tenants")
 @returns_json
 def run_sales_order_generation():
-    
-    # get
+
     session = Session()
     d = database.Database(session)
-    current_tenant = None
 
-    t = flask.request.json.get( "tenants", None )
-    tenants = session.query(Tenant).filter(Tenant.active == True)
+    t = flask.request.json.get("tenants", None)
+    tenants = session.query(Tenant)
     if t:
-        tenants = tenants.filter( Tenant.id.in_(t) )
-    
+        tenants = tenants.filter(Tenant.id.in_(t))
+
     # Handled like this for a later move to Celery distributed workers
-    
-    resp = {
-            "tenants": []
-            }
+
+    resp = {"tenants": []}
+
     for tenant in tenants:
         # Get the last sales order for this tenant, to establish
         # the proper ranging
 
-        last = session.Query(SalesOrders).filter(SalesOrders.tenant == tenant)
+        last = session.Query(SalesOrder).filter(SalesOrder.tenant == tenant)
         start = last.end
         # Today, the beginning of.
-        end = datetime.now(pytz.timezone( DEFAULT_TIMEZONE )) \
-            .replace(hour=0, minute=0, second=0, microsecond=0)
+        end = datetime.now(pytz.timezone(DEFAULT_TIMEZONE)).\
+            replace(hour=0, minute=0, second=0, microsecond=0)
 
         # Invoicer is pulled from the configfile and set up above.
         usage = d.usage(start, end, tenant)
@@ -314,9 +255,10 @@ def run_sales_order_generation():
         so.tenant = tenant
         so.range = (start, end)
         session.add(so)
-        # Commit the record before we generate the bill, to mark this as a 
-        # billed region of data. Avoids race conditions by marking a tenant BEFORE
-        # we start to generate the data for it.
+        # Commit the record before we generate the bill, to mark this as a
+        # billed region of data. Avoids race conditions by marking a tenant
+        # BEFORE we start to generate the data for it.
+
         try:
             session.commit()
         except sqlalchemy.exc.IntegrityError:
@@ -335,125 +277,12 @@ def run_sales_order_generation():
         generator.bill(billable)
         generator.close()
         resp["tenants"].append({
-                "id": tenant.id,
-                "generated": True,
-                "start": start,
-                "end": end})
+            "id": tenant.id,
+            "generated": True,
+            "start": start,
+            "end": end})
 
     return 200, resp
-
-
-@app.route("/bills/{id}", methods=["GET"])
-@keystone
-@must("tenant", "start", "end")
-def get_bill(id_):
-    """
-    Returns either a single bill or a set of the most recent
-    bills for a given Tenant.
-    """
-
-    # TODO: Put these into an input validator instead
-    try:
-        start = datetime.strptime(request.params["start"], date_iso)
-    except:
-        abort(
-            403, 
-            json.dumps(
-                {"status":"error", 
-                 "error": "start date is not ISO-compliant"})
-        )
-    try:
-        end = datetime.strptime(request.params["end"], date_iso)
-    except:
-        abort(
-            403, 
-            json.dumps(
-                {"status":"error", 
-                 "error": "end date is not ISO-compliant"})
-        )
-
-    try:
-        bill = BillInterface(session).get(id_)
-    except:
-        abort(404)
-
-    if not bill:
-        abort(404)
-
-    resp = {"status": "ok",
-            "bill": [],
-            "total": str(bill.total),
-            "tenant": bill.tenant_id
-           }
-
-    for resource in billed:
-        resp["bill"].append({
-            'resource_id': bill.resource_id,
-            'volume': str( bill.volume ),
-            'rate': str( bill.rate ),
-            # 'metadata':  # TODO: This will be filled in with extra data
-        })
-    
-    return (200, json.dumps(resp))
-    
-@app.route("/usage/current", methods=["GET"])
-@keystone
-@must("tenant_id")
-def get_current_usage():
-    """
-    Is intended to return a running total of the current billing periods'
-    dataset. Performs a Rate transformer on each transformed datapoint and 
-    returns the result.
-
-    TODO: Implement
-    """
-    pass
-
-@app.route("/bill", methods=["POST"])
-@keystone
-def make_a_bill():
-    """Generates a bill for a given user.
-    Expects a JSON dict, with a tenant id and a time range.
-    Authentication is expected to be present. 
-    This *will* interact with the ERP plugin and perform a bill-generation
-    cycle.
-    """
-    
-    body = json.loads(request.body)
-    tenant = body.get("tenant", None)
-    if not tenant:
-        return abort(403) # bad request
-    
-    start = body.get("start", None)
-    end = body.get("end", None)
-    if not start or not end:
-        return abort(403) # All three *must* be defined
-    
-
-    bill = BillInterface(session)
-    thebill = bill.generate(body["tenant_id"], start, end)
-    # assumes the bill is saved
-
-    if not thebill.is_saved:
-        # raise an error
-        abort(500)
-    
-    resp = {"status":"created",
-            "id": thebill.id,
-            "contents": [],
-            "total": None
-           }
-    for resource in thebill.resources:
-        total += Decimal(billed.total)
-        resp["contents"].append({
-            'resource_id': bill.resource_id,
-            'volume': str( bill.volume ),
-            'rate': str( bill.rate ),
-            # 'metadata':  # TODO: This will be filled in with extra data
-        })
-    
-    resp["total"] = thebill.total
-    return (201, json.dumps(resp))
 
 
 if __name__ == '__main__':
