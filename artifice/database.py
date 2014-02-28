@@ -29,10 +29,7 @@ class Database(object):
         """Creates a new database entry for every usage strategy
            in a resource, for all the resources given"""
 
-        # Seems to expect somethig else
-
         for resource in usage:
-            # This is where possibly injectable strategies can happen
             for key in resource.usage_strategies:
                 strategy = resource.usage_strategies[key]
                 volume = resource.get(strategy['usage'])
