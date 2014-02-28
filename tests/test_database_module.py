@@ -1,16 +1,13 @@
 from . import test_interface, helpers
 from artifice import database
 from artifice import models
-from sqlalchemy.ext.declarative import declarative_base
 from datetime import timedelta
 
-Base = declarative_base()
 
-
-class TestDatabaseModels(test_interface.TestInterface):
+class TestDatabaseModule(test_interface.TestInterface):
 
     def tearDown(self):
-        super(TestDatabaseModels, self).tearDown()
+        super(TestDatabaseModule, self).tearDown()
 
     def test_adding_to_db(self):
         """Tests adding all the data to the database."""
