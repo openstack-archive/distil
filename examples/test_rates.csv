@@ -1,0 +1,10 @@
+region | service0  | duration       | 0.32
+region | service1  | duration       | 0.312
+region | service2  | duration       | 0.43
+region | service3  | duration       | 0.38
+region | service4  | duration       | 0.43
+region | service5  | duration       | 0.32
+region | service6  | duration       | 0.312
+region | service7  | duration       | 0.53
+region | service8  | duration       | 0.73
+region | service9  | duration       | 0.9
