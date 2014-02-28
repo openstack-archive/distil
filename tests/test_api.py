@@ -51,10 +51,8 @@ class TestApi(test_interface.TestInterface):
             usages = self.session.query(models.UsageEntry)
             self.assertTrue(usages.count() > 0)
             resources = self.session.query(models.Resource)
-            count = 0
-            for res_type in usage.values():
-                count += len(res_type)
-            self.assertEquals(resources.count(), count)
+
+            self.assertEquals(resources.count(), len(usage.values()))
 
     def test_sales_run_for_all(self):
         """"Assertion that a sales run generates all tenant orders"""

@@ -136,11 +136,10 @@ def run_usage_collection():
             replace(minute=0, second=0, microsecond=0)
 
         usage = tenant.usage(start, end)
-        # .values() returns a tuple of lists of artifice Resource models
-        # enter expects a list of direct resource models.
-        # So, unwind the list.
-        for resource in usage.values():
-            d.enter(resource, start, end)
+        
+        # enter all resources into the db
+        d.enter(usage.values(), start, end)
+            
         try:
             session.commit()
             resp["tenants"].append(

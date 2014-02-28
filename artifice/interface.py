@@ -291,7 +291,8 @@ class Usage(object):
         # self._replace()
 
     def values(self):
-        return (self.vms, self.objects, self.volumes, self.networks, self.ips)
+        return (self.vms + self.objects + self.volumes +
+                self.networks + self.ips)
 
     @property
     def vms(self):
