@@ -1,10 +1,9 @@
 from webtest import TestApp
-from . import test_interface
+from . import test_interface, helpers, constants
 from api.web import get_app
 from artifice import models
 from artifice import interface
-from datetime import datetime, timedelta
-from random import randint
+from datetime import datetime
 import json
 import mock
 
@@ -15,53 +14,25 @@ class TestApi(test_interface.TestInterface):
 
     def setUp(self):
         super(TestApi, self).setUp()
-        self.app = TestApp(get_app(test_interface.config))
-         
+        self.app = TestApp(get_app(constants.config))
+
     def tearDown(self):
         super(TestApi, self).tearDown()
         self.app = None
 
-    def fill_db(self, numb_tenants, numb_resources, now):
-        for i in range(numb_tenants):
-            self.session.add(models.Tenant(
-                id="tenant_id_" + str(i),
-                info="metadata",
-                name="tenant_name_" + str(i),
-                created=now
-            ))
-            for ii in range(numb_resources):
-                self.session.add(models.Resource(
-                    id="resource_id_" + str(ii),
-                    info=json.dumps({"type": "Resource" + str(ii)}),
-                    tenant_id="tenant_id_" + str(i),
-                    created=now
-                ))
-                self.session.add(models.UsageEntry(
-                    service="service" + str(ii),
-                    volume=5,
-                    resource_id="resource_id_" + str(ii),
-                    tenant_id="tenant_id_" + str(i),
-                    start=(now - timedelta(days=30)),
-                    end=now,
-                    created=now
-                ))
-        self.session.commit()
-
-    
-    # Modify Artifice, the Ceilometer client
     @mock.patch("artifice.interface.keystone")
     def test_usage_run_for_all(self, keystone):
         """Asserts a usage run generates data for all tenants"""
-        
-        self.test_get_usage()
+
+        usage = helpers.get_usage()
 
         with mock.patch('artifice.interface.Artifice') as Artifice:
 
             tenants = []
 
-            for tenant in test_interface.TENANTS:
+            for tenant in constants.TENANTS:
                 t = mock.Mock(spec=interface.Tenant)
-                t.usage.return_value = self.usage
+                t.usage.return_value = usage
                 t.conn = tenant
                 tenants.append(t)
 
@@ -81,7 +52,7 @@ class TestApi(test_interface.TestInterface):
             self.assertTrue(usages.count() > 0)
             resources = self.session.query(models.Resource)
             count = 0
-            for res_type in self.usage.values():
+            for res_type in usage.values():
                 count += len(res_type)
             self.assertEquals(resources.count(), count)
 
@@ -90,7 +61,7 @@ class TestApi(test_interface.TestInterface):
 
         now = datetime.now().\
             replace(hour=0, minute=0, second=0, microsecond=0)
-        self.fill_db(7, 5, now)
+        helpers.fill_db(self.session, 7, 5, now)
         resp = self.app.post("/sales_order")
         resp_json = json.loads(resp.body)
 
@@ -112,7 +83,7 @@ class TestApi(test_interface.TestInterface):
 
         now = datetime.now().\
             replace(hour=0, minute=0, second=0, microsecond=0)
-        self.fill_db(5, 5, now)
+        helpers.fill_db(self.session, 5, 5, now)
         resp = self.app.post("/sales_order",
                              params=json.dumps({"tenants": ["tenant_id_0"]}),
                              content_type="application/json")

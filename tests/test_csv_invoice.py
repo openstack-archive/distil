@@ -3,7 +3,7 @@ from artifice import database
 from artifice.models import Tenant
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
-from artifice.plugins import csv_
+from artifice.plugins import csv_exporter
 
 Base = declarative_base()
 
@@ -12,7 +12,7 @@ config = {
     "output_file": '%(tenant)s-%(start)s-%(end)s.csv',
     "output_path": "./tests/invoices",
     "rates": {"file":
-              "/home/adriant/Projects/openstack-artifice/examples/csv_rates.csv"}
+              "examples/csv_rates.csv"}
 }
 
 
@@ -25,7 +25,7 @@ class TestCSVInvoice(test_interface.TestInterface):
     def artifice_start_session(self):
         """Loading and instancing the database module works as expected: """
         try:
-            db = database.Database(None, self.session)
+            db = database.Database(self.session)
         except ImportError as e:
             self.fail("Couldn't import: %s" % e)
         return db

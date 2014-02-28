@@ -1,7 +1,7 @@
-from . import test_interface
+from . import test_interface, helpers
 from decimal import Decimal
 from artifice import database
-from artifice.models import Tenant, billing
+from artifice.models import Tenant, UsageEntry, billing
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
@@ -14,7 +14,7 @@ class TestDatabaseModels(test_interface.TestInterface):
 
         super(TestDatabaseModels, self).tearDown()
 
-    def test_artifice_start_session(self):
+    def artifice_start_session(self):
         """Loading and instancing the database module works as expected: """
         try:
             db = database.Database(self.session)
@@ -25,33 +25,35 @@ class TestDatabaseModels(test_interface.TestInterface):
     def test_adding_to_db(self):
         """Tests adding all the data to the database."""
 
-        self.test_get_usage()
+        usage = helpers.get_usage()
 
-        db = self.test_artifice_start_session()
+        db = self.artifice_start_session()
         db.session.add(Tenant(id="3f7b702e4ca14cd99aebf4c4320e00ec",
                               name="demo", info="", created=datetime.now()))
 
-        db.enter(self.usage.vms, self.start, self.end)
-        db.enter(self.usage.objects, self.start, self.end)
-        db.enter(self.usage.networks, self.start, self.end)
-        db.enter(self.usage.volumes, self.start, self.end)
-        db.enter(self.usage.ips, self.start, self.end)
+        db.enter(usage.vms, self.start, self.end)
+        db.enter(usage.objects, self.start, self.end)
+        db.enter(usage.networks, self.start, self.end)
+        db.enter(usage.volumes, self.start, self.end)
+        db.enter(usage.ips, self.start, self.end)
+
+        self.assertEqual(self.session.query(UsageEntry).count(), 17)
 
     def test_get_from_db_1(self):
         """Test to return a list of billable tenant objects,
            with the 'tenants' parameter as None, which should
            default to all tenants in the tenant table (just demo)."""
-        self.test_get_usage()
+        usage = helpers.get_usage()
 
-        db = self.test_artifice_start_session()
+        db = self.artifice_start_session()
         db.session.add(Tenant(id="3f7b702e4ca14cd99aebf4c4320e00ec",
                               name="demo", info="", created=datetime.now()))
 
-        db.enter(self.usage.vms, self.start, self.end)
-        db.enter(self.usage.objects, self.start, self.end)
-        db.enter(self.usage.networks, self.start, self.end)
-        db.enter(self.usage.volumes, self.start, self.end)
-        db.enter(self.usage.ips, self.start, self.end)
+        db.enter(usage.vms, self.start, self.end)
+        db.enter(usage.objects, self.start, self.end)
+        db.enter(usage.networks, self.start, self.end)
+        db.enter(usage.volumes, self.start, self.end)
+        db.enter(usage.ips, self.start, self.end)
 
         query = db.usage(self.start, self.end, "3f7b702e4ca14cd99aebf4c4320e00ec")
 
@@ -67,10 +69,10 @@ class TestDatabaseModels(test_interface.TestInterface):
     #     db.session.add(Tenant(id="3f7b702e4ca14cd99aebf4c4320e00ec",
     #                           name="demo", info="", created=datetime.now()))
 
-    #     db.enter(self.usage.vms, self.start, self.end)
-    #     db.enter(self.usage.objects, self.start, self.end)
-    #     db.enter(self.usage.networks, self.start, self.end)
-    #     db.enter(self.usage.volumes, self.start, self.end)
+    #     db.enter(usage.vms, self.start, self.end)
+    #     db.enter(usage.objects, self.start, self.end)
+    #     db.enter(usage.networks, self.start, self.end)
+    #     db.enter(usage.volumes, self.start, self.end)
 
     #     tenants = db.tenants(self.start, self.end,
     #                          ("3f7b702e4ca14cd99aebf4c4320e00ec",))
