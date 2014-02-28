@@ -55,7 +55,7 @@ class TestApi(test_interface.TestInterface):
             self.assertEquals(resources.count(), len(usage.values()))
 
     def test_sales_run_for_all(self):
-        """"Assertion that a sales run generates all tenant orders"""
+        """Assertion that a sales run generates all tenant orders"""
 
         now = datetime.now().\
             replace(hour=0, minute=0, second=0, microsecond=0)
