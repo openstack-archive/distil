@@ -70,11 +70,9 @@ class TestApi(test_interface.TestInterface):
 
         self.assertEquals(len(resp_json['tenants']), 7)
 
-        i = 0
-        for tenant in resp_json['tenants']:
+        for i, tenant in enumerate(resp_json['tenants']):
             self.assertTrue(tenant['generated'])
             self.assertEquals(tenant['id'], 'tenant_id_' + str(i))
-            i += 1
 
     def test_sales_run_single(self):
         """Assertion that a sales run generates one tenant only"""
