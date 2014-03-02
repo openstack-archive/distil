@@ -99,4 +99,13 @@ class TestApi(test_interface.TestInterface):
     def test_sales_raises_400(self):
         """Assertion that 400 is being thrown if content is not json."""
         resp = self.app.post("/sales_order", expect_errors=True)
-        self.assertTrue(resp.status_int, 400)
+        self.assertEquals(resp.status_int, 400)
+
+    def test_sales_order_no_tenants_overlap(self):
+        """Test that if a tenant list is provided and none match,
+        then we throw an error."""
+        resp = self.app.post('/sales_order',
+                             expect_errors=True,
+                             params=json.dumps({'tenants': ['bogus tenant']}),
+                             content_type='application/json')
+        self.assertEquals(resp.status_int, 400)
