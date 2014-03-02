@@ -40,7 +40,7 @@ def json_must(*args, **kwargs):
        keys to be detected on a given callable."""
     def unpack(func):
         def dejson(f, *iargs):
-            if flask.request.headers["content-type"] != "application/json":
+            if flask.request.headers.get('content-type', '') != "application/json":
                 flask.abort(403, json.dumps({"error": "must be in JSON format"}))
             # todo -- parse_float was handled specially
             _validate(flask.request.json, *args, **kwargs)
