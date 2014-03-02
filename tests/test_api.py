@@ -60,7 +60,9 @@ class TestApi(test_interface.TestInterface):
         now = datetime.now().\
             replace(hour=0, minute=0, second=0, microsecond=0)
         helpers.fill_db(self.session, 7, 5, now)
-        resp = self.app.post("/sales_order")
+        resp = self.app.post("/sales_order",
+                             params=json.dumps({}),
+                             content_type='application/json')
         resp_json = json.loads(resp.body)
 
         self.assertEquals(resp.status_int, 200)
