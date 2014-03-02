@@ -96,8 +96,7 @@ class TestApi(test_interface.TestInterface):
         self.assertTrue(resp_json['tenants'][0]['generated'])
         self.assertEquals(resp_json['tenants'][0]['id'], 'tenant_id_0')
 
-    @unittest.skip
     def test_sales_raises_400(self):
         """Assertion that 400 is being thrown if content is not json."""
-        resp = self.app.post("/sales_order")
+        resp = self.app.post("/sales_order", expect_errors=True)
         self.assertTrue(resp.status_int, 400)
