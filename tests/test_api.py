@@ -60,7 +60,9 @@ class TestApi(test_interface.TestInterface):
         now = datetime.now().\
             replace(hour=0, minute=0, second=0, microsecond=0)
         helpers.fill_db(self.session, 7, 5, now)
-        resp = self.app.post("/sales_order")
+        resp = self.app.post("/sales_order",
+                             params=json.dumps({}),
+                             content_type='application/json')
         resp_json = json.loads(resp.body)
 
         self.assertEquals(resp.status_int, 200)
@@ -70,11 +72,9 @@ class TestApi(test_interface.TestInterface):
 
         self.assertEquals(len(resp_json['tenants']), 7)
 
-        i = 0
-        for tenant in resp_json['tenants']:
+        for i, tenant in enumerate(resp_json['tenants']):
             self.assertTrue(tenant['generated'])
             self.assertEquals(tenant['id'], 'tenant_id_' + str(i))
-            i += 1
 
     def test_sales_run_single(self):
         """Assertion that a sales run generates one tenant only"""
@@ -96,8 +96,16 @@ class TestApi(test_interface.TestInterface):
         self.assertTrue(resp_json['tenants'][0]['generated'])
         self.assertEquals(resp_json['tenants'][0]['id'], 'tenant_id_0')
 
-    @unittest.skip
     def test_sales_raises_400(self):
         """Assertion that 400 is being thrown if content is not json."""
-        resp = self.app.post("/sales_order")
-        self.assertTrue(resp.status_int, 400)
+        resp = self.app.post("/sales_order", expect_errors=True)
+        self.assertEquals(resp.status_int, 400)
+
+    def test_sales_order_no_tenants_overlap(self):
+        """Test that if a tenant list is provided and none match,
+        then we throw an error."""
+        resp = self.app.post('/sales_order',
+                             expect_errors=True,
+                             params=json.dumps({'tenants': ['bogus tenant']}),
+                             content_type='application/json')
+        self.assertEquals(resp.status_int, 400)

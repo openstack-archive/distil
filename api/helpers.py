@@ -6,10 +6,10 @@ import json
 def _validate(data, *args, **kwargs):
     for key in itertools.chain(args, kwargs.keys()):
         if not key in data:
-            flask.abort(403, json.dumps({'error': 'missing parameter',
+            flask.abort(400, json.dumps({'error': 'missing parameter',
                                    'param': key}))
         for key, val in kwargs.iteritems():
-            flask.abort(403, json.dumps({'error': 'validation failed',
+            flask.abort(400, json.dumps({'error': 'validation failed',
                                    'param': key}))
 
 
@@ -40,8 +40,8 @@ def json_must(*args, **kwargs):
        keys to be detected on a given callable."""
     def unpack(func):
         def dejson(f, *iargs):
-            if flask.request.headers["content-type"] != "application/json":
-                flask.abort(403, json.dumps({"error": "must be in JSON format"}))
+            if flask.request.headers.get('content-type', '') != "application/json":
+                flask.abort(400, json.dumps({"error": "must be in JSON format"}))
             # todo -- parse_float was handled specially
             _validate(flask.request.json, *args, **kwargs)
             return func(*iargs)

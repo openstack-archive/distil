@@ -244,15 +244,13 @@ def run_sales_order_generation():
     tenants = flask.request.json.get("tenants", None)
     tenant_query = session.query(Tenant)
 
-    if tenants is not None:
-        try:
-            tenant_query = tenant_query.filter(Tenant.id.in_(tenants))
-            if tenant_query.count() == 0:
-                return 400, {"errors": ["No tenants found from given list."]}
-        except TypeError:
-            # TODO: make an invalid parameters helper function
-            return 400, {"invalid parameters": {"tenants": "Must be a list."}}
-    else:
+    if isinstance(tenants, list):
+        tenant_query = tenant_query.filter(Tenant.id.in_(tenants))
+        if tenant_query.count() == 0:
+            # if an explicit list of tenants is passed, and none of them
+            # exist in the db, then we consider that an error.
+            return 400, {"errors": ["No tenants found from given list."]}
+    elif tenants is not None:
         return 400, {"missing parameters": {"tenants": "A list of tenant ids."}}
 
     # Handled like this for a later move to Celery distributed workers
