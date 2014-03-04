@@ -1,42 +1,13 @@
-# Interfaces to the Ceilometer API
-# import ceilometer
-
-# Brings in HTTP support
 import requests
 import json
-import urllib
-
 from collections import defaultdict
-
-#
-import datetime
-
-# Provides authentication against Openstack
-from keystoneclient.v2_0 import client as KeystoneClient
-
-# Provides hooks to ceilometer, which we need for data.
+import artifact
+import auth
 from ceilometerclient.v2.client import Client as ceilometer
-
-# from .models.usage import Usage
 from .models import resources
-
-# from .models.tenants import Tenant
-
-# Date format Ceilometer uses
-# 2013-07-03T13:34:17
-# which is, as an strftime:
-# timestamp = datetime.strptime(res["timestamp"], "%Y-%m-%dT%H:%M:%S.%f")
-# or
-# timestamp = datetime.strptime(res["timestamp"], "%Y-%m-%dT%H:%M:%S")
-
-# Most of the time we use date_format
-date_format = "%Y-%m-%dT%H:%M:%S"
-# Sometimes things also have milliseconds, so we look for that too.
-# Because why not be annoying in all the ways?
-other_date_format = "%Y-%m-%dT%H:%M:%S.%f"
+from constants import date_format
 
 
-# helpers
 def add_dates(start, end):
     return [
         {
@@ -54,17 +25,12 @@ def add_dates(start, end):
 
 def get_meter(meter, start, end, auth):
     # Meter is a href; in this case, it has a set of fields with it already.
-    # print meter.link
-    # print dir(meter)
     date_fields = add_dates(start, end)
     fields = []
     for field in date_fields:
         fields.append(("q.field", field["field"]))
         fields.append(("q.op", field["op"]))
         fields.append(("q.value", field["value"]))
-
-    # Combine.
-    url = "&".join((meter.link, urllib.urlencode(fields)))
 
     r = requests.get(
         meter.link,
@@ -75,32 +41,6 @@ def get_meter(meter, start, end, auth):
     return json.loads(r.text)
 
 
-class NotFound(BaseException):
-    pass
-
-
-class keystone(KeystoneClient.Client):
-
-    def tenant_by_name(self, name):
-        authenticator = self.auth_url
-        url = "%(url)s/tenants?%(query)s" % {
-            "url": authenticator,
-            "query": urllib.urlencode({"name": name})
-        }
-        r = requests.get(url, headers={
-            "X-Auth-Token": self.auth_token,
-            "Content-Type": "application/json"
-        })
-        if r.ok:
-            data = json.loads(r.text)
-            assert data
-            return data
-        else:
-            if r.status_code == 404:
-                # couldn't find it
-                raise NotFound
-
-
 class Artifice(object):
     """Produces billable artifacts"""
     def __init__(self, config):
@@ -109,24 +49,12 @@ class Artifice(object):
 
         # This is the Keystone client connection, which provides our
         # OpenStack authentication
-        self.auth = keystone(
+        self.auth = auth.Keystone(
             username=config["openstack"]["username"],
             password=config["openstack"]["password"],
             tenant_name=config["openstack"]["default_tenant"],
             auth_url=config["openstack"]["authentication_url"]
         )
-
-        # conn_dict = {
-        #     "username": config["database"]["username"],
-        #     "password": config["database"]["password"],
-        #     "host": config["database"]["host"],
-        #     "port": config["database"]["port"],
-        #     "database": config["database"]["database"]
-        # }
-        # conn_string = ('postgresql://%(username)s:%(password)s@' +
-        #                '%(host)s:%(port)s/%(database)s') % conn_dict
-
-        self.artifice = None
 
         self.ceilometer = ceilometer(
             self.config["ceilometer"]["host"],
@@ -136,35 +64,19 @@ class Artifice(object):
         )
         self._tenancy = None
 
-    def host_to_dc(self, host):
-        """
-        :param host: The name to use.
-        :type host: str.
-        :returns:  str -- The datacenter corresponding to this host.
-        """
-        # :raises: AttributeError, KeyError
-        # How does this get implemented ? Should there be a module injection?
-        return "Data Center 1"  # For the moment, passthrough
-        # TODO: FIXME.
-
     def tenant(self, id_):
         """
         Returns a Tenant object describing the specified Tenant by
         name, or raises a NotFound error.
         """
-        # Returns a Tenant object for the given name.
-        # Uses Keystone API to perform a direct name lookup,
-        # as this is expected to work via name.
-        
+
         data = self.auth.tenants.get(id_)
-        # data = self.auth.tenant_by_name(name)
         t = Tenant(data, self)
         return t
 
     @property
     def tenants(self):
         """All the tenants in our system"""
-        # print "tenant list is %s" % self.auth.tenants.list()
         if not self._tenancy:
             self._tenancy = []
             for tenant in self.auth.tenants.list():
@@ -181,10 +93,6 @@ class Tenant(object):
         self.conn = conn
         self._meters = set()
         self._resources = None
-        self.invoice_type = None
-
-        # Invoice type needs to get set from the config, which is
-        # part of the Artifice setup above.
 
     def __getitem__(self, item):
 
@@ -199,7 +107,6 @@ class Tenant(object):
     def __getattr__(self, attr):
         if attr not in self.tenant:
             return object.__getattribute__(self, attr)
-            # return super(Tenant, self).__getattr__(attr)
         return self.tenant[attr]
 
     def resources(self, start, end):
@@ -217,37 +124,23 @@ class Tenant(object):
             self._resources = self.conn.ceilometer.resources.list(date_fields)
         return self._resources
 
-    # def usage(self, start, end, section=None):
     def usage(self, start, end):
         """
         Usage is the meat of Artifice, returning a dict of location to
         sub-information
         """
-        # Returns a usage dict, based on regions.
-        vms = {}
-        vm_to_region = {}
-        ports = {}
-
-        usage_by_dc = {}
-
-        writing_to = None
-
         vms = []
         networks = []
         ips = []
         storage = []
         volumes = []
 
-        # Object storage is mapped by project_id
-
         for resource in self.resources(start, end):
             rels = [link["rel"] for link in resource.links if link["rel"] != 'self']
             if "storage.objects" in rels:
-                # Unknown how this data layout happens yet.
                 storage.append(Resource(resource, self.conn))
                 pass
             elif "network.incoming.bytes" in rels:
-                # Have we seen the VM that owns this yet?
                 networks.append(Resource(resource, self.conn))
             elif "volume" in rels:
                 volumes.append(Resource(resource, self.conn))
@@ -256,7 +149,6 @@ class Tenant(object):
             elif 'ip.floating' in rels:
                 ips.append(Resource(resource, self.conn))
 
-        datacenters = {}
         region_tmpl = {
             "vms": vms,
             "networks": networks,
@@ -286,10 +178,6 @@ class Usage(object):
         self._networks = []
         self._ips = []
 
-        # Replaces all the internal references with better references to
-        # actual metered values.
-        # self._replace()
-
     def values(self):
         return (self.vms + self.objects + self.volumes +
                 self.networks + self.ips)
@@ -300,9 +188,6 @@ class Usage(object):
             vms = []
             for vm in self.contents["vms"]:
                 VM = resources.VM(vm, self.start, self.end)
-                md = vm["metadata"]
-                host = md["host"]
-                VM.location = self.conn.host_to_dc(vm["metadata"]["host"])
                 vms.append(VM)
             self._vms = vms
         return self._vms
@@ -442,168 +327,10 @@ class Meter(object):
             self.type = self.type.pop()
         type_ = None
         if self.type == "cumulative":
-            # The usage is the last one, which is the highest value.
-            #
-            # Base it just on the resource ID.
-            # Is this a reasonable thing to do?
-            # Composition style: resource.meter("cpu_util").usage(start, end) == artifact
-            type_ = Cumulative
+            type_ = artifact.Cumulative
         elif self.type == "gauge":
-            type_ = Gauge
-            # return Gauge(self.Resource, )
+            type_ = artifact.Gauge
         elif self.type == "delta":
-            type_ = Delta
+            type_ = artifact.Delta
 
         return type_(self.resource, measurements, start, end)
-
-
-class Artifact(object):
-
-    """
-    Provides base artifact controls; generic typing information
-    for the artifact structures.
-    """
-
-    def __init__(self, resource, usage, start, end):
-
-        self.resource = resource
-        self.usage = usage # Raw meter data from Ceilometer
-        self.start = start
-        self.end = end
-
-    def __getitem__(self, item):
-        if item in self._data:
-            return self._data[item]
-        raise KeyError("no such item %s" % item)
-
-    def volume(self):
-        """
-        Default billable number for this volume
-        """
-        return sum([x["counter_volume"] for x in self.usage])
-
-
-class Cumulative(Artifact):
-
-    def volume(self):
-        measurements = self.usage
-        measurements = sorted(measurements, key=lambda x: x["timestamp"])
-        count = 0
-        usage = 0
-        last_measure = None
-        for measure in measurements:
-            if last_measure is not None and (measure["counter_volume"] <
-                                             last_measure["counter_volume"]):
-                usage = usage + last_measure["counter_volume"]
-            count = count + 1
-            last_measure = measure
-
-        usage = usage + measurements[-1]["counter_volume"]
-
-        if count > 1:
-            total_usage = usage - measurements[0]["counter_volume"]
-        return total_usage
-
-
-# Gauge and Delta have very little to do: They are expected only to
-# exist as "not a cumulative" sort of artifact.
-class Gauge(Artifact):
-
-    def volume(self):
-        """
-        Default billable number for this volume
-        """
-        # print "Usage is %s" % self.usage
-        usage = sorted(self.usage, key=lambda x: x["timestamp"])
-
-        blocks = []
-        curr = [usage[0]]
-        last = usage[0]
-        try:
-            last["timestamp"] = datetime.datetime.strptime(last["timestamp"],
-                                                           date_format)
-        except ValueError:
-            last["timestamp"] = datetime.datetime.strptime(last["timestamp"],
-                                                           other_date_format)
-        except TypeError:
-            pass
-
-        for val in usage[1:]:
-            try:
-                val["timestamp"] = datetime.datetime.strptime(val["timestamp"],
-                                                              date_format)
-            except ValueError:
-                val["timestamp"] = datetime.datetime.strptime(val["timestamp"],
-                                                              other_date_format)
-            except TypeError:
-                pass
-
-            difference = (val['timestamp'] - last["timestamp"])
-            if difference > datetime.timedelta(hours=1):
-                blocks.append(curr)
-                curr = [val]
-                last = val
-            else:
-                curr.append(val)
-
-        # this adds the last remaining values as a block of their own on exit
-        # might mean people are billed twice for an hour at times...
-        # but solves the issue of not billing if there isn't enough data for
-        # full hour.
-        blocks.append(curr)
-
-        # We are now sorted into 1-hour blocks
-        totals = []
-        for block in blocks:
-            usage = max([v["counter_volume"] for v in block])
-            totals.append(usage)
-
-        # totals = [max(x, key=lambda val: val["counter_volume"] ) for x in blocks]
-        # totals is now an array of max values per hour for a given month.
-        return sum(totals)
-    
-    # This continues to be wrong.
-    def uptime(self, tracked):
-        """Calculates uptime accurately for the given 'tracked' states.
-        - Will ignore all other states.
-        - Relies heavily on the existence of a state meter, and
-          should only ever be called on the state meter.
-
-        Returns: uptime in seconds"""
-
-        usage = sorted(self.usage, key=lambda x: x["timestamp"])
-
-        last = usage[0]
-        try:
-            last["timestamp"] = datetime.datetime.strptime(last["timestamp"],
-                                                           date_format)
-        except ValueError:
-            last["timestamp"] = datetime.datetime.strptime(last["timestamp"],
-                                                           other_date_format)
-        except TypeError:
-            pass
-
-        uptime = 0.0
-
-        for val in usage[1:]:
-            try:
-                val["timestamp"] = datetime.datetime.strptime(val["timestamp"],
-                                                              date_format)
-            except ValueError:
-                val["timestamp"] = datetime.datetime.strptime(val["timestamp"],
-                                                              other_date_format)
-            except TypeError:
-                pass
-
-            if val["counter_volume"] in tracked:
-                difference = val["timestamp"] - last["timestamp"]
-
-                uptime = uptime + difference.seconds
-
-            last = val
-
-        return uptime
-
-
-class Delta(Artifact):
-    pass

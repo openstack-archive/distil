@@ -7,8 +7,6 @@ from datetime import datetime
 import json
 import mock
 
-import unittest
-
 
 class TestApi(test_interface.TestInterface):
 
@@ -20,8 +18,7 @@ class TestApi(test_interface.TestInterface):
         super(TestApi, self).tearDown()
         self.app = None
 
-    @mock.patch("artifice.interface.keystone")
-    def test_usage_run_for_all(self, keystone):
+    def test_usage_run_for_all(self):
         """Asserts a usage run generates data for all tenants"""
 
         usage = helpers.get_usage()

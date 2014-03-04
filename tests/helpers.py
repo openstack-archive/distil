@@ -7,13 +7,13 @@ from datetime import timedelta
 import json
 
 
-@mock.patch("artifice.interface.keystone")
+@mock.patch("artifice.auth.Keystone")
 @mock.patch("sqlalchemy.create_engine")
-def get_usage(sqlmock, keystone):
+def get_usage(sqlmock, Keystone):
     # At this point, we prime the ceilometer/requests response
     # system, so that what we return to usage is what we expect
     # to get in the usage system.
-    keystone.auth_token = AUTH_TOKEN
+    Keystone.auth_token = AUTH_TOKEN
 
     def get_meter(self, start, end, auth):
         # Returns meter data from our data up above
@@ -24,7 +24,7 @@ def get_usage(sqlmock, keystone):
     artifice = interface.Artifice(config)
     artifice.auth.tenants.list.return_value = TENANTS
 
-    keystone.assert_called_with(
+    Keystone.assert_called_with(
         username=config["openstack"]["username"],
         password=config["openstack"]["password"],
         tenant_name=config["openstack"]["default_tenant"],
