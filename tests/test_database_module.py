@@ -31,16 +31,14 @@ class TestDatabaseModule(test_interface.TestInterface):
         self.assertEqual(self.session.query(models.Tenant).count(), 1)
 
     def test_get_from_db(self):
-        """Test to return a list of billable tenant objects,
-           with the 'tenants' parameter as None, which should
-           default to all tenants in the tenant table (just demo)."""
-        numb_services = 32
+        """Test to ensure the data in the database matches the data entered."""
+        numb_resources = 32
 
-        helpers.fill_db(self.session, 5, numb_services, self.end)
+        helpers.fill_db(self.session, 5, numb_resources, self.end)
 
         db = database.Database(self.session)
 
         for i in range(5):
             usage = db.usage(self.start, self.start + timedelta(days=60),
                              "tenant_id_" + str(i))
-            self.assertEqual(usage.count(), numb_services)
+            self.assertEqual(usage.count(), numb_resources)
