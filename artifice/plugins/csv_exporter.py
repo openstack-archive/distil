@@ -93,25 +93,37 @@ class Csv(sales_order.RatesFileMixin, sales_order.SalesOrder):
         """Closes the sales order, and exports the lines to a csv file."""
 
         try:
-            open(self.filename)
+            with open(self.filename) as temp_fh:
+                pass
             raise RuntimeError("Can't write to an existing file!")
         except IOError:
             pass
-        fh = open(self.filename, "w")
-        csvwriter = writer(fh, dialect='excel', delimiter=',')
+        with open(self.filename, "w") as fh:
+            csvwriter = writer(fh, dialect='excel', delimiter=',')
 
-        csvwriter.writerow(["", "from", "until"])
-        csvwriter.writerow(["usage range: ", str(self.start), str(self.end)])
-        csvwriter.writerow([])
-
-        for key in self.lines:
-            for line in self.lines[key]:
-                csvwriter.writerow(line)
+            csvwriter.writerow(["", "from", "until"])
+            csvwriter.writerow(["usage range: ", str(self.start),
+                                str(self.end)])
             csvwriter.writerow([])
 
-        # write a blank line
-        csvwriter.writerow([])
-        # write total
-        csvwriter.writerow(["invoice total cost: ", round(self.total, 2)])
+            # write types in given order
+            for key in self.config["type_order"]:
+                try:
+                    for line in self.lines[key]:
+                        csvwriter.writerow(line)
+                    csvwriter.writerow([])
+                except KeyError:
+                    # not a problem, no resources of that type present
+                    pass
 
-        fh.close()
+            # write remaining types if any:
+            keys = list(set(self.lines) - set(self.config["type_order"]))
+            for key in keys:
+                for line in self.lines[key]:
+                    csvwriter.writerow(line)
+                csvwriter.writerow([])
+
+            # write a blank line
+            csvwriter.writerow([])
+            # write total
+            csvwriter.writerow(["invoice total cost: ", round(self.total, 2)])

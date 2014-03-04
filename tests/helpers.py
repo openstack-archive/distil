@@ -1,5 +1,6 @@
 import mock
 from artifice import interface, models
+from artifice.models import billing
 from .data_samples import RESOURCES, MAPPINGS
 from .constants import config, TENANTS, DATACENTRE, AUTH_TOKEN
 from datetime import timedelta
@@ -75,3 +76,16 @@ def fill_db(session, numb_tenants, numb_resources, now):
                 created=now
             ))
     session.commit()
+
+
+def build_billable(numb_resources):
+    tenant = billing.Tenant(name="demo", tenant_id="1")
+
+    for i in range(numb_resources):
+        metadata = {"type": "type_" + str(i)}
+        resource = billing.Resource(metadata, "resource_id_" + str(i))
+        service = billing.Service("service" + str(i), 5)
+        resource.services[service.name] = service
+        tenant.resources[resource.id] = resource
+
+    return tenant
