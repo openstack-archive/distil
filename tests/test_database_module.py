@@ -6,9 +6,6 @@ from datetime import timedelta
 
 class TestDatabaseModule(test_interface.TestInterface):
 
-    def tearDown(self):
-        super(TestDatabaseModule, self).tearDown()
-
     def test_adding_to_db(self):
         """Tests adding all the data to the database."""
 
