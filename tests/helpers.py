@@ -2,7 +2,7 @@ import mock
 from artifice import interface, models
 from artifice.models import billing
 from .data_samples import RESOURCES, MAPPINGS
-from .constants import config, TENANTS, DATACENTRE, AUTH_TOKEN
+from .constants import config, TENANTS, AUTH_TOKEN
 from datetime import timedelta
 import json
 
@@ -20,7 +20,7 @@ def get_usage(sqlmock, Keystone):
         data = MAPPINGS[self.link]
         return data
 
-    interface.get_meter = get_meter
+    interface.Meter.get_meter = get_meter
     artifice = interface.Artifice(config)
     artifice.auth.tenants.list.return_value = TENANTS
 
@@ -38,11 +38,6 @@ def get_usage(sqlmock, Keystone):
     t.resources.return_value = (RESOURCES["networks"] + RESOURCES["vms"] +
                                 RESOURCES["objects"] + RESOURCES["volumes"] +
                                 RESOURCES["ips"])
-
-    # Replace the host_to_dc method with a mock that does what we need
-    # it to do, for the purposes of testing.
-    artifice.host_to_dc = mock.Mock()
-    artifice.host_to_dc.return_value = DATACENTRE
 
     # because of mocking, start/end dates are not required here:
     usage = t.usage(start=None, end=None)

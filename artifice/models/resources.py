@@ -62,9 +62,6 @@ def to_mb(bytes):
 
 
 class VM(BaseModelConstruct):
-    # The only relevant meters of interest are the type of the interest
-    # and the amount of network we care about.
-    # Oh, and floating IPs.
     relevant_meters = ["state"]
 
     usage_strategies = {"uptime": {"usage": "uptime", "service": "flavor"}}
@@ -135,10 +132,7 @@ class FloatingIP(BaseModelConstruct):
 
     @property
     def duration(self):
-        # How much use this had.
         return Decimal(self.usage()["ip.floating"].volume())
-        # Size is a gauge measured every 10 minutes.
-        # So that needs to be compressed to 60-minute intervals
 
 
 class Object(BaseModelConstruct):
@@ -151,10 +145,7 @@ class Object(BaseModelConstruct):
 
     @property
     def size(self):
-        # How much use this had.
         return Decimal(to_mb(self.usage()["storage.objects.size"].volume()))
-        # Size is a gauge measured every 10 minutes.
-        # So that needs to be compressed to 60-minute intervals
 
 
 class Volume(BaseModelConstruct):

@@ -32,6 +32,4 @@ TENANTS = [
      u'id': u'3f7b702e4ca14cd99aebf4c4320e00ec'}
 ]
 
-DATACENTRE = "testcenter"
-
 AUTH_TOKEN = "ASDFTOKEN"

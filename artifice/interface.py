@@ -23,24 +23,6 @@ def add_dates(start, end):
     ]
 
 
-def get_meter(meter, start, end, auth):
-    # Meter is a href; in this case, it has a set of fields with it already.
-    date_fields = add_dates(start, end)
-    fields = []
-    for field in date_fields:
-        fields.append(("q.field", field["field"]))
-        fields.append(("q.op", field["op"]))
-        fields.append(("q.value", field["value"]))
-
-    r = requests.get(
-        meter.link,
-        headers={
-            "X-Auth-Token": auth,
-            "Content-Type": "application/json"}
-    )
-    return json.loads(r.text)
-
-
 class Artifice(object):
     """Produces billable artifacts"""
     def __init__(self, config):
@@ -295,14 +277,24 @@ class Meter(object):
         self.end = end
         # self.meter = meter
 
-    def __getitem__(self, x):
-        if isinstance(x, slice):
-            # Woo
-            pass
-        pass
+    def get_meter(self, start, end, auth):
+        # Meter is a href; in this case, it has a set of fields with it already.
+        date_fields = add_dates(start, end)
+        fields = []
+        for field in date_fields:
+            fields.append(("q.field", field["field"]))
+            fields.append(("q.op", field["op"]))
+            fields.append(("q.value", field["value"]))
+
+        r = requests.get(
+            self.link,
+            headers={
+                "X-Auth-Token": auth,
+                "Content-Type": "application/json"}
+        )
+        return json.loads(r.text)
 
     def volume(self):
-
         return self.usage(self.start, self.end)
 
     def usage(self, start, end):
@@ -311,12 +303,12 @@ class Meter(object):
         A volume value that we can plot as a single number against previous
         usage for a given range.
         """
-        measurements = get_meter(self, start, end, self.conn.auth.auth_token)
+        measurements = self.get_meter(start, end, self.conn.auth.auth_token)
         # return measurements
 
         # print measurements
 
-        self.measurements = defaultdict(list)
+        # self.measurements = defaultdict(list)
         self.type = set([a["counter_type"] for a in measurements])
         if len(self.type) > 1:
             # That's a big problem
