@@ -30,13 +30,7 @@ class Database(object):
            in a resource, for all the resources given"""
 
         for resource in usage:
-            for key in resource.usage_strategies:
-                strategy = resource.usage_strategies[key]
-                volume = resource.get(strategy['usage'])
-                try:
-                    service = resource.get(strategy['service'])
-                except AttributeError:
-                    service = strategy['service']
+            for service, volume in resource.usage().iteritems():
                 resource_id = resource.get("resource_id")
                 tenant_id = resource.get("tenant_id")
 

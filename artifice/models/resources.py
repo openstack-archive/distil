@@ -1,7 +1,4 @@
-from decimal import Decimal
-import math
-
-from artifice import constants
+from . import transformers
 
 
 class BaseModelConstruct(object):
@@ -34,37 +31,28 @@ class BaseModelConstruct(object):
         # information based on a meter, I guess?
         return getattr(self, name)
 
-    def usage(self):
+    def meters(self):
         dct = {}
         for meter in self.relevant_meters:
             try:
-                vol = self._raw.meter(meter, self.start, self.end).volume()
-                dct[meter] = vol
+                mtr = self._raw.meter(meter, self.start, self.end)
+                dct[meter] = mtr
             except AttributeError:
                 # This is OK. We're not worried about non-existent meters,
                 # I think. For now, anyway.
                 pass
         return dct
 
-    def save(self):
-        for meter in self.relevant_meters:
-            try:
-                self._raw.meter(meter, self.start, self.end).save()
-            except AttributeError:
-                # This is OK. We're not worried about non-existent meters,
-                # I think. For now, anyway.
-                pass
-
-
-def to_mb(bytes):
-    # function to make code easier to understand elsewhere.
-    return (bytes / 1000) / 1000
+    def usage(self):
+        meters = self.meters()
+        usage = self.transformer.transform_usage(meters)
+        return usage
 
 
 class VM(BaseModelConstruct):
     relevant_meters = ["state"]
 
-    usage_strategies = {"uptime": {"usage": "uptime", "service": "flavor"}}
+    transformer = transformers.Uptime()
 
     type = "virtual_machine"
 
@@ -72,34 +60,6 @@ class VM(BaseModelConstruct):
     def info(self):
         return {"name": self.name,
                 "type": self.type}
-
-    @property
-    def uptime(self):
-
-        # this NEEDS to be moved to a config file or
-        # possibly be queried from Clerk?
-        tracked_states = [constants.active, constants.building,
-                          constants.paused, constants.rescued,
-                          constants.resized]
-
-        seconds = self.usage()["state"].uptime(tracked_states)
-
-        # in hours, rounded up:
-        uptime = math.ceil((seconds / 60.0) / 60.0)
-
-        return Decimal(uptime)
-
-    @property
-    def flavor(self):
-        # TODO FIgure out what the hell is going on with ceilometer here,
-        # and why flavor.name isn't always there, and why
-        # sometimes instance_type is needed instead....
-        try:
-            # print "\"flavor.name\" was used"
-            return self._raw["metadata"]["flavor.name"].replace(".", "_")
-        except KeyError:
-            # print "\"instance_type\" was used"
-            return self._raw["metadata"]["instance_type"].replace(".", "_")
 
     @property
     def memory(self):
@@ -126,33 +86,25 @@ class FloatingIP(BaseModelConstruct):
 
     relevant_meters = ["ip.floating"]
 
-    usage_strategies = {"duration": {"usage": "duration", "service": "type"}}
+    transformer = transformers.GaugeMax()
 
-    type = "floating_ip"  # object storage
-
-    @property
-    def duration(self):
-        return Decimal(self.usage()["ip.floating"].volume())
+    type = "floating_ip"
 
 
 class Object(BaseModelConstruct):
 
     relevant_meters = ["storage.objects.size"]
 
-    usage_strategies = {"size": {"usage": "size", "service": "storage_size"}}
+    transformer = transformers.GaugeMax()
 
-    type = "object_storage"  # object storage
-
-    @property
-    def size(self):
-        return Decimal(to_mb(self.usage()["storage.objects.size"].volume()))
+    type = "object_storage"
 
 
 class Volume(BaseModelConstruct):
 
     relevant_meters = ["volume.size"]
 
-    usage_strategies = {"size": {"usage": "size", "service": "volume_size"}}
+    transformer = transformers.GaugeMax()
 
     type = "volume"
 
@@ -162,11 +114,6 @@ class Volume(BaseModelConstruct):
                 "type": self.type}
 
     @property
-    def size(self):
-        # Size of the thing over time.
-        return Decimal(to_mb(self.usage()["volume.size"].volume()))
-
-    @property
     def name(self):
         return self._raw["metadata"]["display_name"]
 
@@ -174,19 +121,6 @@ class Volume(BaseModelConstruct):
 class Network(BaseModelConstruct):
     relevant_meters = ["network.outgoing.bytes", "network.incoming.bytes"]
 
-    usage_strategies = {"outgoing": {"usage": "outgoing",
-                                     "service": "outgoing_megabytes"},
-                        "incoming": {"usage": "incoming",
-                                     "service": "incoming_megabytes"}}
+    transformer = transformers.CumulativeTotal()
 
     type = "network_interface"
-
-    @property
-    def outgoing(self):
-        # Size of the thing over time.
-        return Decimal(to_mb(self.usage()["network.outgoing.bytes"].volume()))
-
-    @property
-    def incoming(self):
-        # Size of the thing over time.
-        return Decimal(to_mb(self.usage()["network.incoming.bytes"].volume()))

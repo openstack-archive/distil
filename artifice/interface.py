@@ -1,7 +1,5 @@
 import requests
 import json
-from collections import defaultdict
-import artifact
 import auth
 from ceilometerclient.v2.client import Client as ceilometer
 from .models import resources
@@ -275,7 +273,27 @@ class Meter(object):
         self.conn = conn
         self.start = start
         self.end = end
-        # self.meter = meter
+
+        self.measurements = self.get_meter(start, end,
+                                           self.conn.auth.auth_token)
+
+        self.type = set([a["counter_type"] for a in self.measurements])
+        if len(self.type) > 1:
+            # That's a big problem
+            raise RuntimeError("Too many types for measurement!")
+        elif len(self.type) == 0:
+            raise RuntimeError("No types!")
+        else:
+            self.type = self.type.pop()
+
+        self.name = set([a["counter_name"] for a in self.measurements])
+        if len(self.name) > 1:
+            # That's a big problem
+            raise RuntimeError("Too many names for measurement!")
+        elif len(self.name) == 0:
+            raise RuntimeError("No types!")
+        else:
+            self.name = self.name.pop()
 
     def get_meter(self, start, end, auth):
         # Meter is a href; in this case, it has a set of fields with it already.
@@ -294,35 +312,5 @@ class Meter(object):
         )
         return json.loads(r.text)
 
-    def volume(self):
-        return self.usage(self.start, self.end)
-
-    def usage(self, start, end):
-        """
-        Usage condenses the entirety of a meter into a single datapoint:
-        A volume value that we can plot as a single number against previous
-        usage for a given range.
-        """
-        measurements = self.get_meter(start, end, self.conn.auth.auth_token)
-        # return measurements
-
-        # print measurements
-
-        # self.measurements = defaultdict(list)
-        self.type = set([a["counter_type"] for a in measurements])
-        if len(self.type) > 1:
-            # That's a big problem
-            raise RuntimeError("Too many types for measurement!")
-        elif len(self.type) == 0:
-            raise RuntimeError("No types!")
-        else:
-            self.type = self.type.pop()
-        type_ = None
-        if self.type == "cumulative":
-            type_ = artifact.Cumulative
-        elif self.type == "gauge":
-            type_ = artifact.Gauge
-        elif self.type == "delta":
-            type_ = artifact.Delta
-
-        return type_(self.resource, measurements, start, end)
+    def usage(self):
+        return self.measurements

@@ -19,7 +19,7 @@ class TestDatabaseModule(test_interface.TestInterface):
 
         count = 0
         for val in usage.values():
-            for strat in val.usage_strategies:
+            for strat in val.relevant_meters:
                 count += 1
 
         self.assertEqual(self.session.query(models.UsageEntry).count(), count)
