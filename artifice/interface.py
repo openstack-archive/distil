@@ -2,7 +2,7 @@ import requests
 import json
 import auth
 from ceilometerclient.v2.client import Client as ceilometer
-from .models import resources
+from artifice.models import resources
 from constants import date_format
 
 

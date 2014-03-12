@@ -68,7 +68,7 @@ class db(unittest.TestCase):
         t = self.db.query(Tenant).get("asfd")
         r = self.db.query(Resource).filter(Resource.id == "1234")[0]
         u = UsageEntry(service="cheese",
-                       volume=1.234,
+                       volume=1.23,
                        resource=r,
                        tenant=r,
                        start=datetime.datetime.now() - datetime.timedelta(minutes=5),

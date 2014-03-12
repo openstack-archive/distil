@@ -5,7 +5,9 @@ INSTALL_PATH=/opt/stack/artifice
 BILLING_PROGRAM=bill.py
 BINARY_PATH=/usr/local/bin
 
-CONF_DIR=./work/${INSTALL_PATH}/etc/artifice
+WORK_DIR=./work
+
+CONF_DIR=${WORK_DIR}/${INSTALL_PATH}/etc/artifice
 
 clean:
 	@rm -rf ./work
@@ -18,25 +20,35 @@ init:
 
 deb: clean init
 
-	@cp -r ./bin ./artifice ./scripts ./README.md ./INVOICES.md \
-		requirements.txt setup.py ./work/${INSTALL_PATH}
+	@cp -r ./artifice \
+		./scripts \
+		./README.md \
+		./INVOICES.md \
+		requirements.txt \
+		setup.py \
+		${WORK_DIR}${INSTALL_PATH}
+	@mkdir ${WORK_DIR}${INSTALL_PATH}/bin
+	@cp ./bin/collect ./bin/collect.py \
+		./bin/usage ./bin/usage.py \
+		./bin/web ./bin/web.py \
+		${WORK_DIR}${INSTALL_PATH}/bin
+	@chmod 0755 ${WORK_DIR}${INSTALL_PATH}/bin/web
+	@cp -r ./packaging/fs/* ${WORK_DIR}/
 	@mkdir -p ${CONF_DIR}
-	@cp ./examples/conf.yaml ${CONF_DIR}
-	@cp ./examples/csv_rates.yaml ${CONF_DIR}
+	@mkdir -p ${WORK_DIR}/etc/init.d
+	@mkdir -p ${WORK_DIR}/etc/artifice
+	@chmod +x ${WORK_DIR}/etc/init.d/artifice
+	@cp ./examples/conf.yaml ${WORK_DIR}/etc/artifice/conf.yaml
+	@cp ./examples/csv_rates.yaml ${WORK_DIR}/etc/artifice/csv_rates.yaml
 	@fpm -s dir -t deb -n ${NAME} -v ${VERSION} \
-	--pre-install=packaging/scripts/pre_install.sh   \
 	--post-install=packaging/scripts/post_install.sh  \
-	--depends 'postgresql >= 9.3'  \
-	--depends 'postgresql-contrib >= 9.3' \
 	--depends 'libpq-dev' \
-	--deb-pre-depends pwgen \
+	--deb-pre-depends "libmysql++-dev" \
 	--deb-pre-depends python2.7 \
 	--deb-pre-depends python-pip \
 	--deb-pre-depends python-dev \
+	--deb-pre-depends python-virtualenv \
 	--template-scripts  \
-	--template-value pg_database=artifice  \
-	--template-value pg_user=artifice  \
-	--template-value pg_port=5432  \
 	--template-value install_path=${INSTALL_PATH} \
-	-C ./work \
+	-C ${WORK_DIR} \
 	.

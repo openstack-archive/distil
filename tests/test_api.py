@@ -1,6 +1,6 @@
 from webtest import TestApp
 from . import test_interface, helpers, constants
-from api.web import get_app
+from artifice.api.web import get_app
 from artifice import models
 from artifice import interface
 from datetime import datetime

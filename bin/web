@@ -1,0 +1,13 @@
+#!/bin/bash
+INSTALLED="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ORIGIN=`pwd`
+
+# Bring up our python environment
+# Pass through all our command line opts as expected
+
+# Move ourselves to the code directory
+# TODO: Fix this by removing relative imports from Artifice
+cd $INSTALLED
+cd ../ 
+
+$INSTALLED/../env/bin/python $INSTALLED/web.py $@

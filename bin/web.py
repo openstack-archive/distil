@@ -1,0 +1,25 @@
+#!/usr/bin/python
+from artifice.api import web
+import yaml
+import sys
+
+import argparse
+a = argparse.ArgumentParser("Web service for Artifice")
+
+a.add_argument("-c", "--config", dest="config", help="Path to config file", default="/etc/artifice/conf.yaml")
+a.add_argument("-i", "--interface", dest="ip", help="IP address to serve on.", default="0.0.0.0")
+a.add_argument("-p", "--port", help="port to serve on", default="8000")
+
+args = a.parse_args()
+
+conf = None
+
+try:
+    conf = yaml.load(args.config)
+except IOError as e:
+    print "Couldn't load config file: %s" % e
+    sys.exit(1)
+
+
+app = web.get_app(conf)
+app.run(host=args.ip, port=args.port)

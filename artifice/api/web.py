@@ -48,6 +48,7 @@ def get_app(conf):
 
     global invoicer
     module, kls = config["main"]["export_provider"].split(":")
+    # TODO: Try/except block
     invoicer = getattr(importlib.import_module(module), kls)
 
     if config["main"].get("timezone"):

@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Text, DateTime, DECIMAL, ForeignKey, String
+from sqlalchemy import Column, Text, DateTime, Numeric, ForeignKey, String
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
 from sqlalchemy import event, DDL
@@ -7,8 +7,19 @@ from sqlalchemy import event, DDL
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import ForeignKeyConstraint
 
+# Version digit.
+__VERSION__ = 1.0
+
 
 Base = declarative_base()
+
+
+class _Version(Base):
+    """
+    A model that knows what version we are, stored in the DB.
+    """
+    __tablename__ = "artifice_database_version"
+    id = Column(String(10), primary_key=True)
 
 
 class Resource(Base):
@@ -29,7 +40,7 @@ class UsageEntry(Base):
     # Service is things like incoming vs. outgoing, as well as instance
     # flavour
     service = Column(String(100), primary_key=True)
-    volume = Column(DECIMAL, nullable=False)
+    volume = Column(Numeric(precision=20, scale=2), nullable=False)
     resource_id = Column(String(100), primary_key=True)
     tenant_id = Column(String(100), primary_key=True)
     start = Column(DateTime, nullable=False)
@@ -265,4 +276,15 @@ event.listen(
     "before_drop",
     DDL("DROP FUNCTION %s_exclusion_constraint_trigger()" %
         SalesOrder.__tablename__).execute_if(dialect="postgresql")
+)
+
+
+def insert_into_version(target, connection, **kw):
+    connection.execute("INSERT INTO %s (id) VALUES (%s)" %
+                            (target.name, __VERSION__))
+
+event.listen(
+    _Version.__table__,
+    "after_create",
+    insert_into_version
 )

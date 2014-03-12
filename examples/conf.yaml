@@ -1,12 +1,6 @@
 ---
 ceilometer:
   host: http://localhost:8777/
-database:
-  database: artifice
-  host: localhost
-  password_path: /etc/artifice/database
-  port: '5432'
-  username: artifice
 invoice_object:
   delimiter: ','
   output_file: '%(tenant)s-%(start)s-%(end)s.csv'
@@ -14,7 +8,8 @@ invoice_object:
   rates: 
     file: /etc/artifice/csv_rates.csv
 main:
-  invoice:object: billing.csv_invoice:Csv
+  export_provider: billing.csv_invoice:Csv
+  database_uri: postgres://artifice:123456@localhost:5432/artifice
 openstack:
   authentication_url: http://localhost:35357/v2.0
   default_tenant: demo
