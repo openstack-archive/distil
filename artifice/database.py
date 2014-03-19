@@ -12,7 +12,7 @@ class Database(object):
         # Base.metadata.create_all(engine)
 
     def insert_tenant(self, tenant_id, tenant_name, metadata):
-        """Checks if a tenant exists does nothing,
+        """If a tenant exists does nothing,
            and if it doesn't, creates and inserts it."""
         #  Have we seen this tenant before?
         query = self.session.query(Tenant).\
