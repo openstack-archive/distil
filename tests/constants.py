@@ -25,11 +25,14 @@ config = {
     "artifice": {}
 }
 
+# from test data:
+TENANT_ID = "cd3deadd3d5a4f11802d03928195f4ef"
+
 TENANTS = [
     {u'enabled': True,
      u'description': None,
      u'name': u'demo',
-     u'id': u'3f7b702e4ca14cd99aebf4c4320e00ec'}
+     u'id': u'cd3deadd3d5a4f11802d03928195f4ef'}
 ]
 
 AUTH_TOKEN = "ASDFTOKEN"

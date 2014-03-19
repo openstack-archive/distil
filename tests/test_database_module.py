@@ -2,6 +2,7 @@ from . import test_interface, helpers
 from artifice import database
 from artifice import models
 from datetime import timedelta
+from .constants import TENANT_ID
 
 
 class TestDatabaseModule(test_interface.TestInterface):
@@ -12,14 +13,14 @@ class TestDatabaseModule(test_interface.TestInterface):
         usage = helpers.get_usage()
 
         db = database.Database(self.session)
-        db.insert_tenant("3f7b702e4ca14cd99aebf4c4320e00ec",
+        db.insert_tenant(TENANT_ID,
                          "demo", "")
 
         db.enter(usage.values(), self.start, self.end)
 
         count = 0
         for val in usage.values():
-            for strat in val.relevant_meters:
+            for service in val.usage():
                 count += 1
 
         self.assertEqual(self.session.query(models.UsageEntry).count(), count)

@@ -1,4 +1,4 @@
-from . import transformers
+from artifice import transformers
 
 
 class BaseModelConstruct(object):
@@ -50,7 +50,7 @@ class BaseModelConstruct(object):
 
 
 class VM(BaseModelConstruct):
-    relevant_meters = ["state"]
+    relevant_meters = ["state", 'flavor']
 
     transformer = transformers.Uptime()
 

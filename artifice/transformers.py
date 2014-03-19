@@ -1,5 +1,5 @@
 import datetime
-from artifice import constants
+import constants
 
 
 class Transformer(object):
@@ -13,8 +13,8 @@ class Transformer(object):
 
     def validate_meters(self, meters):
         if self.meter_type is None:
-            for meter in meters.values():
-                if meter.name not in self.required_meters:
+            for meter in self.required_meters:
+                if meter not in meters:
                     raise AttributeError("Required meters: " +
                                          str(self.required_meters))
         else:
@@ -28,8 +28,7 @@ class Transformer(object):
 
 
 class Uptime(Transformer):
-    required_meters = ['state']
-    # required_meters = ['state', 'flavor']
+    required_meters = ['state', 'flavor']
 
     def _transform_usage(self, meters):
         # this NEEDS to be moved to a config file
@@ -39,41 +38,56 @@ class Uptime(Transformer):
         usage_dict = {}
 
         state = meters['state']
+        flavor = meters['flavor']
 
-        usage = sorted(state.usage(), key=lambda x: x["timestamp"])
+        state = sorted(state.usage(), key=lambda x: x["timestamp"])
+        flavor = sorted(flavor.usage(), key=lambda x: x["timestamp"])
 
-        last = usage[0]
-        try:
-            last["timestamp"] = datetime.datetime.strptime(last["timestamp"],
-                                                           constants.date_format)
-        except ValueError:
-            last["timestamp"] = datetime.datetime.strptime(last["timestamp"],
-                                                           constants.other_date_format)
-        except TypeError:
-            pass
+        last_state = state[0]
+        self.parse_timestamp(last_state)
 
-        uptime = 0.0
+        last_flavor = flavor[0]
+        self.parse_timestamp(last_flavor)
 
-        for val in usage[1:]:
-            try:
-                val["timestamp"] = datetime.datetime.strptime(val["timestamp"],
-                                                              constants.date_format)
-            except ValueError:
-                val["timestamp"] = datetime.datetime.strptime(val["timestamp"],
-                                                              constants.other_date_format)
-            except TypeError:
-                pass
+        count = 1
+
+        for val in state[1:]:
+            self.parse_timestamp(val)
 
             if val["counter_volume"] in tracked_states:
-                difference = val["timestamp"] - last["timestamp"]
+                diff = val["timestamp"] - last_state["timestamp"]
 
-                uptime = uptime + difference.seconds
+                try:
+                    flav = "flavor id: " + str(last_flavor['counter_volume'])
+                    usage_dict[flav] = usage_dict[flav] + diff.seconds
+                except KeyError:
+                    usage_dict[flav] = diff.seconds
 
-            last = val
+            last_state = val
 
-        usage_dict['flavor1'] = uptime
-
+            try:
+                new_flavor = flavor[count]
+                self.parse_timestamp(new_flavor)
+                if new_flavor["timestamp"] < last_state["timestamp"]:
+                    count += 1
+                    last_flavor = new_flavor
+            except IndexError:
+                # means this is the last flavor value, so no need to worry
+                # about new_flavor or count
+                pass
         return usage_dict
+
+    def parse_timestamp(self, entry):
+        try:
+            entry["timestamp"] = datetime.datetime.\
+                strptime(entry["timestamp"],
+                         constants.date_format)
+        except ValueError:
+            entry["timestamp"] = datetime.datetime.\
+                strptime(entry["timestamp"],
+                         constants.other_date_format)
+        except TypeError:
+            pass
 
 
 class GaugeMax(Transformer):
