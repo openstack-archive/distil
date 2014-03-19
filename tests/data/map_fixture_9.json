@@ -1,38 +1,48 @@
 {
- "http://localhost:8777/v2/resources/2155db5c-4c7b-4787-90ff-7b8ded741c75": {
-  "user_id": "6ab10df928e2487f92b950d482038c58", 
-  "links": [
-   {
-    "href": "http://localhost:8777/v2/resources/2155db5c-4c7b-4787-90ff-7b8ded741c75", 
-    "rel": "self"
+ "http://localhost:8777/v2/meters/image.download?q.field=resource_id&q.value=2c9af0eb-4960-49c2-8c1c-b60de446f212": [
+  {
+   "counter_name": "image.download", 
+   "user_id": "865fbcdcf3ee4c4c93e9703ac181f192", 
+   "resource_id": "2c9af0eb-4960-49c2-8c1c-b60de446f212", 
+   "timestamp": "2014-03-18T23:27:50.197792", 
+   "message_id": "ebc6b8de-aef4-11e3-9865-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 25165824.0, 
+   "project_id": "cd3deadd3d5a4f11802d03928195f4ef", 
+   "resource_metadata": {
+    "receiver_tenant_id": "cd3deadd3d5a4f11802d03928195f4ef", 
+    "destination_ip": "10.0.2.15", 
+    "event_type": "image.send", 
+    "bytes_sent": "25165824", 
+    "image_id": "2c9af0eb-4960-49c2-8c1c-b60de446f212", 
+    "host": "vagrant-ubuntu-precise-64", 
+    "receiver_user_id": "865fbcdcf3ee4c4c93e9703ac181f192", 
+    "owner_id": "7a64220a45c84104ac95258de1a3720a"
    }, 
-   {
-    "href": "http://localhost:8777/v2/meters/ip.floating?q.field=resource_id&q.value=2155db5c-4c7b-4787-90ff-7b8ded741c75", 
-    "rel": "ip.floating"
+   "counter_type": "delta"
+  }, 
+  {
+   "counter_name": "image.download", 
+   "user_id": "865fbcdcf3ee4c4c93e9703ac181f192", 
+   "resource_id": "2c9af0eb-4960-49c2-8c1c-b60de446f212", 
+   "timestamp": "2014-03-18T23:25:56.203891", 
+   "message_id": "a889a4a0-aef4-11e3-9865-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "B", 
+   "counter_volume": 25165824.0, 
+   "project_id": "cd3deadd3d5a4f11802d03928195f4ef", 
+   "resource_metadata": {
+    "receiver_tenant_id": "cd3deadd3d5a4f11802d03928195f4ef", 
+    "destination_ip": "10.0.2.15", 
+    "event_type": "image.send", 
+    "bytes_sent": "25165824", 
+    "image_id": "2c9af0eb-4960-49c2-8c1c-b60de446f212", 
+    "host": "vagrant-ubuntu-precise-64", 
+    "receiver_user_id": "865fbcdcf3ee4c4c93e9703ac181f192", 
+    "owner_id": "7a64220a45c84104ac95258de1a3720a"
    }, 
-   {
-    "href": "http://localhost:8777/v2/meters/ip.floating.create?q.field=resource_id&q.value=2155db5c-4c7b-4787-90ff-7b8ded741c75", 
-    "rel": "ip.floating.create"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/ip.floating.update?q.field=resource_id&q.value=2155db5c-4c7b-4787-90ff-7b8ded741c75", 
-    "rel": "ip.floating.update"
-   }
-  ], 
-  "resource_id": "2155db5c-4c7b-4787-90ff-7b8ded741c75", 
-  "last_sample_timestamp": "2014-02-12T02:50:42.433526", 
-  "first_sample_timestamp": "2014-02-12T02:50:39.202116", 
-  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
-  "metadata": {
-   "router_id": "dc6391f1-aeb7-4b2c-963f-33319a2680a4", 
-   "event_type": "floatingip.update.end", 
-   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
-   "floating_network_id": "48a95728-51ac-4e13-864c-8659499db368", 
-   "host": "network.vagrant-ubuntu-precise-64", 
-   "fixed_ip_address": "10.0.0.4", 
-   "floating_ip_address": "172.24.4.227", 
-   "port_id": "a37fbd75-79e8-49bf-ae27-96e7cb80d44d", 
-   "id": "2155db5c-4c7b-4787-90ff-7b8ded741c75"
+   "counter_type": "delta"
   }
- }
+ ]
 }

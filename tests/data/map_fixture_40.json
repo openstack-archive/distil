@@ -1,95 +1,32 @@
 {
- "http://localhost:8777/v2/resources/9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a": {
-  "user_id": "6ab10df928e2487f92b950d482038c58", 
-  "links": [
-   {
-    "href": "http://localhost:8777/v2/resources/9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "self"
+ "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=c02b2782-2180-4992-a934-306b1e60296c": [
+  {
+   "counter_name": "port.create", 
+   "user_id": "5fbff7d5c307476fb3db36f3ffbcca07", 
+   "resource_id": "c02b2782-2180-4992-a934-306b1e60296c", 
+   "timestamp": "2014-03-18T23:40:03.063737", 
+   "message_id": "a0a54fc6-aef6-11e3-9865-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "port", 
+   "counter_volume": 1.0, 
+   "project_id": "cd3deadd3d5a4f11802d03928195f4ef", 
+   "resource_metadata": {
+    "status": "DOWN", 
+    "binding:host_id": "vagrant-ubuntu-precise-64", 
+    "binding:capabilities.port_filter": "True", 
+    "admin_state_up": "True", 
+    "network_id": "5b771cb2-961a-4042-a814-2f78c5545f8a", 
+    "tenant_id": "cd3deadd3d5a4f11802d03928195f4ef", 
+    "device_owner": "compute:nova", 
+    "binding:vif_type": "ovs", 
+    "host": "network.vagrant-ubuntu-precise-64", 
+    "mac_address": "fa:16:3e:e5:10:3f", 
+    "event_type": "port.create.end", 
+    "device_id": "7992f8f7-0181-4a15-b6a8-99dec4d20c73", 
+    "id": "c02b2782-2180-4992-a934-306b1e60296c", 
+    "name": ""
    }, 
-   {
-    "href": "http://localhost:8777/v2/meters/cpu?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "cpu"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/cpu_util?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "cpu_util"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/disk.ephemeral.size?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "disk.ephemeral.size"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/disk.read.bytes?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "disk.read.bytes"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/disk.read.requests?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "disk.read.requests"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "disk.root.size"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/disk.write.bytes?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "disk.write.bytes"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/disk.write.requests?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "disk.write.requests"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/instance?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "instance"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/instance.scheduled?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "instance.scheduled"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/instance:m1.micro?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "instance:m1.micro"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/memory?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "memory"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/state?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "state"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/vcpus?q.field=resource_id&q.value=9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-    "rel": "vcpus"
-   }
-  ], 
-  "resource_id": "9a9e7c74-2a2f-4a30-bc75-fadcbc5f304a", 
-  "last_sample_timestamp": "2014-02-12T02:56:40", 
-  "first_sample_timestamp": "2014-02-12T02:48:11.320441", 
-  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
-  "metadata": {
-   "ephemeral_gb": "0", 
-   "flavor.vcpus": "1", 
-   "flavor.ephemeral": "0", 
-   "display_name": "This is a VM", 
-   "flavor.id": "84", 
-   "OS-EXT-AZ:availability_zone": "nova", 
-   "ramdisk_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
-   "flavor.name": "m1.micro", 
-   "disk_gb": "0", 
-   "kernel_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
-   "image.id": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
-   "flavor.ram": "128", 
-   "host": "dfe0a168f3dd9ba097dc1520a46a00984436342bdbf6522e9796d6b2", 
-   "image.name": "cirros-0.3.1-x86_64-uec", 
-   "image_ref_url": "http://10.0.2.15:8774/c7c724d04e734e3688f8e7276aecec9c/images/ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
-   "flavor.disk": "0", 
-   "root_gb": "0", 
-   "name": "instance-00000002", 
-   "memory_mb": "128", 
-   "instance_type": "84", 
-   "vcpus": "1", 
-   "image_ref": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9"
+   "counter_type": "delta"
   }
- }
+ ]
 }

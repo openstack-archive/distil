@@ -1,39 +1,27 @@
 {
- "http://localhost:8777/v2/resources/619767ba-0275-4220-8c4a-b2196c394df0": {
-  "user_id": "376b44e5683549288cfc7620b3dd2694", 
-  "links": [
-   {
-    "href": "http://localhost:8777/v2/resources/619767ba-0275-4220-8c4a-b2196c394df0", 
-    "rel": "self"
+ "http://localhost:8777/v2/meters/router.update?q.field=resource_id&q.value=6d53d8e1-7738-4d35-a012-344042a7669a": [
+  {
+   "counter_name": "router.update", 
+   "user_id": "865fbcdcf3ee4c4c93e9703ac181f192", 
+   "resource_id": "6d53d8e1-7738-4d35-a012-344042a7669a", 
+   "timestamp": "2014-03-18T21:07:19.748103", 
+   "message_id": "5d2d8da4-aee1-11e3-9865-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "router", 
+   "counter_volume": 1.0, 
+   "project_id": "cd3deadd3d5a4f11802d03928195f4ef", 
+   "resource_metadata": {
+    "status": "ACTIVE", 
+    "event_type": "router.update.end", 
+    "external_gateway_info.enable_snat": "True", 
+    "admin_state_up": "True", 
+    "tenant_id": "cd3deadd3d5a4f11802d03928195f4ef", 
+    "host": "network.vagrant-ubuntu-precise-64", 
+    "external_gateway_info.network_id": "c4bd625d-daf0-42fb-85d1-cce1de845b58", 
+    "id": "6d53d8e1-7738-4d35-a012-344042a7669a", 
+    "name": "router1"
    }, 
-   {
-    "href": "http://localhost:8777/v2/meters/port?q.field=resource_id&q.value=619767ba-0275-4220-8c4a-b2196c394df0", 
-    "rel": "port"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/port.create?q.field=resource_id&q.value=619767ba-0275-4220-8c4a-b2196c394df0", 
-    "rel": "port.create"
-   }
-  ], 
-  "resource_id": "619767ba-0275-4220-8c4a-b2196c394df0", 
-  "last_sample_timestamp": "2014-02-12T02:52:21.088311", 
-  "first_sample_timestamp": "2014-02-12T02:52:21.088311", 
-  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
-  "metadata": {
-   "status": "DOWN", 
-   "binding:host_id": "vagrant-ubuntu-precise-64", 
-   "binding:capabilities.port_filter": "True", 
-   "admin_state_up": "True", 
-   "network_id": "a52ff971-8a62-433b-9092-19c0d5a54304", 
-   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
-   "device_owner": "compute:nova", 
-   "binding:vif_type": "ovs", 
-   "host": "network.vagrant-ubuntu-precise-64", 
-   "mac_address": "fa:16:3e:e2:fd:e1", 
-   "event_type": "port.create.end", 
-   "device_id": "de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-   "id": "619767ba-0275-4220-8c4a-b2196c394df0", 
-   "name": ""
+   "counter_type": "delta"
   }
- }
+ ]
 }

@@ -1,46 +1,38 @@
 {
- "http://localhost:8777/v2/resources/3f7b702e4ca14cd99aebf4c4320e00ec": {
-  "user_id": "6427e9ae88ed4dc69e4e4d82b229c8a6", 
-  "links": [
-   {
-    "href": "http://localhost:8777/v2/resources/3f7b702e4ca14cd99aebf4c4320e00ec", 
-    "rel": "self"
+ "http://localhost:8777/v2/meters/image.upload?q.field=resource_id&q.value=2c9af0eb-4960-49c2-8c1c-b60de446f212": [
+  {
+   "counter_name": "image.upload", 
+   "user_id": null, 
+   "resource_id": "2c9af0eb-4960-49c2-8c1c-b60de446f212", 
+   "timestamp": "2014-03-18T21:08:29.526328", 
+   "message_id": "7470dcb4-aee1-11e3-9865-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "image", 
+   "counter_volume": 1.0, 
+   "project_id": "7a64220a45c84104ac95258de1a3720a", 
+   "resource_metadata": {
+    "status": "saving", 
+    "event_type": "image.upload", 
+    "name": "cirros-0.3.1-x86_64-uec", 
+    "min_disk": "0", 
+    "deleted": "False", 
+    "checksum": "f8a2eeee2dc65b3d9b6e63678955bd83", 
+    "created_at": "2014-03-18T21:08:28", 
+    "disk_format": "ami", 
+    "updated_at": "2014-03-18T21:08:29", 
+    "properties.ramdisk_id": "d5c36550-2476-43a3-9535-fa799782fd53", 
+    "properties.kernel_id": "c3bbd48f-9a94-4dfe-8f2c-3b9482fcf17a", 
+    "host": "vagrant-ubuntu-precise-64", 
+    "protected": "False", 
+    "id": "2c9af0eb-4960-49c2-8c1c-b60de446f212", 
+    "container_format": "ami", 
+    "owner": "7a64220a45c84104ac95258de1a3720a", 
+    "is_public": "True", 
+    "deleted_at": "None", 
+    "min_ram": "0", 
+    "size": "25165824"
    }, 
-   {
-    "href": "http://localhost:8777/v2/meters/storage.api.request?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
-    "rel": "storage.api.request"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/storage.objects?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
-    "rel": "storage.objects"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/storage.objects.containers?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
-    "rel": "storage.objects.containers"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/storage.objects.incoming.bytes?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
-    "rel": "storage.objects.incoming.bytes"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/storage.objects.outgoing.bytes?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
-    "rel": "storage.objects.outgoing.bytes"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/storage.objects.size?q.field=resource_id&q.value=3f7b702e4ca14cd99aebf4c4320e00ec", 
-    "rel": "storage.objects.size"
-   }
-  ], 
-  "resource_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
-  "last_sample_timestamp": "2014-02-12T02:56:32.372133", 
-  "first_sample_timestamp": "2014-02-11T22:53:29", 
-  "project_id": "c7c724d04e734e3688f8e7276aecec9c", 
-  "metadata": {
-   "path": "/v1/AUTH_3f7b702e4ca14cd99aebf4c4320e00ec", 
-   "object": "None", 
-   "container": "None", 
-   "method": "head", 
-   "version": "v1"
+   "counter_type": "delta"
   }
- }
+ ]
 }

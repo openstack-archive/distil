@@ -1,36 +1,36 @@
 {
- "http://localhost:8777/v2/resources/a52ff971-8a62-433b-9092-19c0d5a54304": {
-  "user_id": "6ab10df928e2487f92b950d482038c58", 
-  "links": [
-   {
-    "href": "http://localhost:8777/v2/resources/a52ff971-8a62-433b-9092-19c0d5a54304", 
-    "rel": "self"
+ "http://localhost:8777/v2/meters/image.upload?q.field=resource_id&q.value=d5c36550-2476-43a3-9535-fa799782fd53": [
+  {
+   "counter_name": "image.upload", 
+   "user_id": null, 
+   "resource_id": "d5c36550-2476-43a3-9535-fa799782fd53", 
+   "timestamp": "2014-03-18T21:08:27.737629", 
+   "message_id": "737172ba-aee1-11e3-9865-08002705114b", 
+   "source": "openstack", 
+   "counter_unit": "image", 
+   "counter_volume": 1.0, 
+   "project_id": "7a64220a45c84104ac95258de1a3720a", 
+   "resource_metadata": {
+    "status": "saving", 
+    "event_type": "image.upload", 
+    "name": "cirros-0.3.1-x86_64-uec-ramdisk", 
+    "deleted": "False", 
+    "checksum": "69c33642f44ca552ba4bb8b66ad97e85", 
+    "created_at": "2014-03-18T21:08:27", 
+    "disk_format": "ari", 
+    "updated_at": "2014-03-18T21:08:27", 
+    "id": "d5c36550-2476-43a3-9535-fa799782fd53", 
+    "min_disk": "0", 
+    "host": "vagrant-ubuntu-precise-64", 
+    "protected": "False", 
+    "container_format": "ari", 
+    "owner": "7a64220a45c84104ac95258de1a3720a", 
+    "is_public": "True", 
+    "deleted_at": "None", 
+    "min_ram": "0", 
+    "size": "3714968"
    }, 
-   {
-    "href": "http://localhost:8777/v2/meters/network?q.field=resource_id&q.value=a52ff971-8a62-433b-9092-19c0d5a54304", 
-    "rel": "network"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/network.create?q.field=resource_id&q.value=a52ff971-8a62-433b-9092-19c0d5a54304", 
-    "rel": "network.create"
-   }
-  ], 
-  "resource_id": "a52ff971-8a62-433b-9092-19c0d5a54304", 
-  "last_sample_timestamp": "2014-02-11T22:52:53.134561", 
-  "first_sample_timestamp": "2014-02-11T22:52:53.134561", 
-  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
-  "metadata": {
-   "status": "ACTIVE", 
-   "event_type": "network.create.end", 
-   "provider:physical_network": "None", 
-   "admin_state_up": "True", 
-   "tenant_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
-   "provider:network_type": "local", 
-   "host": "network.vagrant-ubuntu-precise-64", 
-   "shared": "False", 
-   "name": "private", 
-   "id": "a52ff971-8a62-433b-9092-19c0d5a54304", 
-   "provider:segmentation_id": "None"
+   "counter_type": "delta"
   }
- }
+ ]
 }

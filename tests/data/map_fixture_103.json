@@ -1,95 +1,38 @@
 {
- "http://localhost:8777/v2/resources/de35c688-5a82-4ce5-a7e0-36245d2448bc": {
-  "user_id": "6ab10df928e2487f92b950d482038c58", 
+ "http://localhost:8777/v2/resources/nova-instance-instance-00000002-fa163e17ab99": {
+  "user_id": "865fbcdcf3ee4c4c93e9703ac181f192", 
   "links": [
    {
-    "href": "http://localhost:8777/v2/resources/de35c688-5a82-4ce5-a7e0-36245d2448bc", 
+    "href": "http://localhost:8777/v2/resources/nova-instance-instance-00000002-fa163e17ab99", 
     "rel": "self"
    }, 
    {
-    "href": "http://localhost:8777/v2/meters/cpu?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-    "rel": "cpu"
+    "href": "http://localhost:8777/v2/meters/network.incoming.bytes?q.field=resource_id&q.value=nova-instance-instance-00000002-fa163e17ab99", 
+    "rel": "network.incoming.bytes"
    }, 
    {
-    "href": "http://localhost:8777/v2/meters/cpu_util?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-    "rel": "cpu_util"
+    "href": "http://localhost:8777/v2/meters/network.incoming.packets?q.field=resource_id&q.value=nova-instance-instance-00000002-fa163e17ab99", 
+    "rel": "network.incoming.packets"
    }, 
    {
-    "href": "http://localhost:8777/v2/meters/disk.ephemeral.size?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-    "rel": "disk.ephemeral.size"
+    "href": "http://localhost:8777/v2/meters/network.outgoing.bytes?q.field=resource_id&q.value=nova-instance-instance-00000002-fa163e17ab99", 
+    "rel": "network.outgoing.bytes"
    }, 
    {
-    "href": "http://localhost:8777/v2/meters/disk.read.bytes?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-    "rel": "disk.read.bytes"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/disk.read.requests?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-    "rel": "disk.read.requests"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-    "rel": "disk.root.size"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/disk.write.bytes?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-    "rel": "disk.write.bytes"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/disk.write.requests?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-    "rel": "disk.write.requests"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/instance?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-    "rel": "instance"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/instance.scheduled?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-    "rel": "instance.scheduled"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/instance:m1.tiny?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-    "rel": "instance:m1.tiny"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/memory?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-    "rel": "memory"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/state?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-    "rel": "state"
-   }, 
-   {
-    "href": "http://localhost:8777/v2/meters/vcpus?q.field=resource_id&q.value=de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-    "rel": "vcpus"
+    "href": "http://localhost:8777/v2/meters/network.outgoing.packets?q.field=resource_id&q.value=nova-instance-instance-00000002-fa163e17ab99", 
+    "rel": "network.outgoing.packets"
    }
   ], 
-  "resource_id": "de35c688-5a82-4ce5-a7e0-36245d2448bc", 
-  "last_sample_timestamp": "2014-02-12T02:56:39", 
-  "first_sample_timestamp": "2014-02-12T02:52:18.138444", 
-  "project_id": "3f7b702e4ca14cd99aebf4c4320e00ec", 
+  "resource_id": "nova-instance-instance-00000002-fa163e17ab99", 
+  "last_sample_timestamp": "2014-03-18T23:29:55", 
+  "first_sample_timestamp": "2014-03-18T23:27:55", 
+  "project_id": "cd3deadd3d5a4f11802d03928195f4ef", 
   "metadata": {
-   "ephemeral_gb": "0", 
-   "flavor.vcpus": "1", 
-   "flavor.ephemeral": "0", 
-   "display_name": "Jim2", 
-   "flavor.id": "1", 
-   "OS-EXT-AZ:availability_zone": "nova", 
-   "ramdisk_id": "8d53d1f5-45dd-4b17-9c6d-24c7a929a6a0", 
-   "flavor.name": "m1.tiny", 
-   "disk_gb": "1", 
-   "kernel_id": "cf66da87-d3e4-4c20-9739-7b8a8852cb78", 
-   "image.id": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
-   "flavor.ram": "512", 
-   "host": "dfe0a168f3dd9ba097dc1520a46a00984436342bdbf6522e9796d6b2", 
-   "image.name": "cirros-0.3.1-x86_64-uec", 
-   "image_ref_url": "http://10.0.2.15:8774/c7c724d04e734e3688f8e7276aecec9c/images/ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9", 
-   "flavor.disk": "1", 
-   "root_gb": "1", 
-   "name": "instance-00000005", 
-   "memory_mb": "512", 
-   "instance_type": "1", 
-   "vcpus": "1", 
-   "image_ref": "ae44c63d-279d-4ad4-b1aa-dbec7e1c59d9"
+   "instance_id": "d9f92c40-23b3-4b86-ade2-ef62d0b459de", 
+   "instance_type": "42", 
+   "mac": "fa:16:3e:17:ab:99", 
+   "fref": "nova-instance-instance-00000002-fa163e17ab99", 
+   "name": "tap06245705-ed"
   }
  }
 }
