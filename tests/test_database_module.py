@@ -1,3 +1,4 @@
+import mock
 from . import test_interface, helpers
 from artifice import database
 from artifice import models
@@ -16,12 +17,16 @@ class TestDatabaseModule(test_interface.TestInterface):
         db.insert_tenant(TENANT_ID,
                          "demo", "")
 
-        db.enter(usage.values(), self.start, self.end)
+        # patch to mock out the novaclient call
+        with mock.patch('artifice.helpers.flavor_name') as flavor_name:
+            flavor_name.return_value = "someFlavorName"
 
-        count = 0
-        for val in usage.values():
-            for service in val.usage():
-                count += 1
+            db.enter(usage.values(), self.start, self.end)
+
+            count = 0
+            for val in usage.values():
+                for service in val.usage():
+                    count += 1
 
         self.assertEqual(self.session.query(models.UsageEntry).count(), count)
         self.assertEqual(self.session.query(models.Resource).count(),

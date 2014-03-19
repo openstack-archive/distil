@@ -1,5 +1,6 @@
 import datetime
 import constants
+import helpers
 
 
 class Transformer(object):
@@ -58,7 +59,8 @@ class Uptime(Transformer):
                 diff = val["timestamp"] - last_state["timestamp"]
 
                 try:
-                    flav = "flavor id: " + str(last_flavor['counter_volume'])
+                    flav = helpers.flavor_name(last_flavor['counter_volume'])
+                    print flav
                     usage_dict[flav] = usage_dict[flav] + diff.seconds
                 except KeyError:
                     usage_dict[flav] = diff.seconds

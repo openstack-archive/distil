@@ -39,17 +39,21 @@ class TestApi(test_interface.TestInterface):
 
             Artifice.return_value = artifice
 
-            resp = self.app.post("/collect_usage")
-            self.assertEquals(resp.status_int, 200)
+            # patch to mock out the novaclient call
+            with mock.patch('artifice.helpers.flavor_name') as flavor_name:
+                flavor_name.return_value = "someFlavorName"
 
-            tenants = self.session.query(models.Tenant)
-            self.assertTrue(tenants.count() > 0)
+                resp = self.app.post("/collect_usage")
+                self.assertEquals(resp.status_int, 200)
 
-            usages = self.session.query(models.UsageEntry)
-            self.assertTrue(usages.count() > 0)
-            resources = self.session.query(models.Resource)
+                tenants = self.session.query(models.Tenant)
+                self.assertTrue(tenants.count() > 0)
 
-            self.assertEquals(resources.count(), len(usage.values()))
+                usages = self.session.query(models.UsageEntry)
+                self.assertTrue(usages.count() > 0)
+                resources = self.session.query(models.Resource)
+
+                self.assertEquals(resources.count(), len(usage.values()))
 
     def test_sales_run_for_all(self):
         """Assertion that a sales run generates all tenant orders"""
