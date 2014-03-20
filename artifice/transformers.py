@@ -74,7 +74,7 @@ class Uptime(Transformer):
             try:
                 new_flavor = flavor[count]
                 self.parse_timestamp(new_flavor)
-                if new_flavor["timestamp"] < last_state["timestamp"]:
+                if new_flavor["timestamp"] <= last_state["timestamp"]:
                     count += 1
                     last_flavor = new_flavor
             except IndexError:

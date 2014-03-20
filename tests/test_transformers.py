@@ -112,7 +112,6 @@ class UptimeTransformerTests(unittest.TestCase):
         # there should be half an hour of usage.
         self.assertEqual({'m1.tiny': 1800}, result)
 
-    @unittest.skip
     def test_online_flavor_change(self):
         """
         Test that a machine run for 0.5h as m1.tiny, resized to m1.large, and run
