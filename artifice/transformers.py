@@ -44,6 +44,10 @@ class Uptime(Transformer):
         state = sorted(state.usage(), key=lambda x: x["timestamp"])
         flavor = sorted(flavor.usage(), key=lambda x: x["timestamp"])
 
+        if not len(state) or not len(flavor):
+            # there was no data for this period.
+            return usage_dict
+
         last_state = state[0]
         self.parse_timestamp(last_state)
 
