@@ -3,7 +3,7 @@ import constants
 import helpers
 
 
-class TransformerValidationError(BaseException):
+class TransformerValidationError(Exception):
     pass
 
 
