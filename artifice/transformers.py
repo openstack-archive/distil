@@ -3,6 +3,10 @@ import constants
 import helpers
 
 
+class TransformerValidationError(BaseException):
+    pass
+
+
 class Transformer(object):
 
     meter_type = None
@@ -16,13 +20,15 @@ class Transformer(object):
         if self.meter_type is None:
             for meter in self.required_meters:
                 if meter not in meters:
-                    raise AttributeError("Required meters: " +
-                                         str(self.required_meters))
+                    raise TransformerValidationError(
+                        "Required meters: " +
+                        str(self.required_meters))
         else:
             for meter in meters.values():
                 if meter.type != self.meter_type:
-                    raise AttributeError("Meters must all be of type: " +
-                                         self.meter_type)
+                    raise TransformerValidationError(
+                        "Meters must all be of type: " +
+                        self.meter_type)
 
     def _transform_usage(self, meters):
         raise NotImplementedError
@@ -101,19 +107,19 @@ class GaugeMax(Transformer):
 
     def _transform_usage(self, meters):
         usage_dict = {}
-        for meter in meters.values():
+        for name, meter in meters.iteritems():
             usage = meter.usage()
             max_vol = max([v["counter_volume"] for v in usage])
-            usage_dict[meter.name] = max_vol
+            usage_dict[name] = max_vol
         return usage_dict
 
 
-class CumulativeTotal(Transformer):
+class CumulativeRange(Transformer):
     meter_type = 'cumulative'
 
     def _transform_usage(self, meters):
         usage_dict = {}
-        for meter in meters.values():
+        for name, meter in meters.iteritems():
             measurements = meter.usage()
             measurements = sorted(measurements, key=lambda x: x["timestamp"])
             count = 0
@@ -131,5 +137,5 @@ class CumulativeTotal(Transformer):
 
             if count > 1:
                 total_usage = usage - measurements[0]["counter_volume"]
-                usage_dict[meter.name] = total_usage
+                usage_dict[name] = total_usage
         return usage_dict

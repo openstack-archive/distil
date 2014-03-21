@@ -121,6 +121,6 @@ class Volume(BaseModelConstruct):
 class Network(BaseModelConstruct):
     relevant_meters = ["network.outgoing.bytes", "network.incoming.bytes"]
 
-    transformer = transformers.CumulativeTotal()
+    transformer = transformers.CumulativeRange()
 
     type = "network_interface"
