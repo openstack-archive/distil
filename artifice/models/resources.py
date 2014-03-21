@@ -25,12 +25,6 @@ class BaseModelConstruct(object):
     def __getitem__(self, item):
         return self._raw[item]
 
-    def get(self, name):
-        # Returns a given name value thing?
-        # Based on patterning, this is expected to be a dict of usage
-        # information based on a meter, I guess?
-        return getattr(self, name)
-
     def meters(self):
         dct = {}
         for meter in self.relevant_meters:
