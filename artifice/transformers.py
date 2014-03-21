@@ -74,7 +74,6 @@ class Uptime(Transformer):
 
                 try:
                     flav = helpers.flavor_name(last_flavor['counter_volume'])
-                    print flav
                     usage_dict[flav] = usage_dict[flav] + diff.seconds
                 except KeyError:
                     usage_dict[flav] = diff.seconds
