@@ -35,6 +35,10 @@ class Transformer(object):
 
 
 class Uptime(Transformer):
+    """
+    Transformer to calculate uptime based on states,
+    which is broken apart into flavor at point in time.
+    """
     required_meters = ['state', 'flavor']
 
     def _transform_usage(self, meters):
@@ -103,6 +107,10 @@ class Uptime(Transformer):
 
 
 class GaugeMax(Transformer):
+    """
+    Transformer that simply returns the highest value
+    in the given range.
+    """
     meter_type = 'gauge'
 
     def _transform_usage(self, meters):
@@ -115,6 +123,10 @@ class GaugeMax(Transformer):
 
 
 class CumulativeRange(Transformer):
+    """
+    Transformer to get the usage over a given range in a cumulative
+    metric, while taking into account that the metric can reset.
+    """
     meter_type = 'cumulative'
 
     def _transform_usage(self, meters):
