@@ -1,6 +1,7 @@
 from sqlalchemy import func
 from .models import Resource, UsageEntry, Tenant
 import json
+from transformers import TransformerValidationError
 from datetime import datetime
 
 
@@ -30,32 +31,37 @@ class Database(object):
            in a resource, for all the resources given"""
 
         for resource in usage:
-            for service, volume in resource.usage().iteritems():
-                resource_id = resource.get("resource_id")
-                tenant_id = resource.get("tenant_id")
+            try:
+                for service, volume in resource.usage().iteritems():
+                    resource_id = resource.get("resource_id")
+                    tenant_id = resource.get("tenant_id")
 
-                #  Have we seen this resource before?
-                query = self.session.query(Resource).\
-                    filter(Resource.id == resource_id,
-                           Resource.tenant_id == tenant_id)
-                if query.count() == 0:
-                    info = json.dumps(resource.info)
-                    self.session.add(Resource(id=resource_id,
-                                              info=str(info),
-                                              tenant_id=tenant_id,
-                                              created=datetime.now()
-                                              ))
+                    #  Have we seen this resource before?
+                    query = self.session.query(Resource).\
+                        filter(Resource.id == resource_id,
+                               Resource.tenant_id == tenant_id)
+                    if query.count() == 0:
+                        info = json.dumps(resource.info)
+                        self.session.add(Resource(id=resource_id,
+                                                  info=str(info),
+                                                  tenant_id=tenant_id,
+                                                  created=datetime.now()
+                                                  ))
 
-                entry = UsageEntry(service=service,
-                                   volume=volume,
-                                   resource_id=resource_id,
-                                   tenant_id=tenant_id,
-                                   start=start,
-                                   end=end,
-                                   created=datetime.now()
-                                   )
-                self.session.add(entry)
-                self.session.flush()
+                    entry = UsageEntry(service=service,
+                                       volume=volume,
+                                       resource_id=resource_id,
+                                       tenant_id=tenant_id,
+                                       start=start,
+                                       end=end,
+                                       created=datetime.now()
+                                       )
+                    self.session.add(entry)
+                    self.session.flush()
+            except TransformerValidationError:
+                # log something related to the resource usage failing
+                # transform.
+                pass
 
     def usage(self, start, end, tenant_id):
         """Returns a query of usage entries for a given tenant,
