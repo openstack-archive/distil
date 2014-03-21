@@ -31,11 +31,10 @@ class Database(object):
            in a resource, for all the resources given"""
 
         for resource in usage:
+            resource_id = resource.resource_id
+            tenant_id = resource.tenant_id
             try:
                 for service, volume in resource.usage().iteritems():
-                    resource_id = resource.get("resource_id")
-                    tenant_id = resource.get("tenant_id")
-
                     #  Have we seen this resource before?
                     query = self.session.query(Resource).\
                         filter(Resource.id == resource_id,
