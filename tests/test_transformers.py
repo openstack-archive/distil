@@ -90,7 +90,7 @@ class UptimeTransformerTests(unittest.TestCase):
         # there should be no usage, the machine was off.
         self.assertEqual({}, result)
 
-    @unittest.skip
+    
     def test_shutdown_during_period(self):
         """
         Test that a machine run for 0.5 then shutdown gives 0.5h uptime.

@@ -59,7 +59,7 @@ class Uptime(Transformer):
         for val in state[1:]:
             self.parse_timestamp(val)
 
-            if val["counter_volume"] in tracked_states:
+            if last_state["counter_volume"] in tracked_states:
                 diff = val["timestamp"] - last_state["timestamp"]
 
                 try:
@@ -105,19 +105,6 @@ class GaugeMax(Transformer):
             usage = meter.usage()
             max_vol = max([v["counter_volume"] for v in usage])
             usage_dict[meter.name] = max_vol
-        return usage_dict
-
-
-class GaugeAverage(Transformer):
-    meter_type = 'gauge'
-
-    def _transform_usage(self, meters):
-        usage_dict = {}
-        for meter in meters.values():
-            usage = meter.usage()
-            length = len(usage)
-            avg_vol = sum([v["counter_volume"] for v in usage]) / length
-            usage_dict[meter.name] = avg_vol
         return usage_dict
 
 
