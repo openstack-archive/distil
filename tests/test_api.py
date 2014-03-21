@@ -41,7 +41,7 @@ class TestApi(test_interface.TestInterface):
 
             # patch to mock out the novaclient call
             with mock.patch('artifice.helpers.flavor_name') as flavor_name:
-                flavor_name.return_value = "someFlavorName"
+                flavor_name.side_effect = lambda x: x
 
                 resp = self.app.post("/collect_usage")
                 self.assertEquals(resp.status_int, 200)
