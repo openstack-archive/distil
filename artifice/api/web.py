@@ -104,6 +104,42 @@ def keystone(func):
     # return _perform_keystone
 
 
+def collect_usage(tenant, db, session, resp, end):
+    db.insert_tenant(tenant.conn['id'], tenant.conn['name'],
+                    tenant.conn['description'])
+    session.begin(subtransactions=True)
+    start = session.query(func.max(UsageEntry.end).label('end')).\
+        filter(UsageEntry.tenant_id == tenant.conn['id']).first().end
+    if not start:
+        start = datetime.strptime(dawn_of_time, iso_date)
+
+    usage = tenant.usage(start, end)
+
+    # enter all resources into the db
+    db.enter(usage.values(), start, end)
+
+    try:
+        session.commit()
+        resp["tenants"].append(
+            {"id": tenant.conn['id'],
+             "updated": True,
+             "start": start.strftime(iso_time),
+             "end": end.strftime(iso_time)
+             }
+        )
+    except sqlalchemy.exc.IntegrityError:
+        # this is fine.
+        resp["tenants"].append(
+            {"id": tenant.conn['id'],
+             "updated": False,
+             "error": "Integrity error",
+             "start": start.strftime(iso_time),
+             "end": end.strftime(iso_time)
+             }
+        )
+        resp["errors"] += 1
+
+
 @app.route("collect_usage", methods=["POST"])
 @keystone
 def run_usage_collection():
@@ -117,55 +153,23 @@ def run_usage_collection():
     session = Session()
 
     artifice = interface.Artifice(config)
-    d = database.Database(session)
+    db = database.Database(session)
 
     tenants = artifice.tenants
 
-    resp = {"tenants": [],
-            "errors": 0}
+    end = datetime.now().\
+        replace(minute=0, second=0, microsecond=0)
+
+    resp = {"tenants": [], "errors": 0}
 
     for tenant in tenants:
-        d.insert_tenant(tenant.conn['id'], tenant.conn['name'],
-                        tenant.conn['description'])
-        session.begin(subtransactions=True)
-        start = session.query(func.max(UsageEntry.end).label('end')).\
-            filter(UsageEntry.tenant_id == tenant.conn['id']).first().end
-        if not start:
-            start = datetime.strptime(dawn_of_time, iso_date)
+        collect_usage(tenant, db, session, resp, end)
 
-        end = datetime.now(pytz.timezone(DEFAULT_TIMEZONE)).\
-            replace(minute=0, second=0, microsecond=0)
-
-        usage = tenant.usage(start, end)
-        
-        # enter all resources into the db
-        d.enter(usage.values(), start, end)
-            
-        try:
-            session.commit()
-            resp["tenants"].append(
-                {"id": tenant.conn['id'],
-                 "updated": True,
-                 "start": start.strftime(iso_time),
-                 "end": end.strftime(iso_time)
-                 }
-            )
-        except sqlalchemy.exc.IntegrityError:
-            # this is fine.
-            resp["tenants"].append(
-                {"id": tenant.conn['id'],
-                 "updated": False,
-                 "error": "Integrity error",
-                 "start": start.strftime(iso_time),
-                 "end": end.strftime(iso_time)
-                 }
-            )
-            resp["errors"] += 1
     session.close()
     return json.dumps(resp)
 
 
-def generate_sales_order(tenant, session):
+def generate_sales_order(tenant, session, end):
     db = database.Database(session)
 
     session.begin()
@@ -175,9 +179,6 @@ def generate_sales_order(tenant, session):
         filter(SalesOrder.tenant == tenant).first().end
     if not start:
         start = datetime.strptime(dawn_of_time, iso_date)
-    # Today, the beginning of.
-    end = datetime.now().\
-        replace(hour=0, minute=0, second=0, microsecond=0)
     # Invoicer is pulled from the configfile and set up above.
     usage = db.usage(start, end, tenant.id)
     order = SalesOrder(tenant_id=tenant.id, start=start, end=end)
@@ -245,6 +246,10 @@ def run_sales_order_generation():
     tenants = flask.request.json.get("tenants", None)
     tenant_query = session.query(Tenant)
 
+    # Today, the beginning of.
+    end = datetime.now().\
+        replace(hour=0, minute=0, second=0, microsecond=0)
+
     if isinstance(tenants, list):
         tenant_query = tenant_query.filter(Tenant.id.in_(tenants))
         if tenant_query.count() == 0:
@@ -258,7 +263,7 @@ def run_sales_order_generation():
     resp = {"tenants": []}
 
     for tenant in tenant_query:
-        resp['tenants'].append(generate_sales_order(tenant, session))
+        resp['tenants'].append(generate_sales_order(tenant, session, end))
 
     return 200, resp
 
