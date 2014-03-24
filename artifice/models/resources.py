@@ -39,7 +39,7 @@ class BaseModelConstruct(object):
 
     def usage(self):
         meters = self.meters()
-        usage = self.transformer.transform_usage(meters)
+        usage = self.transformer.transform_usage(meters, self.start, self.end)
         return usage
 
 

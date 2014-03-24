@@ -12,9 +12,9 @@ class Transformer(object):
     meter_type = None
     required_meters = []
 
-    def transform_usage(self, meters):
+    def transform_usage(self, meters, start, end):
         self.validate_meters(meters)
-        return self._transform_usage(meters)
+        return self._transform_usage(meters, start, end)
 
     def validate_meters(self, meters):
         if self.meter_type is None:
@@ -30,7 +30,7 @@ class Transformer(object):
                         "Meters must all be of type: " +
                         self.meter_type)
 
-    def _transform_usage(self, meters):
+    def _transform_usage(self, meters, start, end):
         raise NotImplementedError
 
 
@@ -41,7 +41,7 @@ class Uptime(Transformer):
     """
     required_meters = ['state', 'flavor']
 
-    def _transform_usage(self, meters):
+    def _transform_usage(self, meters, start, end):
         # this NEEDS to be moved to a config file
         tracked_states = [constants.active, constants.building,
                           constants.paused, constants.rescued,
@@ -112,7 +112,7 @@ class GaugeMax(Transformer):
     """
     meter_type = 'gauge'
 
-    def _transform_usage(self, meters):
+    def _transform_usage(self, meters, start, end):
         usage_dict = {}
         for name, meter in meters.iteritems():
             usage = meter.usage()
@@ -128,7 +128,7 @@ class CumulativeRange(Transformer):
     """
     meter_type = 'cumulative'
 
-    def _transform_usage(self, meters):
+    def _transform_usage(self, meters, start, end):
         usage_dict = {}
         for name, meter in meters.iteritems():
             measurements = meter.usage()

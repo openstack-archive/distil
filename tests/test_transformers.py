@@ -3,9 +3,11 @@ from artifice.transformers import TransformerValidationError
 import artifice.constants as constants
 import unittest
 import mock
+import datetime
 
 
 class testdata:
+    # string timestamps to put in meter data
     t0 = '2014-01-01T00:00:00'
     t0_10 = '2014-01-01T00:10:00'
     t0_20 = '2014-01-01T00:30:00'
@@ -13,6 +15,10 @@ class testdata:
     t0_40 = '2014-01-01T00:40:00'
     t0_50 = '2014-01-01T00:50:00'
     t1 = '2014-01-01T01:00:00'
+
+    # clipping window bounds -- expected to be actual datetimes.
+    ts0 = datetime.datetime.strptime(t0, constants.date_format)
+    ts1 = datetime.datetime.strptime(t1, constants.date_format)
 
     flavor = 'm1.tiny'
     flavor2 = 'm1.large'
@@ -36,7 +42,7 @@ class UptimeTransformerTests(unittest.TestCase):
         xform = artifice.transformers.Uptime()
 
         with self.assertRaises(TransformerValidationError) as e:
-            xform.transform_usage({})
+            xform.transform_usage({}, testdata.ts0, testdata.ts1)
 
         self.assertTrue(e.exception.message.startswith('Required meters:'))
 
@@ -44,7 +50,7 @@ class UptimeTransformerTests(unittest.TestCase):
         xform = artifice.transformers.Uptime()
         with mock.patch('artifice.helpers.flavor_name') as flavor_name:
             flavor_name.side_effect = lambda x: x
-            return xform.transform_usage(meters)
+            return xform.transform_usage(meters, testdata.ts0, testdata.ts1)
 
     def test_trivial_run(self):
         """
@@ -155,7 +161,7 @@ class GaugeMaxTransformerTests(unittest.TestCase):
         meter.type = "cumulative"
         
         with self.assertRaises(TransformerValidationError) as e:
-            xform.transform_usage({'some_meter': meter})
+            xform.transform_usage({'some_meter': meter}, testdata.ts0, testdata.ts1)
 
         self.assertTrue(
             e.exception.message.startswith('Meters must all be of type: '))
@@ -179,7 +185,7 @@ class GaugeMaxTransformerTests(unittest.TestCase):
         }
 
         xform = artifice.transformers.GaugeMax()
-        usage = xform.transform_usage(meters)
+        usage = xform.transform_usage(meters, testdata.ts0, testdata.ts1)
 
         self.assertEqual({'size': 25}, usage)
 
@@ -198,7 +204,7 @@ class GaugeMaxTransformerTests(unittest.TestCase):
         }
 
         xform = artifice.transformers.GaugeMax()
-        usage = xform.transform_usage(meters)
+        usage = xform.transform_usage(meters, testdata.ts0, testdata.ts1)
 
         self.assertEqual({'size': 25}, usage)
 
@@ -223,7 +229,7 @@ class CumulativeRangeTransformerTests(unittest.TestCase):
         }
 
         xform = artifice.transformers.CumulativeRange()
-        usage = xform.transform_usage(meters)
+        usage = xform.transform_usage(meters, testdata.ts0, testdata.ts1)
 
         self.assertEqual({'time': 6}, usage)
 
@@ -245,7 +251,7 @@ class CumulativeRangeTransformerTests(unittest.TestCase):
         }
 
         xform = artifice.transformers.CumulativeRange()
-        usage = xform.transform_usage(meters)
+        usage = xform.transform_usage(meters, testdata.ts0, testdata.ts1)
 
         self.assertEqual({'time': 70}, usage)
 
@@ -267,6 +273,6 @@ class CumulativeRangeTransformerTests(unittest.TestCase):
         }
 
         xform = artifice.transformers.CumulativeRange()
-        usage = xform.transform_usage(meters)
+        usage = xform.transform_usage(meters, testdata.ts0, testdata.ts1)
 
         self.assertEqual({'time': 100}, usage)
