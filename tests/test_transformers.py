@@ -16,6 +16,9 @@ class testdata:
     t0_50 = '2014-01-01T00:50:00'
     t1 = '2014-01-01T01:00:00'
 
+    # and one outside the window
+    tpre = '2013-12-31T23:50:00'
+
     # clipping window bounds -- expected to be actual datetimes.
     ts0 = datetime.datetime.strptime(t0, constants.date_format)
     ts1 = datetime.datetime.strptime(t1, constants.date_format)
