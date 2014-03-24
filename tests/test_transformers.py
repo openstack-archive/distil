@@ -151,6 +151,51 @@ class UptimeTransformerTests(unittest.TestCase):
         # there should be half an hour of usage in each of m1.tiny and m1.large
         self.assertEqual({'m1.tiny': 1800, 'm1.large': 1800}, result)
 
+    def test_period_leadin_none_available(self):
+        """
+        Test that if the first data point is well into the window, and we had no
+        lead-in data, we assume no usage until our first real data point.
+        """
+        meters = {
+            'flavor': TestMeter([
+                {'timestamp': testdata.t0_10, 'counter_volume': testdata.flavor},
+                {'timestamp': testdata.t1, 'counter_volume': testdata.flavor},
+                ]),
+            'state': TestMeter([
+                {'timestamp': testdata.t0_10, 'counter_volume': constants.active},
+                {'timestamp': testdata.t1, 'counter_volume': constants.active},
+                ]),
+        }
+
+        result = self._run_transform(meters)
+        # there should be 50 minutes of usage; we have no idea what happened before
+        # that so we don't try to bill it.
+        self.assertEqual({'m1.tiny': 3000}, result)
+
+    @unittest.skip      # this doesnt work yet
+    def test_period_leadin_available(self):
+        """
+        Test that if the first data point is well into the window, but we *do*
+        have lead-in data, then we use the lead-in clipped to the start of the
+        window.
+        """
+        meters = {
+            'flavor': TestMeter([
+                {'timestamp': testdata.tpre, 'counter_volume': testdata.flavor},
+                {'timestamp': testdata.t0_10, 'counter_volume': testdata.flavor},
+                {'timestamp': testdata.t1, 'counter_volume': testdata.flavor},
+                ]),
+            'state': TestMeter([
+                {'timestamp': testdata.tpre, 'counter_volume': constants.active},
+                {'timestamp': testdata.t0_10, 'counter_volume': constants.active},
+                {'timestamp': testdata.t1, 'counter_volume': constants.active},
+                ]),
+        }
+
+        result = self._run_transform(meters)
+        # there should be 60 minutes of usage; we have no idea what happened before
+        # that so we don't try to bill it.
+        self.assertEqual({'m1.tiny': 3600}, result)
 
 class GaugeMaxTransformerTests(unittest.TestCase):
     def test_wrong_metrics_type(self):
