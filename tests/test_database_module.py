@@ -2,7 +2,7 @@ import mock
 from . import test_interface, helpers
 from artifice import database
 from artifice import models
-from datetime import timedelta
+from datetime import timedelta, datetime
 from .constants import TENANT_ID
 
 
@@ -21,7 +21,7 @@ class TestDatabaseModule(test_interface.TestInterface):
         with mock.patch('artifice.helpers.flavor_name') as flavor_name:
             flavor_name.side_effect = lambda x: x
 
-            db.enter(usage.values(), self.start, self.end)
+            db.enter(usage.values(), self.start, self.end, datetime.now())
 
             count = 0
             for val in usage.values():

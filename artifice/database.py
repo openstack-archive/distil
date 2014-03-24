@@ -26,7 +26,7 @@ class Database(object):
                                     ))
             self.session.flush()
 
-    def enter(self, usage, start, end):
+    def enter(self, usage, start, end, timestamp):
         """Creates a new database entry for every usage strategy
            in a resource, for all the resources given"""
 
@@ -44,7 +44,7 @@ class Database(object):
                         self.session.add(Resource(id=resource_id,
                                                   info=str(info),
                                                   tenant_id=tenant_id,
-                                                  created=datetime.now()
+                                                  created=timestamp
                                                   ))
 
                     entry = UsageEntry(service=service,
@@ -53,7 +53,7 @@ class Database(object):
                                        tenant_id=tenant_id,
                                        start=start,
                                        end=end,
-                                       created=datetime.now()
+                                       created=timestamp
                                        )
                     self.session.add(entry)
                     self.session.flush()

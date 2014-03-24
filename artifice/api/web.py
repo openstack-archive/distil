@@ -114,9 +114,10 @@ def collect_usage(tenant, db, session, resp, end):
         start = datetime.strptime(dawn_of_time, iso_date)
 
     usage = tenant.usage(start, end)
+    timestamp = datetime.now()
 
     # enter all resources into the db
-    db.enter(usage.values(), start, end)
+    db.enter(usage.values(), start, end, timestamp)
 
     try:
         session.commit()
