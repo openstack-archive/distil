@@ -35,13 +35,14 @@ class TestDatabaseModule(test_interface.TestInterface):
 
     def test_get_from_db(self):
         """Test to ensure the data in the database matches the data entered."""
-        numb_resources = 32
+        num_resources = 32
+        num_tenants = 5
 
-        helpers.fill_db(self.session, 5, numb_resources, self.end)
+        helpers.fill_db(self.session, num_tenants, num_resources, self.end)
 
         db = database.Database(self.session)
 
-        for i in range(5):
+        for i in range(num_tenants):
             usage = db.usage(self.start, self.start + timedelta(days=60),
                              "tenant_id_" + str(i))
-            self.assertEqual(usage.count(), numb_resources)
+            self.assertEqual(usage.count(), num_resources)
