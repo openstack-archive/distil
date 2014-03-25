@@ -12,16 +12,17 @@ class TestDatabaseModule(test_interface.TestInterface):
         """Tests adding all the data to the database."""
 
         usage = helpers.get_usage()
+        timestamp = datetime.now()
 
         db = database.Database(self.session)
         db.insert_tenant(TENANT_ID,
-                         "demo", "")
+                         "demo", "", timestamp)
 
         # patch to mock out the novaclient call
         with mock.patch('artifice.helpers.flavor_name') as flavor_name:
             flavor_name.side_effect = lambda x: x
 
-            db.enter(usage.values(), self.start, self.end, datetime.now())
+            db.enter(usage.values(), self.start, self.end, timestamp)
 
             count = 0
             for val in usage.values():

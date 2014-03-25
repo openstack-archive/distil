@@ -105,8 +105,9 @@ def keystone(func):
 
 
 def collect_usage(tenant, db, session, resp, end):
+    timestamp = datetime.now()
     db.insert_tenant(tenant.conn['id'], tenant.conn['name'],
-                    tenant.conn['description'])
+                    tenant.conn['description'], timestamp)
     session.begin(subtransactions=True)
     start = session.query(func.max(UsageEntry.end).label('end')).\
         filter(UsageEntry.tenant_id == tenant.conn['id']).first().end
@@ -114,7 +115,6 @@ def collect_usage(tenant, db, session, resp, end):
         start = datetime.strptime(dawn_of_time, iso_date)
 
     usage = tenant.usage(start, end)
-    timestamp = datetime.now()
 
     # enter all resources into the db
     db.enter(usage.values(), start, end, timestamp)

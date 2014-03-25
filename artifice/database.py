@@ -12,7 +12,7 @@ class Database(object):
         # engine = create_engine(os.environ["DATABASE_URL"])
         # Base.metadata.create_all(engine)
 
-    def insert_tenant(self, tenant_id, tenant_name, metadata):
+    def insert_tenant(self, tenant_id, tenant_name, metadata, timestamp):
         """If a tenant exists does nothing,
            and if it doesn't, creates and inserts it."""
         #  Have we seen this tenant before?
@@ -22,7 +22,7 @@ class Database(object):
             self.session.add(Tenant(id=tenant_id,
                                     info=metadata,
                                     name=tenant_name,
-                                    created=datetime.now()
+                                    created=timestamp
                                     ))
             self.session.flush()
 
