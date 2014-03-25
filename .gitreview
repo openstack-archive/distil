@@ -1,0 +1,5 @@
+[gerrit]
+host=gerrit.dmz.wgtn.cat-it.co.nz
+port=29418
+project=openstack-artifice.git
+defaultbranch=to_production
