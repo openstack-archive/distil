@@ -70,37 +70,3 @@ class RatesFileMixin(object):
                 print "Couldn't open the file!"
                 raise
         return self.__rates[name]["cost"]  # ignore the regions-ness for now
-
-
-class NamesFileMixin(object):
-
-    # Mixin
-    # Adds a name prettifier
-    #
-    def pretty_name(self, name):
-        try:
-            self.__names
-        except AttributeError:
-            self.__names = {}
-        if not self.__names:
-            self.__names = {}
-            try:
-                fh = open(self.config["rates"]["names"])
-                # Makes no opinions on the file structure
-                reader = csv.reader(fh, delimiter="|")
-                for row in reader:
-                    # The default layout is expected to be:
-                    # internal name | external name
-                    self.__names[row[0].strip()] = row[1].strip()
-
-                if not self.__names:
-                    raise IndexError("Malformed names CSV")
-                fh.close()
-            except KeyError:
-                # couldn't actually find the useful info for rateS?
-                print "Couldn't find rates info configuration option!"
-                raise
-            except IOError:
-                print "Couldn't open the file!"
-                raise
-        return self.__names[name]
