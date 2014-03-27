@@ -4,6 +4,7 @@ from artifice.plugins import csv_exporter
 from decimal import Decimal
 import csv
 import os
+import mock
 
 
 config = {
@@ -27,44 +28,18 @@ class TestCSVExporter(test_interface.TestInterface):
         tenant = helpers.build_billable(numb_resources, volume)
         self.tenant = tenant
 
+        # mock rates provider that just yields 1.0 for everything.
+        rates = mock.Mock()
+        rates.rate.return_value = Decimal(1.0)
+
         sales_order = csv_exporter.Csv(self.start, self.end,
-                                       csv_config)
+                                       csv_config, rates)
         sales_order.bill(tenant)
         self.filename = sales_order.filename
         sales_order.close()
 
     def get_rate(self, service):
-        try:
-            self.__rates
-        except AttributeError:
-            self.__rates = {}
-        if not self.__rates:
-            self.__rates = {}
-            try:
-                fh = open(config["rates"]["file"])
-                # Makes no opinions on the file structure
-                reader = csv.reader(fh, delimiter="|")
-                for row in reader:
-                    # The default layout is expected to be:
-                    # location | rate name | rate measurement | rate value
-                    self.__rates[row[1].strip()] = {
-                        "cost": Decimal(row[3].strip()),
-                        "region": row[0].strip(),
-                        "measures": row[2].strip()
-                    }
-                if not self.__rates:
-                    raise IndexError("malformed rates CSV!")
-                fh.close()
-            except KeyError:
-                # couldn't actually find the useful info for rateS?
-                print "Couldn't find rates info configuration option!"
-                raise
-            except IndexError:
-                raise IndexError("Malformed rates CSV!")
-            except IOError:
-                print "Couldn't open the file!"
-                raise
-        return self.__rates[service]["cost"]  # ignore the regions-ness for now
+        return Decimal(1.0);
 
     def test_generate_csv(self):
         """Generates a CSV, checks that:

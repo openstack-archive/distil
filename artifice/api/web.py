@@ -1,6 +1,7 @@
 import flask
 from flask import Flask, Blueprint
 from artifice import interface, database
+from artifice.sales_order import RatesFile
 from artifice.models import UsageEntry, SalesOrder, Tenant, billing
 import sqlalchemy
 from sqlalchemy import create_engine, func
@@ -170,7 +171,7 @@ def run_usage_collection():
     return json.dumps(resp)
 
 
-def generate_sales_order(tenant, session, end):
+def generate_sales_order(tenant, session, end, rates):
     db = database.Database(session)
 
     session.begin()
@@ -196,7 +197,7 @@ def generate_sales_order(tenant, session, end):
         # and will probably result in the CSV exporter being changed.
         billable = billing.build_billable(usage, session)
         session.close()
-        exporter = invoicer(start, end, config["export_config"])
+        exporter = invoicer(start, end, config["export_config"], rates)
         exporter.bill(billable)
         exporter.close()
         return {"id": tenant.id,
@@ -262,9 +263,10 @@ def run_sales_order_generation():
 
     # Handled like this for a later move to Celery distributed workers
     resp = {"tenants": []}
+    rates = RatesFile(config['export_config'])
 
     for tenant in tenant_query:
-        resp['tenants'].append(generate_sales_order(tenant, session, end))
+        resp['tenants'].append(generate_sales_order(tenant, session, end, rates))
 
     return 200, resp
 

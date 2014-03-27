@@ -5,13 +5,14 @@ from artifice import sales_order
 from decimal import *
 
 
-class Csv(sales_order.RatesFileMixin, sales_order.SalesOrder):
+class Csv(sales_order.SalesOrder):
 
-    def __init__(self, start, end, config):
-        super(Csv, self).__init__(start, end, config)
+    def __init__(self, start, end, config, rates):
+        super(Csv, self).__init__(start, end, config, rates)
         self.lines = {}
         self.total = Decimal(0.0)
         self.tenant = None
+        self.rates = rates
 
     def _bill(self, tenant):
         """Generates the lines for a sales order for the tenant."""
@@ -49,7 +50,7 @@ class Csv(sales_order.RatesFileMixin, sales_order.SalesOrder):
                 # GET REGION FROM CONFIG:
                 region = 'wellington'
 
-                rate = self.rate(service.name, region)
+                rate = self.rates.rate(service.name, region)
                 cost = usage * rate
                 total_cost += cost
                 appendee.append(service.name)

@@ -2,8 +2,7 @@ import requests
 from decimal import Decimal
 
 
-class ClerkRatesMixin(object):
-
+class ClerkRatesSource(object):
     def rate(self, name, loc_name):
         url = "http://10.5.36.32/"
         url = (url + "regions/" + loc_name +

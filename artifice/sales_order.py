@@ -18,7 +18,7 @@ class SalesOrder(object):
 
     # __metaclass__ = requirements
 
-    def __init__(self, start, end, config):
+    def __init__(self, start, end, config, rates):
         self.start = start
         self.end = end
         self.config = config
@@ -33,10 +33,12 @@ class SalesOrder(object):
         raise NotImplementedError("Not implemented in base class")
 
 
-class RatesFileMixin(object):
+class RatesFile(object):
     # Mixin
     # Adds a rates file loader, expecting various things from the
     # configuration
+    def __init__(self, config):
+        self.config = config
 
     def rate(self, name, region=None):
         try:
