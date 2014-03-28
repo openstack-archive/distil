@@ -2,8 +2,7 @@ from novaclient.v1_1 import client
 
 
 def flavor_name(f_id):
-    # Stuff from config:
-    print "here?!"
+    # TODO get from config:
     nova = client.Client("admin", "openstack", "demo",
                          "http://localhost:5000/v2.0",
                          service_type="compute")
