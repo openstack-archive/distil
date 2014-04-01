@@ -1,6 +1,6 @@
 import flask
 from flask import Flask, Blueprint
-from artifice import interface, database
+from artifice import interface, database, config
 from artifice.sales_order import RatesFile
 from artifice.models import UsageEntry, SalesOrder, Tenant, billing
 import sqlalchemy
@@ -25,36 +25,31 @@ Session = None
 
 app = Blueprint("main", __name__)
 
-config = None
-
 invoicer = None
 
 DEFAULT_TIMEZONE = "Pacific/Auckland"
-
-current_region = "Wellington"  # FIXME
 
 
 def get_app(conf):
     actual_app = Flask(__name__)
     actual_app.register_blueprint(app, url_prefix="/")
 
-    global engine
-    engine = create_engine(conf["main"]["database_uri"], poolclass=NullPool)
+    config.setup_config(conf)
 
-    global config
-    config = conf
+    global engine
+    engine = create_engine(config.main["database_uri"], poolclass=NullPool)
 
     global Session
     Session = scoped_session(lambda: create_session(bind=engine))
 
     global invoicer
-    module, kls = config["main"]["export_provider"].split(":")
+    module, kls = config.main["export_provider"].split(":")
     # TODO: Try/except block
     invoicer = getattr(importlib.import_module(module), kls)
 
-    if config["main"].get("timezone"):
+    if config.main.get("timezone"):
         global DEFAULT_TIMEZONE
-        DEFAULT_TIMEZONE = config["main"]["timezone"]
+        DEFAULT_TIMEZONE = config.main["timezone"]
 
     return actual_app
 
@@ -153,8 +148,8 @@ def run_usage_collection():
     """
 
     session = Session()
-
-    artifice = interface.Artifice(config)
+    
+    artifice = interface.Artifice()
     db = database.Database(session)
 
     tenants = artifice.tenants
@@ -197,7 +192,7 @@ def generate_sales_order(tenant, session, end, rates):
         # and will probably result in the CSV exporter being changed.
         billable = billing.build_billable(usage, session)
         session.close()
-        exporter = invoicer(start, end, config["export_config"], rates)
+        exporter = invoicer(start, end, config.export_config, rates)
         exporter.bill(billable)
         exporter.close()
         return {"id": tenant.id,
@@ -263,7 +258,7 @@ def run_sales_order_generation():
 
     # Handled like this for a later move to Celery distributed workers
     resp = {"tenants": []}
-    rates = RatesFile(config['export_config'])
+    rates = RatesFile(config.export_config)
 
     for tenant in tenant_query:
         resp['tenants'].append(generate_sales_order(tenant, session, end, rates))

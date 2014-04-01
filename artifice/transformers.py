@@ -1,6 +1,7 @@
 import datetime
 import constants
 import helpers
+import config
 
 
 class TransformerValidationError(Exception):
@@ -42,10 +43,11 @@ class Uptime(Transformer):
     required_meters = ['state', 'flavor']
 
     def _transform_usage(self, meters, start, end):
-        # this NEEDS to be moved to a config file
-        tracked_states = [constants.active, constants.building,
-                          constants.paused, constants.rescued,
-                          constants.resized]
+        # get tracked states from config
+        tracked = config.transformers['uptime']['tracked_states']
+
+        tracked_states = {constants.states[i] for i in tracked}
+
         usage_dict = {}
 
         state = meters['state']

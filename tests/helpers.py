@@ -1,8 +1,8 @@
 import mock
-from artifice import interface, models
+from artifice import interface, models, config
 from artifice.models import billing
 from .data_samples import RESOURCES, MAPPINGS
-from .constants import config, TENANTS, AUTH_TOKEN
+from .constants import TENANTS, AUTH_TOKEN
 from datetime import timedelta
 import json
 
@@ -21,14 +21,14 @@ def get_usage(sqlmock, Keystone):
         return data
 
     interface.Meter.get_meter = get_meter
-    artifice = interface.Artifice(config)
+    artifice = interface.Artifice()
     artifice.auth.tenants.list.return_value = TENANTS
 
     Keystone.assert_called_with(
-        username=config["openstack"]["username"],
-        password=config["openstack"]["password"],
-        tenant_name=config["openstack"]["default_tenant"],
-        auth_url=config["openstack"]["authentication_url"]
+        username=config.auth["username"],
+        password=config.auth["password"],
+        tenant_name=config.auth["default_tenant"],
+        auth_url=config.auth["end_point"]
     )
     tenants = None
     tenants = artifice.tenants

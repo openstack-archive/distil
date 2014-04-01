@@ -1,9 +1,12 @@
 from novaclient.v1_1 import client
+import config
 
 
 def flavor_name(f_id):
-    # TODO get from config:
-    nova = client.Client("admin", "openstack", "demo",
-                         "http://localhost:5000/v2.0",
-                         service_type="compute")
+    nova = client.Client(
+        config.auth['username'],
+        config.auth['password'],
+        config.auth['default_tenant'],
+        config.auth['end_point'],
+        service_type="compute")
     return nova.flavors.get(f_id).name

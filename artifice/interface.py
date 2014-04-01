@@ -4,6 +4,7 @@ import auth
 from ceilometerclient.v2.client import Client as ceilometer
 from artifice.models import resources
 from constants import date_format
+import config
 
 
 def add_dates(start, end):
@@ -23,21 +24,20 @@ def add_dates(start, end):
 
 class Artifice(object):
     """Produces billable artifacts"""
-    def __init__(self, config):
+    def __init__(self):
         super(Artifice, self).__init__()
-        self.config = config
 
         # This is the Keystone client connection, which provides our
         # OpenStack authentication
         self.auth = auth.Keystone(
-            username=config["openstack"]["username"],
-            password=config["openstack"]["password"],
-            tenant_name=config["openstack"]["default_tenant"],
-            auth_url=config["openstack"]["authentication_url"]
+            username=config.auth["username"],
+            password=config.auth["password"],
+            tenant_name=config.auth["default_tenant"],
+            auth_url=config.auth["end_point"]
         )
 
         self.ceilometer = ceilometer(
-            self.config["ceilometer"]["host"],
+            config.ceilometer["host"],
             # Uses a lambda as ceilometer apparently wants
             # to use it as a callable?
             token=lambda: self.auth.auth_token

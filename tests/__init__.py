@@ -4,11 +4,10 @@ from sqlalchemy.orm import sessionmaker, scoped_session,create_session
 
 from sqlalchemy.pool import NullPool
 from artifice.models import Resource, Tenant, UsageEntry, SalesOrder, Base
+from artifice import config
+from .constants import DATABASE_NAME, PG_DATABASE_URI, MY_DATABASE_URI
+from .constants import config as test_config
 
-DATABASE_NAME = "test_artifice"
-
-PG_DATABASE_URI = "postgresql://aurynn:postgres@localhost/%s" % DATABASE_NAME
-MY_DATABASE_URI = "mysql://root:password@localhost/%s" % DATABASE_NAME
 
 def setUp():
     subprocess.call(["/usr/bin/createdb","%s" % DATABASE_NAME]) 
@@ -20,6 +19,10 @@ def setUp():
 
     mysql_engine.dispose()
     pg_engine.dispose()
+
+    # setup test config:
+    config.setup_config(test_config)
+
 
 def tearDown():
 

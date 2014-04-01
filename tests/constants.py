@@ -1,18 +1,16 @@
-from . import PG_DATABASE_URI
+
+DATABASE_NAME = "test_artifice"
+
+PG_DATABASE_URI = "postgresql://aurynn:postgres@localhost/%s" % DATABASE_NAME
+MY_DATABASE_URI = "mysql://root:password@localhost/%s" % DATABASE_NAME
+
 
 config = {
-    "ceilometer": {
-        "host": "http://localhost:8777/"
-    },
     "main": {
+        "region": "Wellington",
+        "timezone": "Pacific/Auckland",
         "export_provider": "tests.mock_exporter:MockExporter",
         "database_uri": PG_DATABASE_URI
-    },
-    "openstack": {
-        "username": "admin",
-        "authentication_url": "http://localhost:35357/v2.0",
-        "password": "openstack",
-        "default_tenant": "demo"
     },
     "export_config": {
         "output_path": "./",
@@ -22,7 +20,21 @@ config = {
             "file": "examples/test_rates.csv"
         }
     },
-    "artifice": {}
+    "auth": {
+        "end_point": "http://localhost:35357/v2.0",
+        "username": "admin",
+        "password": "openstack",
+        "default_tenant": "demo"
+    },
+    "ceilometer": {
+        "host": "http://localhost:8777/"
+    },
+    "transformers": {
+        "uptime": {
+            "tracked_states": ["active", "building",
+                               "paused", "rescued", "resized"]
+        }
+    }
 }
 
 # from test data:

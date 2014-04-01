@@ -1,6 +1,7 @@
 import artifice.transformers
 from artifice.transformers import TransformerValidationError
-import artifice.constants as constants
+from artifice import constants
+from artifice.constants import states
 import unittest
 import mock
 import datetime
@@ -78,8 +79,8 @@ class UptimeTransformerTests(unittest.TestCase):
                 {'timestamp': testdata.t1, 'counter_volume': testdata.flavor},
                 ]),
             'state': TestMeter([
-                {'timestamp': testdata.t0, 'counter_volume': constants.active},
-                {'timestamp': testdata.t1, 'counter_volume': constants.active}
+                {'timestamp': testdata.t0, 'counter_volume': states['active']},
+                {'timestamp': testdata.t1, 'counter_volume': states['active']}
                 ]),
         }
 
@@ -99,8 +100,8 @@ class UptimeTransformerTests(unittest.TestCase):
                 {'timestamp': testdata.t1, 'counter_volume': testdata.flavor},
                 ]),
             'state': TestMeter([
-                {'timestamp': testdata.t0, 'counter_volume': constants.stopped},
-                {'timestamp': testdata.t1, 'counter_volume': constants.stopped}
+                {'timestamp': testdata.t0, 'counter_volume': states['stopped']},
+                {'timestamp': testdata.t1, 'counter_volume': states['stopped']}
                 ]),
         }
 
@@ -119,9 +120,9 @@ class UptimeTransformerTests(unittest.TestCase):
                 {'timestamp': testdata.t1, 'counter_volume': testdata.flavor},
                 ]),
             'state': TestMeter([
-                {'timestamp': testdata.t0, 'counter_volume': constants.active},
-                {'timestamp': testdata.t0_30, 'counter_volume': constants.stopped},
-                {'timestamp': testdata.t1, 'counter_volume': constants.stopped}
+                {'timestamp': testdata.t0, 'counter_volume': states['active']},
+                {'timestamp': testdata.t0_30, 'counter_volume': states['stopped']},
+                {'timestamp': testdata.t1, 'counter_volume': states['stopped']}
                 ]),
         }
 
@@ -141,9 +142,9 @@ class UptimeTransformerTests(unittest.TestCase):
                 {'timestamp': testdata.t1, 'counter_volume': testdata.flavor2},
                 ]),
             'state': TestMeter([
-                {'timestamp': testdata.t0, 'counter_volume': constants.active},
-                {'timestamp': testdata.t0_30, 'counter_volume': constants.active},
-                {'timestamp': testdata.t1, 'counter_volume': constants.active}
+                {'timestamp': testdata.t0, 'counter_volume': states['active']},
+                {'timestamp': testdata.t0_30, 'counter_volume': states['active']},
+                {'timestamp': testdata.t1, 'counter_volume': states['active']}
                 ]),
         }
 
@@ -162,8 +163,8 @@ class UptimeTransformerTests(unittest.TestCase):
                 {'timestamp': testdata.t1, 'counter_volume': testdata.flavor},
                 ]),
             'state': TestMeter([
-                {'timestamp': testdata.t0_10, 'counter_volume': constants.active},
-                {'timestamp': testdata.t1, 'counter_volume': constants.active},
+                {'timestamp': testdata.t0_10, 'counter_volume': states['active']},
+                {'timestamp': testdata.t1, 'counter_volume': states['active']},
                 ]),
         }
 
@@ -186,9 +187,9 @@ class UptimeTransformerTests(unittest.TestCase):
                 {'timestamp': testdata.t1, 'counter_volume': testdata.flavor},
                 ]),
             'state': TestMeter([
-                {'timestamp': testdata.tpre, 'counter_volume': constants.active},
-                {'timestamp': testdata.t0_10, 'counter_volume': constants.active},
-                {'timestamp': testdata.t1, 'counter_volume': constants.active},
+                {'timestamp': testdata.tpre, 'counter_volume': states['active']},
+                {'timestamp': testdata.t0_10, 'counter_volume': states['active']},
+                {'timestamp': testdata.t1, 'counter_volume': states['active']},
                 ]),
         }
 

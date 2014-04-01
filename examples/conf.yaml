@@ -1,17 +1,27 @@
 ---
-ceilometer:
-  host: http://localhost:8777/
-invoice_object:
+main:
+  region: Wellington
+  timezone: Pacific/Auckland
+  export_provider: billing.csv_invoice:Csv
+  database_uri: postgres://artifice:123456@localhost:5432/artifice
+export_config:
   delimiter: ','
   output_file: '%(tenant)s-%(start)s-%(end)s.csv'
   output_path: ./
   rates: 
     file: /etc/artifice/csv_rates.csv
-main:
-  export_provider: billing.csv_invoice:Csv
-  database_uri: postgres://artifice:123456@localhost:5432/artifice
-openstack:
-  authentication_url: http://localhost:35357/v2.0
+auth:
+  end_point: http://localhost:35357/v2.0
   default_tenant: demo
   username: admin
   password: openstack
+ceilometer:
+  host: http://localhost:8777/
+transformers:
+  uptime:
+    tracked_states: 
+      - active
+      - building
+      - paused
+      - rescued
+      - resized
