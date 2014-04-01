@@ -211,15 +211,11 @@ class Usage(object):
                 objs.append(obj)
             self._volumes = objs
         return self._volumes
-    # def __getitem__(self, item):
-
-    #     return self.contents[item]
 
     def __iter__(self):
         return self
 
     def next(self):
-        # pass
         keys = self.contents.keys()
         for key in keys:
             yield key
@@ -233,9 +229,6 @@ class Resource(object):
         self.conn = conn
         self._meters = {}
 
-    # def __getitem__(self, item):
-    #     return self.resource
-
     def meter(self, name, start, end):
         pass  # Return a named meter
         for meter in self.resource.links:
@@ -246,11 +239,7 @@ class Resource(object):
         raise AttributeError("no such meter %s" % name)
 
     def __getitem__(self, name):
-        # print name
-        # print self.resource
-        # print self.resource[name]
         return getattr(self.resource, name)
-        # return self.resource.name
 
     @property
     def meters(self):
