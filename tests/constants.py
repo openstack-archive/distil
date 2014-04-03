@@ -24,7 +24,8 @@ config = {
         "end_point": "http://localhost:35357/v2.0",
         "username": "admin",
         "password": "openstack",
-        "default_tenant": "demo"
+        "default_tenant": "demo",
+        "insecure": False,
     },
     "ceilometer": {
         "host": "http://localhost:8777/"

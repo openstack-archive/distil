@@ -28,7 +28,8 @@ def get_usage(sqlmock, Keystone):
         username=config.auth["username"],
         password=config.auth["password"],
         tenant_name=config.auth["default_tenant"],
-        auth_url=config.auth["end_point"]
+        auth_url=config.auth["end_point"],
+        insecure=config.auth["insecure"]
     )
     tenants = None
     tenants = artifice.tenants
