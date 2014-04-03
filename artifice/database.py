@@ -9,8 +9,6 @@ class Database(object):
 
     def __init__(self, session):
         self.session = session
-        # engine = create_engine(os.environ["DATABASE_URL"])
-        # Base.metadata.create_all(engine)
 
     def insert_tenant(self, tenant_id, tenant_name, metadata, timestamp):
         """If a tenant exists does nothing,

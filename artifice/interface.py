@@ -95,7 +95,7 @@ class Tenant(object):
             date_fields = [
                 {"field": "project_id",
                  "op": "eq",
-                 "value": self.tenant["id"]
+                 "value": self.tenant.id
                  },
             ]
             date_fields.extend(add_dates(start, end))
