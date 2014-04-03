@@ -15,7 +15,8 @@ args = a.parse_args()
 conf = None
 
 try:
-    conf = yaml.load(args.config)
+    with open(args.config) as f:
+        conf = yaml.load(f)
 except IOError as e:
     print "Couldn't load config file: %s" % e
     sys.exit(1)
