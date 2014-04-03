@@ -23,4 +23,4 @@ except IOError as e:
 
 
 app = web.get_app(conf)
-app.run(host=args.ip, port=args.port)
+app.run(host=args.ip, port=int(args.port))
