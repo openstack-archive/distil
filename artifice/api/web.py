@@ -102,11 +102,11 @@ def keystone(func):
 
 def collect_usage(tenant, db, session, resp, end):
     timestamp = datetime.now()
-    db.insert_tenant(tenant.conn['id'], tenant.conn['name'],
-                    tenant.conn['description'], timestamp)
+    db.insert_tenant(tenant.id, tenant.name,
+                    tenant.description, timestamp)
     session.begin(subtransactions=True)
     start = session.query(func.max(UsageEntry.end).label('end')).\
-        filter(UsageEntry.tenant_id == tenant.conn['id']).first().end
+        filter(UsageEntry.tenant_id == tenant.id).first().end
     if not start:
         start = datetime.strptime(dawn_of_time, iso_date)
 
@@ -118,7 +118,7 @@ def collect_usage(tenant, db, session, resp, end):
     try:
         session.commit()
         resp["tenants"].append(
-            {"id": tenant.conn['id'],
+            {"id": tenant.id,
              "updated": True,
              "start": start.strftime(iso_time),
              "end": end.strftime(iso_time)
@@ -127,7 +127,7 @@ def collect_usage(tenant, db, session, resp, end):
     except sqlalchemy.exc.IntegrityError:
         # this is fine.
         resp["tenants"].append(
-            {"id": tenant.conn['id'],
+            {"id": tenant.id,
              "updated": False,
              "error": "Integrity error",
              "start": start.strftime(iso_time),
@@ -146,24 +146,30 @@ def run_usage_collection():
 
     The volume will be parsed from JSON as a Decimal object.
     """
+    try:
 
-    session = Session()
-    
-    artifice = interface.Artifice()
-    db = database.Database(session)
+        session = Session()
+        
+        artifice = interface.Artifice()
+        db = database.Database(session)
 
-    tenants = artifice.tenants
+        tenants = artifice.tenants
 
-    end = datetime.now().\
-        replace(minute=0, second=0, microsecond=0)
+        end = datetime.now().\
+            replace(minute=0, second=0, microsecond=0)
 
-    resp = {"tenants": [], "errors": 0}
+        resp = {"tenants": [], "errors": 0}
 
-    for tenant in tenants:
-        collect_usage(tenant, db, session, resp, end)
+        for tenant in tenants:
+            collect_usage(tenant, db, session, resp, end)
 
-    session.close()
-    return json.dumps(resp)
+        session.close()
+        return json.dumps(resp)
+
+    except Exception as e:
+        print 'Exception escaped!', type(e), e
+        import traceback
+        traceback.print_exc()
 
 
 def generate_sales_order(tenant, session, end, rates):

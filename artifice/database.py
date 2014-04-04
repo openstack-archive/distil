@@ -53,6 +53,7 @@ class Database(object):
                                        end=end,
                                        created=timestamp
                                        )
+                    print entry
                     self.session.add(entry)
                     self.session.flush()
             except TransformerValidationError:

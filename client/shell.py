@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    conf = {'api': {'endpoint': 'http://0.0.0.0/',
+    conf = {'api': {'endpoint': 'http://0.0.0.0:8000/',
                     'token': 'sah324sdf5wad4dh839uhjuUH'}}
 
     # try:

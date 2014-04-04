@@ -76,20 +76,15 @@ class Tenant(object):
         self._meters = set()
         self._resources = None
 
-    def __getitem__(self, item):
-
-        try:
-            return getattr(self.tenant, item)
-        except AttributeError:
-            try:
-                return self.tenant[item]
-            except KeyError:
-                raise KeyError("No such key '%s' in tenant" % item)
-
-    def __getattr__(self, attr):
-        if attr not in self.tenant:
-            return object.__getattribute__(self, attr)
-        return self.tenant[attr]
+    @property
+    def id(self):
+        return self.tenant.id
+    @property
+    def name(self):
+        return self.tenant.name
+    @property
+    def description(self):
+        return self.tenant.description
 
     def resources(self, start, end):
         if not self._resources:

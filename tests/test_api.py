@@ -30,7 +30,11 @@ class TestApi(test_interface.TestInterface):
             for tenant in constants.TENANTS:
                 t = mock.Mock(spec=interface.Tenant)
                 t.usage.return_value = usage
-                t.conn = tenant
+                t.conn = mock.Mock()
+                t.tenant = tenant
+                t.id = tenant['id']
+                t.name = tenant['name']
+                t.description = tenant['description']
                 tenants.append(t)
 
             artifice = mock.Mock(spec=interface.Artifice)
