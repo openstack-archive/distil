@@ -8,7 +8,7 @@ from sqlalchemy import create_engine, func
 from sqlalchemy.orm import scoped_session, create_session
 from sqlalchemy.pool import NullPool
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timedelta
 import importlib
 import collections
 import pytz
@@ -57,7 +57,7 @@ def get_app(conf):
 # Some useful constants
 iso_time = "%Y-%m-%dT%H:%M:%S"
 iso_date = "%Y-%m-%d"
-dawn_of_time = "2012-01-01"
+dawn_of_time = "2014-01-01"
 
 
 class validators(object):
@@ -99,42 +99,54 @@ def keystone(func):
 
     # return _perform_keystone
 
+def generate_windows(start, end):
+    window_size = timedelta(hours=1)
+    while start < end:
+        new_start = start + window_size
+        yield start, min(end, new_start)
+        start = new_start
+
 
 def collect_usage(tenant, db, session, resp, end):
     timestamp = datetime.now()
+    session.begin(subtransactions=True)
     db.insert_tenant(tenant.id, tenant.name,
                     tenant.description, timestamp)
-    session.begin(subtransactions=True)
     start = session.query(func.max(UsageEntry.end).label('end')).\
         filter(UsageEntry.tenant_id == tenant.id).first().end
     if not start:
         start = datetime.strptime(dawn_of_time, iso_date)
+    session.commit()
 
-    usage = tenant.usage(start, end)
+    for window_start, window_end in generate_windows(start, end):
+        session.begin(subtransactions=True)
 
-    # enter all resources into the db
-    db.enter(usage.values(), start, end, timestamp)
+        try:
+            print "%s %s slice %s %s" % (tenant.id, tenant.name, window_start, window_end)
+            usage = tenant.usage(window_start, window_end)
 
-    try:
-        session.commit()
-        resp["tenants"].append(
-            {"id": tenant.id,
-             "updated": True,
-             "start": start.strftime(iso_time),
-             "end": end.strftime(iso_time)
-             }
-        )
-    except sqlalchemy.exc.IntegrityError:
-        # this is fine.
-        resp["tenants"].append(
-            {"id": tenant.id,
-             "updated": False,
-             "error": "Integrity error",
-             "start": start.strftime(iso_time),
-             "end": end.strftime(iso_time)
-             }
-        )
-        resp["errors"] += 1
+            # enter all resources into the db
+            db.enter(usage.values(), window_start, window_end, timestamp)
+            session.commit()
+            resp["tenants"].append(
+                {"id": tenant.id,
+                 "updated": True,
+                 "start": window_start.strftime(iso_time),
+                 "end": window_end.strftime(iso_time)
+                 }
+            )
+        except sqlalchemy.exc.IntegrityError:
+            # this is fine.
+            session.rollback()
+            resp["tenants"].append(
+                {"id": tenant.id,
+                 "updated": False,
+                 "error": "Integrity error",
+                 "start": window_start.strftime(iso_time),
+                 "end": window_end.strftime(iso_time)
+                 }
+            )
+            resp["errors"] += 1
 
 
 @app.route("collect_usage", methods=["POST"])
