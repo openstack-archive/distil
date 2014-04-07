@@ -53,24 +53,24 @@ class Uptime(Transformer):
         state = meters['state']
         flavor = meters['flavor']
 
-        state = sorted(state.usage(), key=lambda x: x["timestamp"])
-        flavor = sorted(flavor.usage(), key=lambda x: x["timestamp"])
+        def sort_and_clip_end(usage):
+            parsed = (self._parse_timestamp(s) for s in usage)
+            clipped = (s for s in parsed if not end or s['timestamp'] < end)
+            return sorted(clipped, key=lambda x: x['timestamp'])
+
+        state = sort_and_clip_end(state.usage())
+        flavor = sort_and_clip_end(flavor.usage())
 
         if not len(state) or not len(flavor):
             # there was no data for this period.
             return usage_dict
 
         last_state = state[0]
-        self.parse_timestamp(last_state)
-
         last_flavor = flavor[0]
-        self.parse_timestamp(last_flavor)
 
         count = 1
 
         for val in state[1:]:
-            self.parse_timestamp(val)
-
             if last_state["counter_volume"] in tracked_states:
                 diff = val["timestamp"] - last_state["timestamp"]
 
@@ -84,7 +84,6 @@ class Uptime(Transformer):
 
             try:
                 new_flavor = flavor[count]
-                self.parse_timestamp(new_flavor)
                 if new_flavor["timestamp"] <= last_state["timestamp"]:
                     count += 1
                     last_flavor = new_flavor
@@ -92,19 +91,29 @@ class Uptime(Transformer):
                 # means this is the last flavor value, so no need to worry
                 # about new_flavor or count
                 pass
+
+        # extend the last state we know about, to the end of the window
+        if end and last_state['counter_volume'] in tracked_states:
+            diff = end - last_state['timestamp']
+            flav = helpers.flavor_name(last_flavor['counter_volume'])
+            try:
+                flav = helpers.flavor_name(last_flavor['counter_volume'])
+                usage_dict[flav] = usage_dict[flav] + diff.seconds
+            except KeyError:
+                usage_dict[flav] = diff.seconds
+
         return usage_dict
 
-    def parse_timestamp(self, entry):
+    def _parse_timestamp(self, entry):
+        result = {}
+        result.update(entry)
         try:
-            entry["timestamp"] = datetime.datetime.\
-                strptime(entry["timestamp"],
-                         constants.date_format)
+            result['timestamp'] = datetime.datetime.strptime(result['timestamp'],
+                    constants.date_format)
         except ValueError:
-            entry["timestamp"] = datetime.datetime.\
-                strptime(entry["timestamp"],
-                         constants.other_date_format)
-        except TypeError:
-            pass
+            result['timestamp'] = datetime.datetime.strptime(result['timestamp'],
+                    constants.other_date_format)
+        return result
 
 
 class GaugeMax(Transformer):
