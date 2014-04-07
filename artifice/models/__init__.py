@@ -43,8 +43,8 @@ class UsageEntry(Base):
     volume = Column(Numeric(precision=20, scale=2), nullable=False)
     resource_id = Column(String(100), primary_key=True)
     tenant_id = Column(String(100), primary_key=True)
-    start = Column(DateTime, nullable=False)
-    end = Column(DateTime, nullable=False)
+    start = Column(DateTime, nullable=False, primary_key=True)
+    end = Column(DateTime, nullable=False, primary_key=True)
     created = Column(DateTime, nullable=False)
 
     resource = relationship(Resource,
@@ -88,8 +88,8 @@ class SalesOrder(Base):
         String(100),
         ForeignKey("tenants.id"),
         primary_key=True)
-    start = Column(DateTime, nullable=False)
-    end = Column(DateTime, nullable=False)
+    start = Column(DateTime, nullable=False, primary_key=True)
+    end = Column(DateTime, nullable=False, primary_key=True)
 
     tenant = relationship("Tenant")
 
