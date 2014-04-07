@@ -67,6 +67,11 @@ class UsageEntry(Base):
     def intersects(self, other):
         return (self.start <= other.end and other.start <= self.end)
 
+    def __str__(self):
+        return '<UsageEntry {tenant=%s resource=%s service=%s start=%s end=%s volume=%s}>' % (
+                self.tenant_id, self.resource_id, self.service,
+                self.start, self.end, self.volume)
+
 
 class Tenant(Base):
     """Model for storage of metadata related to a tenant."""
