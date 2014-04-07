@@ -119,8 +119,8 @@ mysql_table_triggers = {
                BEGIN
                 DECLARE existing INT;
                 SET existing = ( SELECT COUNT(*) FROM `%(table)s` t
-                         WHERE ( NEW.start <= t.end
-                                 AND t.start <= NEW.end )
+                         WHERE ( NEW.start < t.end
+                                 AND t.start < NEW.end )
                            AND service = NEW.service
                            AND tenant_id = NEW.tenant_id
                            AND resource_id = NEW.resource_id );
@@ -136,8 +136,8 @@ mysql_table_triggers = {
                BEGIN
                 DECLARE existing INT;
                 SET existing = ( SELECT COUNT(*) FROM `%(table)s` t
-                         WHERE ( NEW.start <= t.end
-                                 AND t.start <= NEW.end )
+                         WHERE ( NEW.start < t.end
+                                 AND t.start < NEW.end )
                            AND tenant_id = NEW.tenant_id );
                 IF existing > 0 THEN
                     SET NEW.start = NULL;
@@ -178,8 +178,8 @@ CREATE FUNCTION %(table)s_exclusion_constraint_trigger() RETURNS trigger AS $tri
          WHERE t.service = NEW.service
            AND t.tenant_id = NEW.tenant_id
            AND t.resource_id = NEW.resource_id
-           AND ( NEW.start <= t."end"
-                 AND t.start <= NEW."end" );
+           AND ( NEW.start < t."end"
+                 AND t.start < NEW."end" );
         IF existing > 0 THEN
             RAISE SQLSTATE '23P01';
             RETURN NULL;
@@ -194,8 +194,8 @@ CREATE FUNCTION %(table)s_exclusion_constraint_trigger() RETURNS trigger AS $tri
     BEGIN
         SELECT count(*) INTO existing FROM %(table)s t
          WHERE t.tenant_id = NEW.tenant_id
-           AND ( NEW.start <= t."end"
-                 AND t.start <= NEW."end" );
+           AND ( NEW.start < t."end"
+                 AND t.start < NEW."end" );
         IF existing > 0 THEN
             RAISE SQLSTATE '23P01';
             RETURN NULL;
