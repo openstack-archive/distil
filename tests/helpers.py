@@ -9,7 +9,8 @@ import json
 
 @mock.patch("artifice.auth.Keystone")
 @mock.patch("sqlalchemy.create_engine")
-def get_usage(sqlmock, Keystone):
+def get_usage(start, end, sqlmock, Keystone):
+
     # At this point, we prime the ceilometer/requests response
     # system, so that what we return to usage is what we expect
     # to get in the usage system.
@@ -41,7 +42,7 @@ def get_usage(sqlmock, Keystone):
                                 RESOURCES["ips"])
 
     # because of mocking, start/end dates are not required here:
-    usage = t.usage(start=None, end=None)
+    usage = t.usage(start=start, end=end)
 
     # This is a fully qualified Usage object.
     return usage

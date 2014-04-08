@@ -21,7 +21,7 @@ class TestApi(test_interface.TestInterface):
     def test_usage_run_for_all(self):
         """Asserts a usage run generates data for all tenants"""
 
-        usage = helpers.get_usage()
+        usage = helpers.get_usage(self.start, self.end)
 
         with mock.patch('artifice.interface.Artifice') as Artifice:
 

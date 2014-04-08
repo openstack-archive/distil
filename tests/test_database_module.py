@@ -11,7 +11,7 @@ class TestDatabaseModule(test_interface.TestInterface):
     def test_adding_to_db(self):
         """Tests adding all the data to the database."""
 
-        usage = helpers.get_usage()
+        usage = helpers.get_usage(self.start, self.end)
         timestamp = datetime.now()
 
         db = database.Database(self.session)

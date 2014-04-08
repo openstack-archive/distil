@@ -55,7 +55,7 @@ class Uptime(Transformer):
 
         def sort_and_clip_end(usage):
             parsed = (self._parse_timestamp(s) for s in usage)
-            clipped = (s for s in parsed if not end or s['timestamp'] < end)
+            clipped = (s for s in parsed if s['timestamp'] < end)
             return sorted(clipped, key=lambda x: x['timestamp'])
 
         state = sort_and_clip_end(state.usage())
@@ -71,11 +71,8 @@ class Uptime(Transformer):
         count = 1
 
         def _add_usage(diff):
-            try:
-                flav = last_flavor['counter_volume']
-                usage_dict[flav] = usage_dict[flav] + diff.seconds
-            except KeyError:
-                usage_dict[flav] = diff.seconds
+            flav = last_flavor['counter_volume']
+            usage_dict[flav] = usage_dict.get(flav, 0) + diff.seconds
 
         for val in state[1:]:
             if last_state["counter_volume"] in tracked_states:

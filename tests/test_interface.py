@@ -31,8 +31,9 @@ class TestInterface(unittest.TestCase):
                           RESOURCES["objects"] + RESOURCES["volumes"] +
                           RESOURCES["ips"])
 
-        self.start = datetime.now() - timedelta(days=30)
+        # TODO: make these constants.
         self.end = datetime.now()
+        self.start = self.end - timedelta(days=30)
 
     def tearDown(self):
 
