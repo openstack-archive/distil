@@ -57,7 +57,7 @@ def get_app(conf):
 # Some useful constants
 iso_time = "%Y-%m-%dT%H:%M:%S"
 iso_date = "%Y-%m-%d"
-dawn_of_time = "2014-01-01"
+dawn_of_time = datetime(2014, 3, 1)
 
 
 class validators(object):
@@ -115,7 +115,7 @@ def collect_usage(tenant, db, session, resp, end):
     start = session.query(func.max(UsageEntry.end).label('end')).\
         filter(UsageEntry.tenant_id == tenant.id).first().end
     if not start:
-        start = datetime.strptime(dawn_of_time, iso_date)
+        start = dawn_of_time
     session.commit()
 
     for window_start, window_end in generate_windows(start, end):
@@ -193,7 +193,7 @@ def generate_sales_order(tenant, session, end, rates):
     start = session.query(func.max(SalesOrder.end).label('end')).\
         filter(SalesOrder.tenant == tenant).first().end
     if not start:
-        start = datetime.strptime(dawn_of_time, iso_date)
+        start = dawn_of_time
     # Invoicer is pulled from the configfile and set up above.
     usage = db.usage(start, end, tenant.id)
     order = SalesOrder(tenant_id=tenant.id, start=start, end=end)
