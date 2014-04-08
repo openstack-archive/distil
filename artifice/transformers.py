@@ -70,15 +70,17 @@ class Uptime(Transformer):
 
         count = 1
 
+        def _add_usage(diff):
+            try:
+                flav = last_flavor['counter_volume']
+                usage_dict[flav] = usage_dict[flav] + diff.seconds
+            except KeyError:
+                usage_dict[flav] = diff.seconds
+
         for val in state[1:]:
             if last_state["counter_volume"] in tracked_states:
                 diff = val["timestamp"] - last_state["timestamp"]
-
-                try:
-                    flav = helpers.flavor_name(last_flavor['counter_volume'])
-                    usage_dict[flav] = usage_dict[flav] + diff.seconds
-                except KeyError:
-                    usage_dict[flav] = diff.seconds
+                _add_usage(diff)
 
             last_state = val
 
@@ -95,14 +97,10 @@ class Uptime(Transformer):
         # extend the last state we know about, to the end of the window
         if end and last_state['counter_volume'] in tracked_states:
             diff = end - last_state['timestamp']
-            flav = helpers.flavor_name(last_flavor['counter_volume'])
-            try:
-                flav = helpers.flavor_name(last_flavor['counter_volume'])
-                usage_dict[flav] = usage_dict[flav] + diff.seconds
-            except KeyError:
-                usage_dict[flav] = diff.seconds
+            _add_usage(diff)
 
-        return usage_dict
+        # map the flavors to names on the way out
+        return { helpers.flavor_name(f): v for f, v in usage_dict.items() }
 
     def _parse_timestamp(self, entry):
         result = {}
