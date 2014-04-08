@@ -18,10 +18,8 @@ from .helpers import returns_json, json_must
 
 
 engine = None
-# Session.configure(bind=create_engine(conn_string))
 
 Session = None
-# db = Session()
 
 app = Blueprint("main", __name__)
 
@@ -59,45 +57,6 @@ iso_time = "%Y-%m-%dT%H:%M:%S"
 iso_date = "%Y-%m-%d"
 dawn_of_time = datetime(2014, 3, 1)
 
-
-class validators(object):
-
-    @classmethod
-    def iterable(cls, val):
-        return isinstance(val, collections.Iterable)
-
-
-class DecimalEncoder(json.JSONEncoder):
-    """Simple encoder which handles Decimal objects, rendering them to strings.
-    *REQUIRES* use of a decimal-aware decoder.
-    """
-    def default(self, obj):
-        if isinstance(obj, Decimal):
-            return str(obj)
-        return json.JSONEncoder.default(self, obj)
-
-
-def fetch_endpoint(region):
-    return config.get("keystone_endpoint")
-    # return "http://0.0.0.0:35357/v2.0" # t\/his ought to be in config. #FIXME
-
-
-def keystone(func):
-    """Will eventually provide a keystone wrapper for validating a query.
-    Currently does not.
-    """
-    return func  # disabled for now
-    # admin_token = config.get("admin_token")
-    # def _perform_keystone(*args, **kwargs):
-    #     headers = flask.request.headers
-    #     if not 'user_id' in headers:
-    #         flask.abort(401) # authentication required
-    #
-    #     endpoint = fetch_endpoint( current_region )
-    #     keystone = keystoneclient.v2_0.client.Client(token=admin_token,
-    #             endpoint=endpoint)
-
-    # return _perform_keystone
 
 def generate_windows(start, end):
     window_size = timedelta(hours=1)
@@ -150,7 +109,6 @@ def collect_usage(tenant, db, session, resp, end):
 
 
 @app.route("collect_usage", methods=["POST"])
-@keystone
 def run_usage_collection():
     """
     Adds usage for a given tenant T and resource R.
@@ -228,7 +186,6 @@ def generate_sales_order(tenant, session, end, rates):
 
 
 @app.route("sales_order", methods=["POST"])
-@keystone
 @json_must()
 @returns_json
 def run_sales_order_generation():
