@@ -9,16 +9,10 @@ config = {
     "main": {
         "region": "Wellington",
         "timezone": "Pacific/Auckland",
-        "export_provider": "tests.mock_exporter:MockExporter",
         "database_uri": PG_DATABASE_URI
     },
-    "export_config": {
-        "output_path": "./",
-        "delimiter": ",",
-        "output_file": "%(tenant)s-%(start)s-%(end)s.csv",
-        "rates": {
-            "file": "examples/test_rates.csv"
-        }
+    "rates_config": {
+        "file": "examples/test_rates.csv"
     },
     "auth": {
         "end_point": "http://localhost:35357/v2.0",

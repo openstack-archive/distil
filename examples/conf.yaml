@@ -2,14 +2,9 @@
 main:
   region: Wellington
   timezone: Pacific/Auckland
-  export_provider: billing.csv_invoice:Csv
   database_uri: postgres://artifice:123456@localhost:5432/artifice
-export_config:
-  delimiter: ','
-  output_file: '%(tenant)s-%(start)s-%(end)s.csv'
-  output_path: ./
-  rates: 
-    file: /etc/artifice/csv_rates.csv
+rates_config:
+  file: /etc/artifice/csv_rates.csv
 auth:
   end_point: http://localhost:35357/v2.0
   default_tenant: demo

@@ -1,17 +1,14 @@
 import flask
 from flask import Flask, Blueprint
 from artifice import interface, database, config, transformers
-from artifice.sales_order import RatesFile
-from artifice.models import UsageEntry, SalesOrder, Tenant, billing
+from artifice.rates import RatesFile
+from artifice.models import SalesOrder, Tenant, Resource
+from artifice.helpers import convert_to
 import sqlalchemy
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import scoped_session, create_session
 from sqlalchemy.pool import NullPool
-from decimal import Decimal
 from datetime import datetime, timedelta
-import importlib
-import collections
-import pytz
 import json
 
 from .helpers import returns_json, json_must
@@ -22,8 +19,6 @@ engine = None
 Session = None
 
 app = Blueprint("main", __name__)
-
-invoicer = None
 
 DEFAULT_TIMEZONE = "Pacific/Auckland"
 
@@ -39,11 +34,6 @@ def get_app(conf):
 
     global Session
     Session = scoped_session(lambda: create_session(bind=engine))
-
-    global invoicer
-    module, kls = config.main["export_provider"].split(":")
-    # TODO: Try/except block
-    invoicer = getattr(importlib.import_module(module), kls)
 
     if config.main.get("timezone"):
         global DEFAULT_TIMEZONE
@@ -78,10 +68,12 @@ meter_mapping = {
 def collect_usage(tenant, db, session, resp, end):
     timestamp = datetime.utcnow()
     session.begin(subtransactions=True)
+
     print 'collect_usage for %s %s' % (tenant.id, tenant.name)
     db_tenant = db.insert_tenant(tenant.id, tenant.name,
                     tenant.description, timestamp)
     start = db_tenant.last_collected
+
     if not start:
         print 'failed to find any previous usageentry for this tenant; starting at %s' % dawn_of_time
         start = dawn_of_time
@@ -92,6 +84,7 @@ def collect_usage(tenant, db, session, resp, end):
 
         try:
             print "%s %s slice %s %s" % (tenant.id, tenant.name, window_start, window_end)
+
 
             for meter_name, meter_info in meter_mapping.items():
                 usage = tenant.usage(meter_name, window_start, window_end)
@@ -148,7 +141,7 @@ def run_usage_collection():
     try:
 
         session = Session()
-        
+
         artifice = interface.Artifice()
         db = database.Database(session)
 
@@ -171,47 +164,77 @@ def run_usage_collection():
         traceback.print_exc()
 
 
-def generate_sales_order(tenant, session, end, rates):
-    db = database.Database(session)
+def build_tenant_dict(entries, session):
+    """Builds a dict structure for a given tenant.
+       -usage: all the usage entries for a given tenant.
+        This function assumes all the entries are for the same tenant."""
+    tenant = {}
 
-    session.begin()
-    # Get the last sales order for this tenant, to establish
-    # the proper ranging
-    start = session.query(func.max(SalesOrder.end).label('end')).\
-        filter(SalesOrder.tenant == tenant).first().end
-    if not start:
-        start = dawn_of_time
-    # Invoicer is pulled from the configfile and set up above.
-    usage = db.usage(start, end, tenant.id)
-    order = SalesOrder(tenant_id=tenant.id, start=start, end=end)
-    session.add(order)
+    for entry in entries:
+        service = {'name': entry.service, 'volume': entry.volume}
 
-    try:
-        # Commit the record before we generate the bill, to mark this as a
-        # billed region of data. Avoids race conditions by marking a tenant
-        # BEFORE we start to generate the data for it.
-        session.commit()
+        # does this tenant exist yet?
+        if not tenant:
+            # build resource:
+            info = session.query(Resource.info).\
+                filter(Resource.id == entry.resource_id)
+            resource = json.loads(info[0].info)
 
-        # Transform the query result into a billable dict.
-        # This is non-portable and very much tied to the CSV exporter
-        # and will probably result in the CSV exporter being changed.
-        billable = billing.build_billable(usage, session)
-        session.close()
-        exporter = invoicer(start, end, config.export_config, rates)
-        exporter.bill(billable)
-        exporter.close()
-        return {"id": tenant.id,
-                "generated": True,
-                "start": str(start),
-                "end": str(end)}
+            # add service to resource:
+            resource['services'] = [service]
 
-    except sqlalchemy.exc.IntegrityError:
-        session.rollback()
-        session.close()
-        return {"id": tenant.id,
-                "generated": False,
-                "start": str(start),
-                "end": str(end)}
+            # build tenant:
+            name = session.query(Tenant.name).\
+                filter(Tenant.id == entry.tenant_id)
+            tenant = {'name': name[0].name, 'tenant_id': entry.tenant_id}
+            # add resource to tenant:
+            tenant['resources'] = {entry.resource_id: resource}
+
+        # tenant exists, but does the resource?
+        elif (entry.resource_id not in tenant['resources']):
+            # build resource:
+            info = session.query(Resource.info).\
+                filter(Resource.id == entry.resource_id)
+            resource = json.loads(info[0].info)
+
+            # add service to resource:
+            resource['services'] = [service]
+
+            # add resource to tenant
+            tenant['resources'][entry.resource_id] = resource
+
+        # both seem to exist!
+        else:
+
+            resource = tenant['resources'][entry.resource_id]
+            # add service to resource:
+            resource['services'].append(service)
+
+    return tenant
+
+
+def add_costs_for_tenant(tenant, RatesManager):
+    """Adds cost values to services using the given rates manager."""
+    tenant_total = 0
+    for resource in tenant['resources'].values():
+        resource_total = 0
+        for service in resource['services']:
+            rate = RatesManager.rate(service['name'])
+            volume = convert_to(service['volume'], rate['unit'])
+
+            # round to 2dp so in dollars.
+            cost = round(volume * rate['rate'], 2)
+
+            service['cost'] = str(cost)
+            service['volume'] = str(volume) + " " + rate['unit']
+            service['rate'] = str(rate['rate']) + " per " + rate['unit']
+
+            resource_total += cost
+        resource['total_cost'] = str(resource_total)
+        tenant_total += resource_total
+    tenant['total_cost'] = str(tenant_total)
+
+    return tenant
 
 
 @app.route("sales_order", methods=["POST"])
@@ -244,30 +267,51 @@ def run_sales_order_generation():
     # if in decorators can we make these as parameters for the decorators,
     # to keep them fairly generic, or are these cases too specific?
 
-    tenants = flask.request.json.get("tenants", None)
-    tenant_query = session.query(Tenant)
+    tenant_id = flask.request.json.get("tenant", None)
 
     # Today, the beginning of.
     end = datetime.utcnow().\
         replace(hour=0, minute=0, second=0, microsecond=0)
 
-    if isinstance(tenants, list):
-        tenant_query = tenant_query.filter(Tenant.id.in_(tenants))
+    if isinstance(tenant_id, unicode):
+        tenant_query = session.query(Tenant).\
+            filter(Tenant.id == tenant_id)
         if tenant_query.count() == 0:
-            # if an explicit list of tenants is passed, and none of them
-            # exist in the db, then we consider that an error.
-            return 400, {"errors": ["No tenants found from given list."]}
-    elif tenants is not None:
-        return 400, {"missing parameters": {"tenants": "A list of tenant ids."}}
+            return 400, {"errors": ["No tenant matching ID found."]}
+    elif tenant_id is not None:
+        return 400, {"missing parameter": {"tenant": "Tenant id."}}
 
-    # Handled like this for a later move to Celery distributed workers
-    resp = {"tenants": []}
-    rates = RatesFile(config.export_config)
+    db = database.Database(session)
 
-    for tenant in tenant_query:
-        resp['tenants'].append(generate_sales_order(tenant, session, end, rates))
+    rates = RatesFile(config.rates_config)
 
-    return 200, resp
+    session.begin()
+    # Get the last sales order for this tenant, to establish
+    # the proper ranging
+    start = session.query(func.max(SalesOrder.end).label('end')).\
+        filter(SalesOrder.tenant_id == tenant_id).first().end
+    if not start:
+        start = dawn_of_time
+    usage = db.usage(start, end, tenant_id)
+    order = SalesOrder(tenant_id=tenant_id, start=start, end=end)
+    session.add(order)
+
+    try:
+        # Commit the record before we generate the bill, to mark this as a
+        # billed region of data. Avoids race conditions by marking a tenant
+        # BEFORE we start to generate the data for it.
+        session.commit()
+
+        # Transform the query result into a billable dict.
+        tenant_dict = build_tenant_dict(usage, session)
+        tenant_dict = add_costs_for_tenant(tenant_dict, rates)
+        session.close()
+        return 200, tenant_dict
+    except sqlalchemy.exc.IntegrityError:
+        session.rollback()
+        session.close()
+        return 400, {"id": tenant_id,
+                     "error": "IntegrityError, existing sales_order overlap."}
 
 
 if __name__ == '__main__':
