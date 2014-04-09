@@ -2,7 +2,6 @@ from sqlalchemy import func
 from .models import Resource, UsageEntry, Tenant
 import json
 from transformers import TransformerValidationError
-from datetime import datetime
 
 
 class Database(object):
@@ -79,3 +78,8 @@ class Database(object):
                      UsageEntry.service)
 
         return query
+
+    def get_resource_metadata(self, resource_id):
+        info = self.session.query(Resource.info).\
+            filter(Resource.id == resource_id)
+        return json.loads(info[0].info)

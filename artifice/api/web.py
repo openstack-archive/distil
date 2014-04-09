@@ -2,7 +2,7 @@ import flask
 from flask import Flask, Blueprint
 from artifice import interface, database, config, transformers
 from artifice.rates import RatesFile
-from artifice.models import SalesOrder, Tenant, Resource
+from artifice.models import SalesOrder, Tenant
 from artifice.helpers import convert_to
 import sqlalchemy
 from sqlalchemy import create_engine, func
@@ -164,53 +164,30 @@ def run_usage_collection():
         traceback.print_exc()
 
 
-def build_tenant_dict(entries, session):
+def build_tenant_dict(tenant, entries, db):
     """Builds a dict structure for a given tenant.
        -usage: all the usage entries for a given tenant.
         This function assumes all the entries are for the same tenant."""
-    tenant = {}
+    tenant_dict = {}
+
+    tenant_dict = {'name': tenant.name, 'tenant_id': tenant.id,
+                   'resources': {}}
 
     for entry in entries:
         service = {'name': entry.service, 'volume': entry.volume}
 
-        # does this tenant exist yet?
-        if not tenant:
-            # build resource:
-            info = session.query(Resource.info).\
-                filter(Resource.id == entry.resource_id)
-            resource = json.loads(info[0].info)
+        if (entry.resource_id not in tenant_dict['resources']):
+            resource = db.get_resource_metadata(entry.resource_id)
 
-            # add service to resource:
             resource['services'] = [service]
 
-            # build tenant:
-            name = session.query(Tenant.name).\
-                filter(Tenant.id == entry.tenant_id)
-            tenant = {'name': name[0].name, 'tenant_id': entry.tenant_id}
-            # add resource to tenant:
-            tenant['resources'] = {entry.resource_id: resource}
+            tenant_dict['resources'][entry.resource_id] = resource
 
-        # tenant exists, but does the resource?
-        elif (entry.resource_id not in tenant['resources']):
-            # build resource:
-            info = session.query(Resource.info).\
-                filter(Resource.id == entry.resource_id)
-            resource = json.loads(info[0].info)
-
-            # add service to resource:
-            resource['services'] = [service]
-
-            # add resource to tenant
-            tenant['resources'][entry.resource_id] = resource
-
-        # both seem to exist!
         else:
-
             resource = tenant['resources'][entry.resource_id]
-            # add service to resource:
             resource['services'].append(service)
 
-    return tenant
+    return tenant_dict
 
 
 def add_costs_for_tenant(tenant, RatesManager):
@@ -242,30 +219,6 @@ def add_costs_for_tenant(tenant, RatesManager):
 @returns_json
 def run_sales_order_generation():
     session = Session()
-
-    # TODO: ensure cases work as follows:
-    # if no body or content type: generate orders for all
-    # if no body and json content type: throw 400? Or should this order all?
-    # if body, and json, and parsed, but no tenants, throw 400? Or order all.
-
-    # If request has body, content type must be json.
-    # else: throw 400
-    # if request has body and content type json, body must parse to json
-    # else: throw 400
-
-    # if 'tenants' is not None, and not a list, throw a 400 response.
-
-    # if the list is empty, throw 400 and invalid parameter 'list is empty'.
-    # Or allow return 200 and resp['tenants'] will just be empty?
-
-    # if list isn't empty, but query produces no results, throw 400?
-    # Or allow return 200 and resp['tenants'] will just be empty?
-
-    # any missing cases? Any cases not worth covering?
-
-    # should these checks be here, or in decorators.
-    # if in decorators can we make these as parameters for the decorators,
-    # to keep them fairly generic, or are these cases too specific?
 
     tenant_id = flask.request.json.get("tenant", None)
 
@@ -303,7 +256,7 @@ def run_sales_order_generation():
         session.commit()
 
         # Transform the query result into a billable dict.
-        tenant_dict = build_tenant_dict(usage, session)
+        tenant_dict = build_tenant_dict(tenant_query[0], usage, db)
         tenant_dict = add_costs_for_tenant(tenant_dict, rates)
         session.close()
         return 200, tenant_dict
