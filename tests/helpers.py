@@ -72,3 +72,16 @@ def fill_db(session, numb_tenants, numb_resources, now):
                 created=now
             ))
     session.commit()
+
+
+def create_usage_entries(num_resources, num_services, volume):
+    entries = []
+    for i in range(num_resources):
+        for ii in range(num_services):
+            entry = mock.MagicMock()
+            entry.volume = volume
+            entry.service = "service" + str(ii)
+            entry.resource_id = "resource_id_" + str(i)
+            entries.append(entry)
+
+    return entries

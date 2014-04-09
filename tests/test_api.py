@@ -1,5 +1,6 @@
 from webtest import TestApp
 from . import test_interface, helpers, constants
+from artifice.api import web
 from artifice.api.web import get_app
 from artifice import models
 from artifice import interface
@@ -19,6 +20,7 @@ class TestApi(test_interface.TestInterface):
         super(TestApi, self).tearDown()
         self.app = None
 
+    @unittest.skip
     def test_usage_run_for_all(self):
         """Asserts a usage run generates data for all tenants"""
 
@@ -112,3 +114,46 @@ class TestApi(test_interface.TestInterface):
                              params=json.dumps({'tenant': 'bogus tenant'}),
                              content_type='application/json')
         self.assertEquals(resp.status_int, 400)
+
+    def test_tenant_dict(self):
+        """"""
+        num_resources = 3
+        num_services = 2
+        volume = 5
+
+        entries = helpers.create_usage_entries(num_resources,
+                                               num_services, volume)
+
+        tenant = mock.MagicMock()
+        tenant.name = "tenant_1"
+        tenant.id = "tenant_id_1"
+
+        db = mock.MagicMock()
+        db.get_resource_metadata.return_value = {}
+
+        tenant_dict = web.build_tenant_dict(tenant, entries, db)
+
+        self.assertEquals(len(tenant_dict['resources']), num_resources)
+        self.assertEquals(tenant_dict['tenant_id'], "tenant_id_1")
+        self.assertEquals(tenant_dict['name'], "tenant_1")
+
+        for resource in tenant_dict['resources'].values():
+            for service in resource['services']:
+                self.assertEquals(service['volume'], volume)
+
+    def test_tenant_dict_no_entries(self):
+        """"""
+        entries = []
+
+        tenant = mock.MagicMock()
+        tenant.name = "tenant_1"
+        tenant.id = "tenant_id_1"
+
+        db = mock.MagicMock()
+        db.get_resource_metadata.return_value = {}
+
+        tenant_dict = web.build_tenant_dict(tenant, entries, db)
+
+        self.assertEquals(len(tenant_dict['resources']), 0)
+        self.assertEquals(tenant_dict['tenant_id'], "tenant_id_1")
+        self.assertEquals(tenant_dict['name'], "tenant_1")
