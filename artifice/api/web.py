@@ -55,7 +55,7 @@ def get_app(conf):
 # Some useful constants
 iso_time = "%Y-%m-%dT%H:%M:%S"
 iso_date = "%Y-%m-%d"
-dawn_of_time = datetime(2014, 3, 1)
+dawn_of_time = datetime(2014, 4, 1)
 
 
 def generate_windows(start, end):
@@ -69,11 +69,13 @@ def generate_windows(start, end):
 def collect_usage(tenant, db, session, resp, end):
     timestamp = datetime.now()
     session.begin(subtransactions=True)
+    print 'collect_usage for %s %s' % (tenant.id, tenant.name)
     db.insert_tenant(tenant.id, tenant.name,
                     tenant.description, timestamp)
     start = session.query(func.max(UsageEntry.end).label('end')).\
         filter(UsageEntry.tenant_id == tenant.id).first().end
     if not start:
+        print 'failed to find any previous usageentry for this tenant; starting at %s' % dawn_of_time
         start = dawn_of_time
     session.commit()
 

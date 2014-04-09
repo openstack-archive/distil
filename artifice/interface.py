@@ -5,7 +5,9 @@ from ceilometerclient.v2.client import Client as ceilometer
 from artifice.models import resources
 from constants import date_format
 import config
+from datetime import timedelta
 
+window_leadin = timedelta(minutes=10)
 
 def add_dates(start, end):
     return [
@@ -87,19 +89,14 @@ class Tenant(object):
         return self.tenant.description
 
     def resources(self, start, end):
-        if not self._resources:
-
-            date_fields = [
-                {"field": "project_id",
-                 "op": "eq",
-                 "value": self.tenant.id
-                 },
-            ]
-            date_fields.extend(add_dates(start, end))
-            # Sets up our resources as Ceilometer objects.
-            # That's cool, I think.
-            self._resources = self.conn.ceilometer.resources.list(date_fields)
-        return self._resources
+        date_fields = [
+            {"field": "project_id",
+             "op": "eq",
+             "value": self.tenant.id
+             },
+        ]
+        date_fields.extend(add_dates(start, end))
+        resources = self.conn.ceilometer.resources.list(date_fields)
 
     def usage(self, start, end):
         """
@@ -227,76 +224,46 @@ class Resource(object):
         self._meters = {}
 
     def meter(self, name, start, end):
-        pass  # Return a named meter
-        for meter in self.resource.links:
-            if meter["rel"] == name:
-                m = Meter(self, meter["href"], self.conn, start, end)
-                self._meters[name] = m
-                return m
+        try:
+            for meter in self.resource.links:
+                if meter["rel"] == name:
+                    m = Meter(self, meter["href"], self.conn, start, end, name)
+                    self._meters[name] = m
+                    return m
+        except Exception as e:
+            print "If you drop exceptions on the floor i will cut you."
+            print e
         raise AttributeError("no such meter %s" % name)
-
-    def __getitem__(self, name):
-        return getattr(self.resource, name)
-
-    @property
-    def meters(self):
-        if not self._meters:
-            meters = []
-            for link in self.resource["links"]:
-                if link["rel"] == "self":
-                    continue
-                meter = Meter(self, link, self.conn)
-                meters.append(meter)
-            self._meters = meters
-        return self._meters
 
 
 class Meter(object):
 
-    def __init__(self, resource, link, conn, start=None, end=None):
+    def __init__(self, resource, link, conn, start, end, name):
         self.resource = resource
-        self.link = link
+        self.link = link.split('?')[0]  # strip off the resource_id crap.
         self.conn = conn
         self.start = start
         self.end = end
-
+        self.name = name
         self.measurements = self.get_meter(start, end,
                                            self.conn.auth.auth_token)
 
-        self.type = set([a["counter_type"] for a in self.measurements])
-        if len(self.type) > 1:
-            # That's a big problem
-            raise RuntimeError("Too many types for measurement!")
-        elif len(self.type) == 0:
-            raise RuntimeError("No types!")
-        else:
-            self.type = self.type.pop()
-
-        self.name = set([a["counter_name"] for a in self.measurements])
-        if len(self.name) > 1:
-            # That's a big problem
-            raise RuntimeError("Too many names for measurement!")
-        elif len(self.name) == 0:
-            raise RuntimeError("No types!")
-        else:
-            self.name = self.name.pop()
-
     def get_meter(self, start, end, auth):
         # Meter is a href; in this case, it has a set of fields with it already.
-        date_fields = add_dates(start, end)
-        fields = []
-        for field in date_fields:
-            fields.append(("q.field", field["field"]))
-            fields.append(("q.op", field["op"]))
-            fields.append(("q.value", field["value"]))
+        date_fields = add_dates(start - window_leadin, end)
+        date_fields.append({'field': 'resource_id',
+            'value': self.resource.resource.resource_id})
 
         r = requests.get(
             self.link,
             headers={
                 "X-Auth-Token": auth,
-                "Content-Type": "application/json"}
+                "Content-Type": "application/json"
+            },
+            data=json.dumps({'q': date_fields})
         )
-        return json.loads(r.text)
+        result = json.loads(r.text)
+        return result
 
     def usage(self):
         return self.measurements

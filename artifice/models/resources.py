@@ -44,7 +44,7 @@ class BaseModelConstruct(object):
 
 
 class VM(BaseModelConstruct):
-    relevant_meters = ["state", 'flavor']
+    relevant_meters = ['state']
 
     transformer = transformers.Uptime()
 
@@ -57,23 +57,23 @@ class VM(BaseModelConstruct):
 
     @property
     def memory(self):
-        return self._raw["metadata"]["memory"]
+        return self._raw.resource.metadata["memory"]
 
     @property
     def cpus(self):
-        return self._raw["metadata"]["vcpus"]
+        return self._raw.resource.metadata["vcpus"]
 
     @property
     def state(self):
-        return self._raw["metadata"]["state"]
+        return self._raw.resource.metadata["state"]
 
     @property
     def name(self):
-        return self._raw["metadata"]["display_name"]
+        return self._raw.resource.metadata["display_name"]
 
     @property
     def region(self):
-        return self._raw["metadata"]["OS-EXT-AZ:availability_zone"]
+        return self._raw.resource.metadata["OS-EXT-AZ:availability_zone"]
 
 
 class FloatingIP(BaseModelConstruct):
@@ -109,7 +109,7 @@ class Volume(BaseModelConstruct):
 
     @property
     def name(self):
-        return self._raw["metadata"]["display_name"]
+        return self._raw.resource.metadata["display_name"]
 
 
 class Network(BaseModelConstruct):

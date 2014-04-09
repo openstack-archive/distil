@@ -18,6 +18,7 @@ class Transformer(object):
         return self._transform_usage(meters, start, end)
 
     def validate_meters(self, meters):
+        return
         if self.meter_type is None:
             for meter in self.required_meters:
                 if meter not in meters:
@@ -40,7 +41,7 @@ class Uptime(Transformer):
     Transformer to calculate uptime based on states,
     which is broken apart into flavor at point in time.
     """
-    required_meters = ['state', 'flavor']
+    required_meters = ['state']
 
     def _transform_usage(self, meters, start, end):
         # get tracked states from config
@@ -51,7 +52,6 @@ class Uptime(Transformer):
         usage_dict = {}
 
         state = meters['state']
-        flavor = meters['flavor']
 
         def sort_and_clip_end(usage):
             parsed = (self._parse_timestamp(s) for s in usage)
@@ -59,54 +59,51 @@ class Uptime(Transformer):
             return sorted(clipped, key=lambda x: x['timestamp'])
 
         state = sort_and_clip_end(state.usage())
-        flavor = sort_and_clip_end(flavor.usage())
 
-        if not len(state) or not len(flavor):
+        if not len(state):
             # there was no data for this period.
             return usage_dict
 
         last_state = state[0]
-        last_flavor = flavor[0]
+        last_timestamp = max(start, last_state['timestamp'])
 
         count = 1
 
         def _add_usage(diff):
-            flav = last_flavor['counter_volume']
-            usage_dict[flav] = usage_dict.get(flav, 0) + diff.seconds
+            flav = last_state['flavor']
+            usage_dict[flav] = usage_dict.get(flav, 0) + diff.total_seconds()
 
         for val in state[1:]:
             if last_state["counter_volume"] in tracked_states:
-                diff = val["timestamp"] - last_state["timestamp"]
-                _add_usage(diff)
+                diff = val["timestamp"] - last_timestamp
+                if val['timestamp'] > last_timestamp:
+                    # if diff < 0 then we were looking back before the start
+                    # of the window.
+                    _add_usage(diff)
+                    last_timestamp = val['timestamp']
 
             last_state = val
 
-            try:
-                new_flavor = flavor[count]
-                if new_flavor["timestamp"] <= last_state["timestamp"]:
-                    count += 1
-                    last_flavor = new_flavor
-            except IndexError:
-                # means this is the last flavor value, so no need to worry
-                # about new_flavor or count
-                pass
-
-        # extend the last state we know about, to the end of the window
-        if end and last_state['counter_volume'] in tracked_states:
-            diff = end - last_state['timestamp']
+        # extend the last state we know about, to the end of the window, if we saw any
+        # actual uptime.
+        if end and last_state['counter_volume'] in tracked_states and last_timestamp > start:
+            diff = end - last_timestamp
             _add_usage(diff)
 
         # map the flavors to names on the way out
         return { helpers.flavor_name(f): v for f, v in usage_dict.items() }
 
     def _parse_timestamp(self, entry):
-        result = {}
-        result.update(entry)
+        result = {
+            'counter_volume': entry['counter_volume'],
+            'flavor': entry['resource_metadata'].get('flavor.id',
+                entry['resource_metadata'].get('instance_flavor_id', 0))
+        }
         try:
-            result['timestamp'] = datetime.datetime.strptime(result['timestamp'],
+            result['timestamp'] = datetime.datetime.strptime(entry['timestamp'],
                     constants.date_format)
         except ValueError:
-            result['timestamp'] = datetime.datetime.strptime(result['timestamp'],
+            result['timestamp'] = datetime.datetime.strptime(entry['timestamp'],
                     constants.other_date_format)
         return result
 
