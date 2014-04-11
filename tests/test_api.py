@@ -198,6 +198,9 @@ class TestApi(test_interface.TestInterface):
         for resource in tenant_dict['resources'].values():
             self.assertEquals(resource['total_cost'], str(service_cost * 2))
             for service in resource['services']:
+                self.assertEquals(service['volume'],
+                                  str(convert_to(volume, rate['unit'])))
+                self.assertEquals(service['unit'], rate['unit'])
                 self.assertEquals(service['cost'], str(service_cost))
 
     def test_add_cost_to_empty_tenant(self):

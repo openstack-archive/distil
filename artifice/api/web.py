@@ -203,8 +203,9 @@ def add_costs_for_tenant(tenant, RatesManager):
             cost = round(volume * rate['rate'], 2)
 
             service['cost'] = str(cost)
-            service['volume'] = str(volume) + " " + rate['unit']
-            service['rate'] = str(rate['rate']) + " per " + rate['unit']
+            service['volume'] = str(volume)
+            service['unit'] = rate['unit']
+            service['rate'] = str(rate['rate'])
 
             resource_total += cost
         resource['total_cost'] = str(resource_total)
