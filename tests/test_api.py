@@ -4,7 +4,9 @@ from artifice.api import web
 from artifice.api.web import get_app
 from artifice import models
 from artifice import interface
+from artifice.helpers import convert_to
 from datetime import datetime
+from decimal import Decimal
 import unittest
 import json
 import mock
@@ -116,7 +118,8 @@ class TestApi(test_interface.TestInterface):
         self.assertEquals(resp.status_int, 400)
 
     def test_tenant_dict(self):
-        """"""
+        """Checking that the tenant dictionary is built correctly
+           based on given entry data."""
         num_resources = 3
         num_services = 2
         volume = 5
@@ -142,7 +145,8 @@ class TestApi(test_interface.TestInterface):
                 self.assertEquals(service['volume'], volume)
 
     def test_tenant_dict_no_entries(self):
-        """"""
+        """Test to ensure that the function handles an
+           empty list of entries correctly."""
         entries = []
 
         tenant = mock.MagicMock()
@@ -157,3 +161,53 @@ class TestApi(test_interface.TestInterface):
         self.assertEquals(len(tenant_dict['resources']), 0)
         self.assertEquals(tenant_dict['tenant_id'], "tenant_id_1")
         self.assertEquals(tenant_dict['name'], "tenant_1")
+
+    def test_add_cost_to_tenant(self):
+        """Checking that the rates are applied correctly,
+           and that we get correct total values."""
+        volume = 3600
+        rate = {'rate': Decimal(0.25), 'unit': 'hour'}
+
+        test_tenant = {
+            'resources': {
+                'resouce_ID_1': {
+                    'services': [{'name': 'service_1',
+                                  'volume': Decimal(volume)},
+                                 {'name': 'service_2',
+                                  'volume': Decimal(volume)}]
+                },
+                'resouce_ID_2': {
+                    'services': [{'name': 'service_1',
+                                  'volume': Decimal(volume)},
+                                 {'name': 'service_2',
+                                  'volume': Decimal(volume)}]
+                }
+            }
+        }
+
+        service_cost = round(convert_to(volume, rate['unit']) * rate['rate'],
+                             2)
+        total_cost = service_cost * 4
+
+        ratesManager = mock.MagicMock()
+        ratesManager.rate.return_value = rate
+
+        tenant_dict = web.add_costs_for_tenant(test_tenant, ratesManager)
+
+        self.assertEquals(tenant_dict['total_cost'], str(total_cost))
+        for resource in tenant_dict['resources'].values():
+            self.assertEquals(resource['total_cost'], str(service_cost * 2))
+            for service in resource['services']:
+                self.assertEquals(service['cost'], str(service_cost))
+
+    def test_add_cost_to_empty_tenant(self):
+        """An empty tenant should not be charged anything,
+           nor cause errors."""
+
+        empty_tenant = {'resources': {}}
+
+        ratesManager = mock.MagicMock()
+
+        tenant_dict = web.add_costs_for_tenant(empty_tenant, ratesManager)
+
+        self.assertEquals(tenant_dict['total_cost'], str(0))
