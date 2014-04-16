@@ -60,10 +60,10 @@ dawn_of_time = datetime(2014, 4, 1)
 
 def generate_windows(start, end):
     window_size = timedelta(hours=1)
-    while start < end:
-        new_start = start + window_size
-        yield start, min(end, new_start)
-        start = new_start
+    while start + window_size <= end:
+        window_end = start + window_size
+        yield start, window_end
+        start = window_end
 
 
 meter_mapping = {
