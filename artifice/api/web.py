@@ -1,6 +1,6 @@
 import flask
 from flask import Flask, Blueprint
-from artifice import interface, database, config
+from artifice import interface, database, config, transformers
 from artifice.sales_order import RatesFile
 from artifice.models import UsageEntry, SalesOrder, Tenant, billing
 import sqlalchemy
@@ -66,6 +66,15 @@ def generate_windows(start, end):
         start = new_start
 
 
+meter_mapping = {
+    'state':                {'type': 'virtual_machine', 'transformer': transformers.Uptime()},
+    'ip.floating':          {'type': 'floating_ip',     'transformer': transformers.GaugeMax()},
+    'volume.size':          {'type': 'volume',          'transformer': transformers.GaugeMax()},
+    'storage.objects.size': {'type': 'object_storage',  'transformer': transformers.GaugeMax()},
+    # TODO: add network usage, when we get the neutron bits for that figured out.
+}
+
+
 def collect_usage(tenant, db, session, resp, end):
     timestamp = datetime.now()
     session.begin(subtransactions=True)
@@ -84,10 +93,25 @@ def collect_usage(tenant, db, session, resp, end):
 
         try:
             print "%s %s slice %s %s" % (tenant.id, tenant.name, window_start, window_end)
-            usage = tenant.usage(window_start, window_end)
 
-            # enter all resources into the db
-            db.enter(usage.values(), window_start, window_end, timestamp)
+            for meter_name, meter_info in meter_mapping.items():
+                usage = tenant.usage(meter_name, window_start, window_end)
+                usage_by_resource = {}
+
+                for u in usage:
+                    resource_id = u['resource_id']
+                    entries = usage_by_resource.setdefault(resource_id, [])
+                    entries.append(u)
+
+                for res, entries in usage_by_resource.items():
+                    # apply the transformer.
+                    transformed = meter_info['transformer'].transform_usage(
+                        meter_name, entries, window_start, window_end)
+
+                    db.insert_resource(tenant.id, res, meter_info['type'], timestamp)
+                    db.insert_usage(tenant.id, res, transformed,
+                        window_start, window_end, timestamp)
+
             session.commit()
             resp["tenants"].append(
                 {"id": tenant.id,

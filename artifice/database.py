@@ -22,44 +22,37 @@ class Database(object):
                                     name=tenant_name,
                                     created=timestamp
                                     ))
-            self.session.flush()
+            self.session.flush()            # can't assume deferred constraints.
 
-    def enter(self, usage, start, end, timestamp):
+    def insert_resource(self, tenant_id, resource_id, resource_type, timestamp):
+        query = self.session.query(Resource).\
+            filter(Resource.id == resource_id,
+                   Resource.tenant_id == tenant_id)
+        if query.count() == 0:
+            self.session.add(Resource(
+                id=resource_id,
+                info=resource_type,
+                tenant_id=tenant_id,
+                created=timestamp))
+            self.session.flush()            # can't assume deferred constraints.
+
+    def insert_usage(self, tenant_id, resource_id, entries, start, end, timestamp):
+        for service, volume in entries.items():
+            entry = UsageEntry(
+                service=service,
+                volume=volume,
+                resource_id=resource_id,
+                tenant_id=tenant_id,
+                start=start,
+                end=end,
+                created=timestamp)
+            self.session.add(entry)
+            print entry
+
+    def enter(self, tenant, resource, entries, timestamp):
         """Creates a new database entry for every usage strategy
            in a resource, for all the resources given"""
-
-        for resource in usage:
-            resource_id = resource.resource_id
-            tenant_id = resource.tenant_id
-            try:
-                for service, volume in resource.usage().iteritems():
-                    #  Have we seen this resource before?
-                    query = self.session.query(Resource).\
-                        filter(Resource.id == resource_id,
-                               Resource.tenant_id == tenant_id)
-                    if query.count() == 0:
-                        info = json.dumps(resource.info)
-                        self.session.add(Resource(id=resource_id,
-                                                  info=str(info),
-                                                  tenant_id=tenant_id,
-                                                  created=timestamp
-                                                  ))
-
-                    entry = UsageEntry(service=service,
-                                       volume=volume,
-                                       resource_id=resource_id,
-                                       tenant_id=tenant_id,
-                                       start=start,
-                                       end=end,
-                                       created=timestamp
-                                       )
-                    print entry
-                    self.session.add(entry)
-                    self.session.flush()
-            except TransformerValidationError:
-                # log something related to the resource usage failing
-                # transform.
-                pass
+        raise Exception("Dead!")
 
     def usage(self, start, end, tenant_id):
         """Returns a query of usage entries for a given tenant,

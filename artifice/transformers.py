@@ -9,30 +9,10 @@ class TransformerValidationError(Exception):
 
 
 class Transformer(object):
+    def transform_usage(self, name, data, start, end):
+        return self._transform_usage(name, data, start, end)
 
-    meter_type = None
-    required_meters = []
-
-    def transform_usage(self, meters, start, end):
-        self.validate_meters(meters)
-        return self._transform_usage(meters, start, end)
-
-    def validate_meters(self, meters):
-        return
-        if self.meter_type is None:
-            for meter in self.required_meters:
-                if meter not in meters:
-                    raise TransformerValidationError(
-                        "Required meters: " +
-                        str(self.required_meters))
-        else:
-            for meter in meters.values():
-                if meter.type != self.meter_type:
-                    raise TransformerValidationError(
-                        "Meters must all be of type: " +
-                        self.meter_type)
-
-    def _transform_usage(self, meters, start, end):
+    def _transform_usage(self, name, data, start, end):
         raise NotImplementedError
 
 
@@ -41,9 +21,8 @@ class Uptime(Transformer):
     Transformer to calculate uptime based on states,
     which is broken apart into flavor at point in time.
     """
-    required_meters = ['state']
 
-    def _transform_usage(self, meters, start, end):
+    def _transform_usage(self, name, data, start, end):
         # get tracked states from config
         tracked = config.transformers['uptime']['tracked_states']
 
@@ -51,14 +30,12 @@ class Uptime(Transformer):
 
         usage_dict = {}
 
-        state = meters['state']
-
         def sort_and_clip_end(usage):
-            parsed = (self._parse_timestamp(s) for s in usage)
-            clipped = (s for s in parsed if s['timestamp'] < end)
+            cleaned = (self._clean_entry(s) for s in usage)
+            clipped = (s for s in cleaned if s['timestamp'] < end)
             return sorted(clipped, key=lambda x: x['timestamp'])
 
-        state = sort_and_clip_end(state.usage())
+        state = sort_and_clip_end(data)
 
         if not len(state):
             # there was no data for this period.
@@ -93,7 +70,7 @@ class Uptime(Transformer):
         # map the flavors to names on the way out
         return { helpers.flavor_name(f): v for f, v in usage_dict.items() }
 
-    def _parse_timestamp(self, entry):
+    def _clean_entry(self, entry):
         result = {
             'counter_volume': entry['counter_volume'],
             'flavor': entry['resource_metadata'].get('flavor.id',
@@ -115,41 +92,6 @@ class GaugeMax(Transformer):
     """
     meter_type = 'gauge'
 
-    def _transform_usage(self, meters, start, end):
-        usage_dict = {}
-        for name, meter in meters.iteritems():
-            usage = meter.usage()
-            max_vol = max([v["counter_volume"] for v in usage])
-            usage_dict[name] = max_vol
-        return usage_dict
-
-
-class CumulativeRange(Transformer):
-    """
-    Transformer to get the usage over a given range in a cumulative
-    metric, while taking into account that the metric can reset.
-    """
-    meter_type = 'cumulative'
-
-    def _transform_usage(self, meters, start, end):
-        usage_dict = {}
-        for name, meter in meters.iteritems():
-            measurements = meter.usage()
-            measurements = sorted(measurements, key=lambda x: x["timestamp"])
-            count = 0
-            usage = 0
-            last_measure = None
-            for measure in measurements:
-                if (last_measure is not None and
-                        (measure["counter_volume"] <
-                            last_measure["counter_volume"])):
-                    usage = usage + last_measure["counter_volume"]
-                count = count + 1
-                last_measure = measure
-
-            usage = usage + measurements[-1]["counter_volume"]
-
-            if count > 1:
-                total_usage = usage - measurements[0]["counter_volume"]
-                usage_dict[name] = total_usage
-        return usage_dict
+    def _transform_usage(self, name, data, start, end):
+        max_vol = max([v["counter_volume"] for v in data]) if len(data) else 0
+        return {name: max_vol}
