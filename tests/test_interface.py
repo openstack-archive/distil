@@ -32,7 +32,7 @@ class TestInterface(unittest.TestCase):
                           RESOURCES["ips"])
 
         # TODO: make these constants.
-        self.end = datetime.now()
+        self.end = datetime.utcnow()
         self.start = self.end - timedelta(days=30)
 
     def tearDown(self):

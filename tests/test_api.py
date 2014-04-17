@@ -62,7 +62,7 @@ class TestApi(test_interface.TestInterface):
     def test_sales_run_for_all(self):
         """Assertion that a sales run generates all tenant orders"""
 
-        now = datetime.now().\
+        now = datetime.utcnow().\
             replace(hour=0, minute=0, second=0, microsecond=0)
         helpers.fill_db(self.session, 7, 5, now)
         resp = self.app.post("/sales_order",
@@ -84,7 +84,7 @@ class TestApi(test_interface.TestInterface):
     def test_sales_run_single(self):
         """Assertion that a sales run generates one tenant only"""
 
-        now = datetime.now().\
+        now = datetime.utcnow().\
             replace(hour=0, minute=0, second=0, microsecond=0)
         helpers.fill_db(self.session, 5, 5, now)
         resp = self.app.post("/sales_order",

@@ -11,9 +11,9 @@ from contextlib import contextmanager
 
 @contextmanager
 def timed(desc):
-    start = datetime.now()
+    start = datetime.utcnow()
     yield
-    end = datetime.now()
+    end = datetime.utcnow()
     print "%s: %s" % (desc, end - start)
 
 class Artifice(object):

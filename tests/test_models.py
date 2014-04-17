@@ -45,7 +45,7 @@ class db(unittest.TestCase):
 
     def test_create_tenant(self):
         self.db.begin()
-        t = Tenant(id="asfd", name="test", created=datetime.datetime.now())
+        t = Tenant(id="asfd", name="test", created=datetime.datetime.utcnow())
         self.db.add(t)
         self.db.commit()
         t2 = self.db.query(Tenant).get("asfd")
@@ -56,7 +56,7 @@ class db(unittest.TestCase):
         self.test_create_tenant()
         self.db.begin()
         t = self.db.query(Tenant).get("asfd")
-        r = Resource(id="1234", tenant=t, created=datetime.datetime.now())
+        r = Resource(id="1234", tenant=t, created=datetime.datetime.utcnow())
         self.db.add(r)
         self.db.commit()
         r2 = self.db.query(Resource).filter(Resource.id == "1234")[0]
@@ -71,9 +71,9 @@ class db(unittest.TestCase):
                        volume=1.23,
                        resource=r,
                        tenant=r,
-                       start=datetime.datetime.now() - datetime.timedelta(minutes=5),
-                       end=datetime.datetime.now(),
-                       created=datetime.datetime.now())
+                       start=datetime.datetime.utcnow() - datetime.timedelta(minutes=5),
+                       end=datetime.datetime.utcnow(),
+                       created=datetime.datetime.utcnow())
         self.db.add(u)
         try:
             self.db.commit()

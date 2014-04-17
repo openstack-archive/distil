@@ -76,7 +76,7 @@ meter_mapping = {
 
 
 def collect_usage(tenant, db, session, resp, end):
-    timestamp = datetime.now()
+    timestamp = datetime.utcnow()
     session.begin(subtransactions=True)
     print 'collect_usage for %s %s' % (tenant.id, tenant.name)
     db_tenant = db.insert_tenant(tenant.id, tenant.name,
@@ -154,7 +154,7 @@ def run_usage_collection():
 
         tenants = artifice.tenants
 
-        end = datetime.now().\
+        end = datetime.utcnow().\
             replace(minute=0, second=0, microsecond=0)
 
         resp = {"tenants": [], "errors": 0}
@@ -248,7 +248,7 @@ def run_sales_order_generation():
     tenant_query = session.query(Tenant)
 
     # Today, the beginning of.
-    end = datetime.now().\
+    end = datetime.utcnow().\
         replace(hour=0, minute=0, second=0, microsecond=0)
 
     if isinstance(tenants, list):

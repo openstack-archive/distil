@@ -12,7 +12,7 @@ class TestDatabaseModule(test_interface.TestInterface):
         """Tests adding all the data to the database."""
 
         usage = helpers.get_usage(self.start, self.end)
-        timestamp = datetime.now()
+        timestamp = datetime.utcnow()
 
         db = database.Database(self.session)
         db.insert_tenant(TENANT_ID,
