@@ -17,12 +17,16 @@ class Database(object):
         query = self.session.query(Tenant).\
             filter(Tenant.id == tenant_id)
         if query.count() == 0:
-            self.session.add(Tenant(id=tenant_id,
-                                    info=metadata,
-                                    name=tenant_name,
-                                    created=timestamp
-                                    ))
+            tenant = Tenant(id=tenant_id,
+                            info=metadata,
+                            name=tenant_name,
+                            created=timestamp
+                            )
+            self.session.add(tenant)
             self.session.flush()            # can't assume deferred constraints.
+            return tenant
+        else:
+            return query[0]
 
     def insert_resource(self, tenant_id, resource_id, resource_type, timestamp):
         query = self.session.query(Resource).\

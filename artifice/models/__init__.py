@@ -81,6 +81,7 @@ class Tenant(Base):
     name = Column(Text, nullable=False)
     info = Column(Text)
     created = Column(DateTime, nullable=False)
+    last_collected = Column(DateTime, nullable=True)
 
     resources = relationship(Resource, backref="tenant")
 

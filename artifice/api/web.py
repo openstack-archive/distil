@@ -79,10 +79,9 @@ def collect_usage(tenant, db, session, resp, end):
     timestamp = datetime.now()
     session.begin(subtransactions=True)
     print 'collect_usage for %s %s' % (tenant.id, tenant.name)
-    db.insert_tenant(tenant.id, tenant.name,
+    db_tenant = db.insert_tenant(tenant.id, tenant.name,
                     tenant.description, timestamp)
-    start = session.query(func.max(UsageEntry.end).label('end')).\
-        filter(UsageEntry.tenant_id == tenant.id).first().end
+    start = db_tenant.last_collected
     if not start:
         print 'failed to find any previous usageentry for this tenant; starting at %s' % dawn_of_time
         start = dawn_of_time
@@ -111,6 +110,10 @@ def collect_usage(tenant, db, session, resp, end):
                     db.insert_resource(tenant.id, res, meter_info['type'], timestamp)
                     db.insert_usage(tenant.id, res, transformed,
                         window_start, window_end, timestamp)
+
+            # update the timestamp for the tenant so we won't examine this timespan again.
+            db_tenant.last_collected = window_end
+            session.add(db_tenant)
 
             session.commit()
             resp["tenants"].append(
