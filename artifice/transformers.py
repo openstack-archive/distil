@@ -87,11 +87,12 @@ class Uptime(Transformer):
 
 class GaugeMax(Transformer):
     """
-    Transformer that simply returns the highest value
-    in the given range.
+    Transformer for max-integration of a gauge value over time.
+    If the raw unit is 'gigabytes', then the transformed unit is 'gigabyte-hours'.
     """
     meter_type = 'gauge'
 
     def _transform_usage(self, name, data, start, end):
         max_vol = max([v["counter_volume"] for v in data]) if len(data) else 0
-        return {name: max_vol}
+        hours = (end - start).total_seconds() / 3600.0
+        return {name: max_vol * hours}
