@@ -71,7 +71,11 @@ class TestApi(test_interface.TestInterface):
 
         now = datetime.utcnow().\
             replace(hour=0, minute=0, second=0, microsecond=0)
+
         helpers.fill_db(self.session, numTenants, numResources, now)
+
+        for entry in self.session.query(models.UsageEntry):
+            print entry
 
         for i in range(numTenants):
             resp = self.app.post("/sales_order",
@@ -79,6 +83,7 @@ class TestApi(test_interface.TestInterface):
                                                     str(i)}),
                                  content_type='application/json')
             resp_json = json.loads(resp.body)
+            print resp_json
 
             query = self.session.query(models.SalesOrder)
             self.assertEquals(query.count(), i + 1)
