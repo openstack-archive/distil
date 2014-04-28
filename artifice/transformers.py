@@ -4,10 +4,6 @@ import helpers
 import config
 
 
-class TransformerValidationError(Exception):
-    pass
-
-
 class Transformer(object):
     def transform_usage(self, name, data, start, end):
         return self._transform_usage(name, data, start, end)
@@ -36,15 +32,19 @@ class Uptime(Transformer):
             return sorted(clipped, key=lambda x: x['timestamp'])
 
         state = sort_and_clip_end(data)
+        print state
 
         if not len(state):
             # there was no data for this period.
             return usage_dict
 
         last_state = state[0]
-        last_timestamp = max(start, last_state['timestamp'])
-
-        count = 1
+        if last_state['timestamp'] >= start:
+            last_timestamp = last_state['timestamp']
+            seen_sample_in_window = True
+        else:
+            last_timestamp = start
+            seen_sample_in_window = False
 
         def _add_usage(diff):
             flav = last_state['flavor']
@@ -58,12 +58,13 @@ class Uptime(Transformer):
                     # of the window.
                     _add_usage(diff)
                     last_timestamp = val['timestamp']
+                    seen_sample_in_window = True
 
             last_state = val
 
         # extend the last state we know about, to the end of the window, if we saw any
         # actual uptime.
-        if end and last_state['counter_volume'] in tracked_states and last_timestamp > start:
+        if end and last_state['counter_volume'] in tracked_states and seen_sample_in_window:
             diff = end - last_timestamp
             _add_usage(diff)
 
@@ -90,7 +91,6 @@ class GaugeMax(Transformer):
     Transformer for max-integration of a gauge value over time.
     If the raw unit is 'gigabytes', then the transformed unit is 'gigabyte-hours'.
     """
-    meter_type = 'gauge'
 
     def _transform_usage(self, name, data, start, end):
         max_vol = max([v["counter_volume"] for v in data]) if len(data) else 0

@@ -1,7 +1,6 @@
 from sqlalchemy import func
 from .models import Resource, UsageEntry, Tenant
 import json
-from transformers import TransformerValidationError
 
 
 class Database(object):
