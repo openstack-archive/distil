@@ -38,34 +38,25 @@ class Artifice(object):
             token=lambda: self.auth.auth_token,
             insecure=config.auth["insecure"]
         )
-        self._tenancy = None
-
-    def tenant(self, id_):
-        """
-        Returns a Tenant object describing the specified Tenant by
-        name, or raises a NotFound error.
-        """
-
-        data = self.auth.tenants.get(id_)
-        t = Tenant(data, self)
-        return t
 
     @property
     def tenants(self):
         """All the tenants in our system"""
-        if not self._tenancy:
-            self._tenancy = []
-            with timed("fetch tenant list from keystone"):
-                _tenants = self.auth.tenants.list()
-            for tenant in _tenants:
-                # if this tenant is in the ignore_tenants, then just pretend
-                # it doesnt exist at all.
-                if tenant.name not in config.main.get('ignore_tenants', []):
-                    t = Tenant(tenant, self)
-                    self._tenancy.append(t)
-                else:
-                    print "Ignored tenant %s (%s) due to config." % (tenant.id, tenant.name)
-        return self._tenancy
+        with timed("fetch tenant list from keystone"):
+            _tenants = self.auth.tenants.list()
+
+        tenants = []
+
+        for tenant in _tenants:
+            # if this tenant is in the ignore_tenants, then just pretend
+            # it doesnt exist at all.
+            if tenant.name not in config.main.get('ignore_tenants', []):
+                t = Tenant(tenant, self)
+                tenants.append(t)
+            else:
+                print "Ignored tenant %s (%s) due to config." % (tenant.id, tenant.name)
+
+        return tenants
 
 
 class InterfaceException(Exception):
