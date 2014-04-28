@@ -58,8 +58,13 @@ class Artifice(object):
             with timed("fetch tenant list from keystone"):
                 _tenants = self.auth.tenants.list()
             for tenant in _tenants:
-                t = Tenant(tenant, self)
-                self._tenancy.append(t)
+                # if this tenant is in the ignore_tenants, then just pretend
+                # it doesnt exist at all.
+                if tenant.name not in config.main.get('ignore_tenants', []):
+                    t = Tenant(tenant, self)
+                    self._tenancy.append(t)
+                else:
+                    print "Ignored tenant %s (%s) due to config." % (tenant.id, tenant.name)
         return self._tenancy
 
 
