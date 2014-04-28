@@ -1,7 +1,6 @@
 import requests
 import json
 import auth
-from ceilometerclient.v2.client import Client as ceilometer
 from artifice.models import resources
 from constants import date_format
 import config
@@ -28,14 +27,6 @@ class Artifice(object):
             password=config.auth["password"],
             tenant_name=config.auth["default_tenant"],
             auth_url=config.auth["end_point"],
-            insecure=config.auth["insecure"]
-        )
-
-        self.ceilometer = ceilometer(
-            config.ceilometer["host"],
-            # Uses a lambda as ceilometer apparently wants
-            # to use it as a callable?
-            token=lambda: self.auth.auth_token,
             insecure=config.auth["insecure"]
         )
 
