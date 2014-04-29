@@ -81,4 +81,7 @@ class Database(object):
     def get_resource_metadata(self, resource_id):
         info = self.session.query(Resource.info).\
             filter(Resource.id == resource_id)
-        return json.loads(info[0].info)
+        try:
+            return json.loads(info[0].info)
+        except ValueError:
+            return {'type': info[0]}
