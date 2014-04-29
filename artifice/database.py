@@ -87,4 +87,4 @@ class Database(object):
         try:
             return json.loads(info[0].info)
         except ValueError:
-            return {'type': info[0]}
+            return {'type': info[0].info}
