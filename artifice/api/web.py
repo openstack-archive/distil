@@ -66,9 +66,9 @@ meter_mapping = {
     'volume.size':          {'type': 'volume',
                              'transformer': transformers.GaugeMax(),
                              'unit': 'gigabyte'},
-    'storage.objects.size': {'type': 'object_storage',
-                             'transformer': transformers.GaugeMax(),
-                             'unit': 'byte'},
+    # 'storage.objects.size': {'type': 'object_storage',
+    #                          'transformer': transformers.GaugeMax(),
+    #                          'unit': 'byte'},
     # TODO: add network usage, when we get the neutron bits for that
     # figured out.
 }
