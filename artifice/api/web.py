@@ -1,6 +1,7 @@
 import flask
 from flask import Flask, Blueprint
-from artifice import interface, database, config, transformers
+from artifice import interface, database, config
+from artifice.transformers import active_transformers
 from artifice.rates import RatesFile
 from artifice.models import SalesOrder, Tenant
 from artifice.helpers import convert_to
@@ -56,24 +57,6 @@ def generate_windows(start, end):
         start = window_end
 
 
-meter_mapping = {
-    'state':                {'type': 'virtual_machine',
-                             'transformer': transformers.Uptime(),
-                             'unit': 'second'},
-    'ip.floating':          {'type': 'floating_ip',
-                             'transformer': transformers.GaugeMax(),
-                             'unit': 'hour'},
-    'volume.size':          {'type': 'volume',
-                             'transformer': transformers.GaugeMax(),
-                             'unit': 'gigabyte'},
-    # 'storage.objects.size': {'type': 'object_storage',
-    #                          'transformer': transformers.GaugeMax(),
-    #                          'unit': 'byte'},
-    # TODO: add network usage, when we get the neutron bits for that
-    # figured out.
-}
-
-
 def collect_usage(tenant, db, session, resp, end):
     timestamp = datetime.utcnow()
     session.begin(subtransactions=True)
@@ -84,7 +67,7 @@ def collect_usage(tenant, db, session, resp, end):
     start = db_tenant.last_collected
 
     if not start:
-        print ('failed to find any previous usageentry for this tenant;' +
+        print ('failed to find any previous usageentry for this tenant; ' +
                'starting at %s' % dawn_of_time)
         start = dawn_of_time
     session.commit()
@@ -96,9 +79,13 @@ def collect_usage(tenant, db, session, resp, end):
             print "%s %s slice %s %s" % (tenant.id, tenant.name, window_start,
                                          window_end)
 
-            for meter_name, meter_info in meter_mapping.items():
+            mappings = config.collection['meter_mappings']
+
+            for meter_name, meter_info in mappings.items():
                 usage = tenant.usage(meter_name, window_start, window_end)
                 usage_by_resource = {}
+
+                transformer = active_transformers[meter_info['transformer']]()
 
                 for u in usage:
                     resource_id = u['resource_id']
@@ -107,7 +94,7 @@ def collect_usage(tenant, db, session, resp, end):
 
                 for res, entries in usage_by_resource.items():
                     # apply the transformer.
-                    transformed = meter_info['transformer'].transform_usage(
+                    transformed = transformer.transform_usage(
                         meter_name, entries, window_start, window_end)
 
                     db.insert_resource(tenant.id, res, meter_info['type'],

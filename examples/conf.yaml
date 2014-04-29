@@ -2,21 +2,35 @@
 main:
   region: Wellington
   timezone: Pacific/Auckland
-  database_uri: postgres://artifice:123456@localhost:5432/artifice
+  database_uri: postgres://admin:password@localhost:5432/artifice
 rates_config:
-  file: /etc/artifice/csv_rates.csv
+  file: test_rates.csv
 auth:
-  end_point: http://localhost:35357/v2.0
+  end_point: https://api.cloud.catalyst.net.nz:5000/v2.0
   default_tenant: demo
   username: admin
   password: openstack
+  insecure: True
 ceilometer:
-  host: http://localhost:8777/
+  host: http://api.cloud.catalyst.net.nz:8777
+collection:
+  meter_mappings:
+    state:
+      type: Virtual Machine
+      transformer: Uptime
+      unit: second
+    ip.floating:
+      type: Floating IP
+      transformer: GaugeMax
+      unit: hour
+    volume.size:
+      type: Volume
+      transformer: GaugeMax
+      unit: gigabyte
 transformers:
   uptime:
     tracked_states: 
       - active
-      - building
       - paused
       - rescued
       - resized

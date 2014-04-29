@@ -96,3 +96,9 @@ class GaugeMax(Transformer):
         max_vol = max([v["counter_volume"] for v in data]) if len(data) else 0
         hours = (end - start).total_seconds() / 3600.0
         return {name: max_vol * hours}
+
+
+active_transformers = {
+    'Uptime': Uptime,
+    'GaugeMax': GaugeMax
+}
