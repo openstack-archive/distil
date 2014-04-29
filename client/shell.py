@@ -46,11 +46,7 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(help='commands', dest='command')
 
     usage_parser = subparsers.add_parser('usage', help=('process usage' +
-                                                        ' for given tenants'))
-    usage_parser.add_argument(
-        "-t", "--tenant", dest="tenants",
-        help='Tenants to process usage for.',
-        action="append", default=[])
+                                                        ' for all tenants'))
 
     sales_parser = subparsers.add_parser('sales-order',
                                          help=('create sales orders for '
@@ -58,6 +54,14 @@ if __name__ == '__main__':
     sales_parser.add_argument(
         "-t", "--tenant", dest="tenants",
         help='Tenants to create sales orders for.',
+        action="append", default=[])
+
+    draft_parser = subparsers.add_parser('sales-draft',
+                                         help=('create sales drafts for '
+                                               'given tenants'))
+    draft_parser.add_argument(
+        "-t", "--tenant", dest="tenants",
+        help='Tenants to create sales drafts for.',
         action="append", default=[])
 
     args = parser.parse_args()
@@ -75,7 +79,10 @@ if __name__ == '__main__':
                     token=conf["api"]["token"])
 
     if args.command == 'usage':
-        client.usage(args.tenants)
+        client.usage()
 
     if args.command == 'sales-order':
-        client.sales_order(args.tenants)
+        client.sales_order(args.tenants, False)
+
+    if args.command == 'sales-draft':
+        client.sales_order(args.tenants, True)
