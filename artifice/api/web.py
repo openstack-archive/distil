@@ -57,11 +57,20 @@ def generate_windows(start, end):
 
 
 meter_mapping = {
-    'state':                {'type': 'virtual_machine', 'transformer': transformers.Uptime()},
-    'ip.floating':          {'type': 'floating_ip',     'transformer': transformers.GaugeMax()},
-    'volume.size':          {'type': 'volume',          'transformer': transformers.GaugeMax()},
-    'storage.objects.size': {'type': 'object_storage',  'transformer': transformers.GaugeMax()},
-    # TODO: add network usage, when we get the neutron bits for that figured out.
+    'state':                {'type': 'virtual_machine',
+                             'transformer': transformers.Uptime(),
+                             'unit': 'second'},
+    'ip.floating':          {'type': 'floating_ip',
+                             'transformer': transformers.GaugeMax(),
+                             'unit': 'hour'},
+    'volume.size':          {'type': 'volume',
+                             'transformer': transformers.GaugeMax(),
+                             'unit': 'gigabyte'},
+    'storage.objects.size': {'type': 'object_storage',
+                             'transformer': transformers.GaugeMax(),
+                             'unit': 'byte'},
+    # TODO: add network usage, when we get the neutron bits for that
+    # figured out.
 }
 
 
@@ -71,11 +80,12 @@ def collect_usage(tenant, db, session, resp, end):
 
     print 'collect_usage for %s %s' % (tenant.id, tenant.name)
     db_tenant = db.insert_tenant(tenant.id, tenant.name,
-                    tenant.description, timestamp)
+                                 tenant.description, timestamp)
     start = db_tenant.last_collected
 
     if not start:
-        print 'failed to find any previous usageentry for this tenant; starting at %s' % dawn_of_time
+        print ('failed to find any previous usageentry for this tenant;' +
+               'starting at %s' % dawn_of_time)
         start = dawn_of_time
     session.commit()
 
@@ -83,8 +93,8 @@ def collect_usage(tenant, db, session, resp, end):
         session.begin(subtransactions=True)
 
         try:
-            print "%s %s slice %s %s" % (tenant.id, tenant.name, window_start, window_end)
-
+            print "%s %s slice %s %s" % (tenant.id, tenant.name, window_start,
+                                         window_end)
 
             for meter_name, meter_info in meter_mapping.items():
                 usage = tenant.usage(meter_name, window_start, window_end)
@@ -100,11 +110,14 @@ def collect_usage(tenant, db, session, resp, end):
                     transformed = meter_info['transformer'].transform_usage(
                         meter_name, entries, window_start, window_end)
 
-                    db.insert_resource(tenant.id, res, meter_info['type'], timestamp)
+                    db.insert_resource(tenant.id, res, meter_info['type'],
+                                       timestamp)
                     db.insert_usage(tenant.id, res, transformed,
-                        window_start, window_end, timestamp)
+                                    meter_info['unit'],
+                                    window_start, window_end, timestamp)
 
-            # update the timestamp for the tenant so we won't examine this timespan again.
+            # update the timestamp for the tenant so we won't examine this
+            # timespan again.
             db_tenant.last_collected = window_end
             session.add(db_tenant)
 
@@ -174,7 +187,8 @@ def build_tenant_dict(tenant, entries, db):
                    'resources': {}}
 
     for entry in entries:
-        service = {'name': entry.service, 'volume': entry.volume}
+        service = {'name': entry.service, 'volume': entry.volume,
+                   'unit': entry.unit}
 
         if (entry.resource_id not in tenant_dict['resources']):
             resource = db.get_resource_metadata(entry.resource_id)
@@ -197,7 +211,9 @@ def add_costs_for_tenant(tenant, RatesManager):
         resource_total = 0
         for service in resource['services']:
             rate = RatesManager.rate(service['name'])
-            volume = convert_to(service['volume'], rate['unit'])
+            volume = convert_to(service['volume'],
+                                service['unit'],
+                                rate['unit'])
 
             # round to 2dp so in dollars.
             cost = round(volume * rate['rate'], 2)

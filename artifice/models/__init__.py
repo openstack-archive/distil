@@ -40,6 +40,7 @@ class UsageEntry(Base):
     # Service is things like incoming vs. outgoing, as well as instance
     # flavour
     service = Column(String(100), primary_key=True)
+    unit = Column(String(100))
     volume = Column(Numeric(precision=20, scale=2), nullable=False)
     resource_id = Column(String(100), primary_key=True)
     tenant_id = Column(String(100), primary_key=True)

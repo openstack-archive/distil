@@ -38,11 +38,13 @@ class Database(object):
                 created=timestamp))
             self.session.flush()            # can't assume deferred constraints.
 
-    def insert_usage(self, tenant_id, resource_id, entries, start, end, timestamp):
+    def insert_usage(self, tenant_id, resource_id, entries, unit,
+                     start, end, timestamp):
         for service, volume in entries.items():
             entry = UsageEntry(
                 service=service,
                 volume=volume,
+                unit=unit,
                 resource_id=resource_id,
                 tenant_id=tenant_id,
                 start=start,
@@ -70,11 +72,12 @@ class Database(object):
         query = self.session.query(UsageEntry.tenant_id,
                                    UsageEntry.resource_id,
                                    UsageEntry.service,
+                                   UsageEntry.unit,
                                    func.sum(UsageEntry.volume).label("volume")).\
             filter(UsageEntry.start >= start, UsageEntry.end <= end).\
             filter(UsageEntry.tenant_id == tenant_id).\
             group_by(UsageEntry.tenant_id, UsageEntry.resource_id,
-                     UsageEntry.service)
+                     UsageEntry.service, UsageEntry.unit)
 
         return query
 
