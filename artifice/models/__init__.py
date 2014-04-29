@@ -68,7 +68,7 @@ class UsageEntry(Base):
         return (self.start <= other.end and other.start <= self.end)
 
     def __str__(self):
-        return '<UsageEntry {tenant=%s resource=%s service=%s start=%s end=%s volume=%s}>' % (
+        return '<UsageEntry {tenant_id=%s resource_id=%s service=%s start=%s end=%s volume=%s}>' % (
                 self.tenant_id, self.resource_id, self.service,
                 self.start, self.end, self.volume)
 
