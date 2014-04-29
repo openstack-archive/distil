@@ -184,7 +184,7 @@ def build_tenant_dict(tenant, entries, db):
             tenant_dict['resources'][entry.resource_id] = resource
 
         else:
-            resource = tenant['resources'][entry.resource_id]
+            resource = tenant_dict['resources'][entry.resource_id]
             resource['services'].append(service)
 
     return tenant_dict
@@ -215,17 +215,15 @@ def add_costs_for_tenant(tenant, RatesManager):
     return tenant
 
 
-@app.route("sales_order", methods=["POST"])
-@json_must()
-@returns_json
-def run_sales_order_generation():
+def generate_sales_order(draft, tenant_id):
     session = Session()
 
-    tenant_id = flask.request.json.get("tenant", None)
-
-    # Today, the beginning of.
-    end = datetime.utcnow().\
-        replace(hour=0, minute=0, second=0, microsecond=0)
+    if draft:
+        end = datetime.utcnow()
+    else:
+        # Today, the beginning of.
+        end = datetime.utcnow().\
+            replace(hour=0, minute=0, second=0, microsecond=0)
 
     if isinstance(tenant_id, unicode):
         tenant_query = session.query(Tenant).\
@@ -247,8 +245,10 @@ def run_sales_order_generation():
     if not start:
         start = dawn_of_time
     usage = db.usage(start, end, tenant_id)
-    order = SalesOrder(tenant_id=tenant_id, start=start, end=end)
-    session.add(order)
+
+    if not draft:
+        order = SalesOrder(tenant_id=tenant_id, start=start, end=end)
+        session.add(order)
 
     try:
         # Commit the record before we generate the bill, to mark this as a
@@ -266,6 +266,22 @@ def run_sales_order_generation():
         session.close()
         return 400, {"id": tenant_id,
                      "error": "IntegrityError, existing sales_order overlap."}
+
+
+@app.route("sales_order", methods=["POST"])
+@json_must()
+@returns_json
+def run_sales_order_generation():
+    tenant_id = flask.request.json.get("tenant", None)
+    return generate_sales_order(False, tenant_id)
+
+
+@app.route("sales_draft", methods=["POST"])
+@json_must()
+@returns_json
+def run_sales_draft_generation():
+    tenant_id = flask.request.json.get("tenant", None)
+    return generate_sales_order(True, tenant_id)
 
 
 if __name__ == '__main__':
