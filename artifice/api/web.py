@@ -234,6 +234,8 @@ def generate_sales_order(draft, tenant_id):
         if tenant_query.count() == 0:
             return 400, {"errors": ["No tenant matching ID found."]}
     elif tenant_id is not None:
+        return 400, {"error": ["tenant must be a unicode string."]}
+    else:
         return 400, {"missing parameter": {"tenant": "Tenant id."}}
 
     db = database.Database(session)
@@ -271,6 +273,46 @@ def generate_sales_order(draft, tenant_id):
                      "error": "IntegrityError, existing sales_order overlap."}
 
 
+def regenerate_sales_order(tenant_id, target):
+    session = Session()
+
+    db = database.Database(session)
+
+    if isinstance(tenant_id, unicode):
+        tenant_query = session.query(Tenant).\
+            filter(Tenant.id == tenant_id)
+        if tenant_query.count() == 0:
+            return 400, {"errors": ["No tenant matching ID found."]}
+    elif tenant_id is not None:
+        return 400, {"error": ["tenant must be a unicode string."]}
+    else:
+        return 400, {"missing parameter": {"tenant": "Tenant id."}}
+
+    if target is not None:
+        try:
+            target = datetime.strptime(target, iso_date)
+        except ValueError:
+            return 400, {"errors": ["date given needs to be in format: " +
+                                    "y-m-d"]}
+    else:
+        return 400, {"missing parameter": {"date": "target date in format: " +
+                                           "y-m-d"}}
+
+    rates = RatesFile(config.rates_config)
+    try:
+        sales_order = db.get_sales_order(tenant_id, target)
+    except IndexError:
+        return 400, {"errors": ["Given date not in existing sales orders."]}
+
+    usage = db.usage(sales_order.start, sales_order.end, tenant_id)
+
+    # Transform the query result into a billable dict.
+    tenant_dict = build_tenant_dict(tenant_query[0], usage, db)
+    tenant_dict = add_costs_for_tenant(tenant_dict, rates)
+
+    return 200, tenant_dict
+
+
 @app.route("sales_order", methods=["POST"])
 @json_must()
 @returns_json
@@ -285,6 +327,16 @@ def run_sales_order_generation():
 def run_sales_draft_generation():
     tenant_id = flask.request.json.get("tenant", None)
     return generate_sales_order(True, tenant_id)
+
+
+@app.route("sales_historic", methods=["POST"])
+@json_must()
+@returns_json
+def run_sales_historic_generation():
+    tenant_id = flask.request.json.get("tenant", None)
+    target = flask.request.json.get("date", None)
+
+    return regenerate_sales_order(tenant_id, target)
 
 
 if __name__ == '__main__':

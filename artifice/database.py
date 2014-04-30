@@ -1,5 +1,5 @@
 from sqlalchemy import func
-from .models import Resource, UsageEntry, Tenant
+from .models import Resource, UsageEntry, Tenant, SalesOrder
 import json
 
 
@@ -88,3 +88,9 @@ class Database(object):
             return json.loads(info[0].info)
         except ValueError:
             return {'type': info[0].info}
+
+    def get_sales_order(self, tenant_id, target):
+        query = self.session.query(SalesOrder).\
+            filter(SalesOrder.start <= target, SalesOrder.end >= target).\
+            filter(SalesOrder.tenant_id == tenant_id)
+        return query[0]
