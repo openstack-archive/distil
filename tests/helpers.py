@@ -22,6 +22,7 @@ def fill_db(session, numb_tenants, numb_resources, now):
             session.add(models.UsageEntry(
                 service="service" + str(ii),
                 volume=5,
+                unit='gigabyte',
                 resource_id="resource_id_" + str(ii),
                 tenant_id="tenant_id_" + str(i),
                 start=(now - timedelta(days=20)),

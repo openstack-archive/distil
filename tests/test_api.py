@@ -74,9 +74,6 @@ class TestApi(test_interface.TestInterface):
 
         helpers.fill_db(self.session, numTenants, numResources, now)
 
-        for entry in self.session.query(models.UsageEntry):
-            print entry
-
         for i in range(numTenants):
             resp = self.app.post("/sales_order",
                                  params=json.dumps({"tenant": "tenant_id_" +
@@ -177,21 +174,25 @@ class TestApi(test_interface.TestInterface):
             'resources': {
                 'resouce_ID_1': {
                     'services': [{'name': 'service_1',
-                                  'volume': Decimal(volume)},
+                                  'volume': Decimal(volume),
+                                  'unit': 'second'},
                                  {'name': 'service_2',
-                                  'volume': Decimal(volume)}]
+                                  'volume': Decimal(volume),
+                                  'unit': 'second'}]
                 },
                 'resouce_ID_2': {
                     'services': [{'name': 'service_1',
-                                  'volume': Decimal(volume)},
+                                  'volume': Decimal(volume),
+                                  'unit': 'second'},
                                  {'name': 'service_2',
-                                  'volume': Decimal(volume)}]
+                                  'volume': Decimal(volume),
+                                  'unit': 'second'}]
                 }
             }
         }
 
-        service_cost = round(convert_to(volume, rate['unit']) * rate['rate'],
-                             2)
+        service_cost = round(
+            convert_to(volume, 'second', rate['unit']) * rate['rate'], 2)
         total_cost = service_cost * 4
 
         ratesManager = mock.MagicMock()
@@ -204,7 +205,8 @@ class TestApi(test_interface.TestInterface):
             self.assertEquals(resource['total_cost'], str(service_cost * 2))
             for service in resource['services']:
                 self.assertEquals(service['volume'],
-                                  str(convert_to(volume, rate['unit'])))
+                                  str(convert_to(volume, 'second',
+                                                 rate['unit'])))
                 self.assertEquals(service['unit'], rate['unit'])
                 self.assertEquals(service['cost'], str(service_cost))
 
