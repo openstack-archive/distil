@@ -29,7 +29,8 @@ config = {
             "tracked_states": ["active", "building",
                                "paused", "rescued", "resized"]
         }
-    }
+    },
+    "collection": {}
 }
 
 # from test data:
