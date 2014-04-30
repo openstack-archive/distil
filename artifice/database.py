@@ -64,9 +64,6 @@ class Database(object):
            start, end: define the range to query
            tenant: a tenant entry (tenant_id for now)"""
 
-        if start > end:
-            raise AttributeError("End must be a later date than start.")
-
         # build a query set in the format:
         # tenant_id  | resource_id | service | sum(volume)
         query = self.session.query(UsageEntry.tenant_id,

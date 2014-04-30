@@ -218,15 +218,8 @@ def add_costs_for_tenant(tenant, RatesManager):
     return tenant
 
 
-def generate_sales_order(draft, tenant_id):
+def generate_sales_order(draft, tenant_id, end):
     session = Session()
-
-    if draft:
-        end = datetime.utcnow()
-    else:
-        # Today, the beginning of.
-        end = datetime.utcnow().\
-            replace(hour=0, minute=0, second=0, microsecond=0)
 
     if isinstance(tenant_id, unicode):
         tenant_query = session.query(Tenant).\
@@ -242,15 +235,24 @@ def generate_sales_order(draft, tenant_id):
 
     rates = RatesFile(config.rates_config)
 
-    session.begin()
     # Get the last sales order for this tenant, to establish
     # the proper ranging
     start = session.query(func.max(SalesOrder.end).label('end')).\
         filter(SalesOrder.tenant_id == tenant_id).first().end
     if not start:
         start = dawn_of_time
+
+    # these coditionals need work, also some way to
+    # ensure all given timedate values are in UTC?
+    if end <= start:
+        return 400, {"errors": ["end date must be greater than " +
+                                "the end of the last sales order range."]}
+    if end > datetime.utcnow():
+        return 400, {"errors": ["end date cannot be a future date."]}
+
     usage = db.usage(start, end, tenant_id)
 
+    session.begin()
     if not draft:
         order = SalesOrder(tenant_id=tenant_id, start=start, end=end)
         session.add(order)
@@ -318,7 +320,19 @@ def regenerate_sales_order(tenant_id, target):
 @returns_json
 def run_sales_order_generation():
     tenant_id = flask.request.json.get("tenant", None)
-    return generate_sales_order(False, tenant_id)
+    end = flask.request.json.get("end", None)
+    if not end:
+        # Today, the beginning of.
+        end = datetime.utcnow().\
+            replace(hour=0, minute=0, second=0, microsecond=0)
+    else:
+        try:
+            end = datetime.strptime(end, iso_date)
+        except ValueError:
+            return 400, {"errors": ["'end' date given needs to be in format:" +
+                                    " y-m-d"]}
+
+    return generate_sales_order(False, tenant_id, end)
 
 
 @app.route("sales_draft", methods=["POST"])
@@ -326,7 +340,22 @@ def run_sales_order_generation():
 @returns_json
 def run_sales_draft_generation():
     tenant_id = flask.request.json.get("tenant", None)
-    return generate_sales_order(True, tenant_id)
+    end = flask.request.json.get("end", None)
+
+    if not end:
+        end = datetime.utcnow()
+    else:
+        try:
+            end = datetime.strptime(end, iso_date)
+        except ValueError:
+            try:
+                end = datetime.strptime(end, iso_time)
+            except ValueError:
+                return 400, {
+                    "errors": ["'end' date given needs to be in format: " +
+                               "y-m-d, or y-m-dTH:M:S"]}
+
+    return generate_sales_order(True, tenant_id, end)
 
 
 @app.route("sales_historic", methods=["POST"])

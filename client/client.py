@@ -23,14 +23,14 @@ class Client(object):
         except ConnectionError as e:
             print e
 
-    def sales_order(self, tenants, draft):
+    def sales_order(self, tenants, end, draft):
         if draft:
             url = self.endpoint + "sales_draft"
         else:
             url = self.endpoint + "sales_order"
 
         for tenant in tenants:
-            data = {"tenant": tenant}
+            data = {"tenant": tenant, 'end': end}
             try:
                 response = requests.post(url,
                                          headers={"Content-Type":

@@ -55,6 +55,9 @@ if __name__ == '__main__':
         "-t", "--tenant", dest="tenants",
         help='Tenants to create sales orders for.',
         action="append", default=[])
+    sales_parser.add_argument(
+        "-e", "--end", dest="end",
+        help='end date for sales order.')
 
     draft_parser = subparsers.add_parser(
         'sales-draft',
@@ -63,6 +66,9 @@ if __name__ == '__main__':
         "-t", "--tenant", dest="tenants",
         help='Tenants to create sales drafts for.',
         action="append", default=[])
+    draft_parser.add_argument(
+        "-e", "--end", dest="end",
+        help='end date for sales order.')
 
     historic_parser = subparsers.add_parser(
         'sales-historic',
@@ -94,10 +100,10 @@ if __name__ == '__main__':
         client.usage()
 
     if args.command == 'sales-order':
-        client.sales_order(args.tenants, False)
+        client.sales_order(args.tenants, args.end, False)
 
     if args.command == 'sales-draft':
-        client.sales_order(args.tenants, True)
+        client.sales_order(args.tenants, args.end, True)
 
     if args.command == 'sales-historic':
         client.sales_historic(args.tenants, args.date)
