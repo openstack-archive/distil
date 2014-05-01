@@ -73,7 +73,8 @@ def collect_usage(tenant, db, session, resp, end):
     session.commit()
 
     for window_start, window_end in generate_windows(start, end):
-        session.begin(subtransactions=True)
+        with interface.timed("new transaction"):
+            session.begin(subtransactions=True)
 
         try:
             print "%s %s slice %s %s" % (tenant.id, tenant.name, window_start,
@@ -87,28 +88,31 @@ def collect_usage(tenant, db, session, resp, end):
 
                 transformer = active_transformers[meter_info['transformer']]()
 
-                for u in usage:
-                    resource_id = u['resource_id']
-                    entries = usage_by_resource.setdefault(resource_id, [])
-                    entries.append(u)
+                with interface.timed("apply transformer + insert"):
+                    for u in usage:
+                        resource_id = u['resource_id']
+                        entries = usage_by_resource.setdefault(resource_id, [])
+                        entries.append(u)
 
-                for res, entries in usage_by_resource.items():
-                    # apply the transformer.
-                    transformed = transformer.transform_usage(
-                        meter_name, entries, window_start, window_end)
+                    for res, entries in usage_by_resource.items():
+                        # apply the transformer.
+                        transformed = transformer.transform_usage(
+                            meter_name, entries, window_start, window_end)
 
-                    db.insert_resource(tenant.id, res, meter_info['type'],
-                                       timestamp, entries[-1])
-                    db.insert_usage(tenant.id, res, transformed,
-                                    meter_info['unit'],
-                                    window_start, window_end, timestamp)
+                        db.insert_resource(tenant.id, res, meter_info['type'],
+                                           timestamp, entries[-1])
+                        db.insert_usage(tenant.id, res, transformed,
+                                        meter_info['unit'],
+                                        window_start, window_end, timestamp)
 
-            # update the timestamp for the tenant so we won't examine this
-            # timespan again.
-            db_tenant.last_collected = window_end
-            session.add(db_tenant)
+            with interface.timed("commit insert"):
+                # update the timestamp for the tenant so we won't examine this
+                # timespan again.
+                db_tenant.last_collected = window_end
+                session.add(db_tenant)
 
-            session.commit()
+                session.commit()
+
             resp["tenants"].append(
                 {"id": tenant.id,
                  "updated": True,

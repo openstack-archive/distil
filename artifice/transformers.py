@@ -32,7 +32,6 @@ class Uptime(Transformer):
             return sorted(clipped, key=lambda x: x['timestamp'])
 
         state = sort_and_clip_end(data)
-        print state
 
         if not len(state):
             # there was no data for this period.

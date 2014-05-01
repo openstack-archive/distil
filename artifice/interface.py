@@ -18,7 +18,7 @@ def timed(desc):
 class Artifice(object):
     """Produces billable artifacts"""
     def __init__(self):
-        super(Artifice, self).__init__()
+        self.session = requests.Session()
 
         # This is the Keystone client connection, which provides our
         # OpenStack authentication
@@ -89,7 +89,7 @@ class Tenant(object):
         fields.extend(add_dates(start - window_leadin, end))
 
         with timed('fetch global usage for meter %s' % meter_name):
-            r = requests.get('%s/v2/meters/%s' % (config.ceilometer['host'], meter_name),
+            r = self.conn.session.get('%s/v2/meters/%s' % (config.ceilometer['host'], meter_name),
                     headers={
                         "X-Auth-Token": self.conn.auth.auth_token,
                         "Content-Type": "application/json"
