@@ -1,6 +1,7 @@
 from sqlalchemy import func
 from .models import Resource, UsageEntry, Tenant, SalesOrder
 import json
+import config
 
 
 class Database(object):
@@ -21,22 +22,28 @@ class Database(object):
                             created=timestamp
                             )
             self.session.add(tenant)
-            self.session.flush()            # can't assume deferred constraints.
+            self.session.flush()           # can't assume deferred constraints.
             return tenant
         else:
             return query[0]
 
-    def insert_resource(self, tenant_id, resource_id, resource_type, timestamp):
+    def insert_resource(self, tenant_id, resource_id, resource_type,
+                        timestamp, entry):
         query = self.session.query(Resource).\
             filter(Resource.id == resource_id,
                    Resource.tenant_id == tenant_id)
         if query.count() == 0:
+            info = self.merge_resource_metadata({'type': resource_type}, entry)
             self.session.add(Resource(
                 id=resource_id,
-                info=resource_type,
+                info=json.dumps(info),
                 tenant_id=tenant_id,
                 created=timestamp))
-            self.session.flush()            # can't assume deferred constraints.
+            self.session.flush()           # can't assume deferred constraints.
+        else:
+            md_dict = json.loads(query[0].info)
+            md_dict = self.merge_resource_metadata(md_dict, entry)
+            query[0].info = json.dumps(md_dict)
 
     def insert_usage(self, tenant_id, resource_id, entries, unit,
                      start, end, timestamp):
@@ -81,13 +88,23 @@ class Database(object):
     def get_resource_metadata(self, resource_id):
         info = self.session.query(Resource.info).\
             filter(Resource.id == resource_id)
-        try:
-            return json.loads(info[0].info)
-        except ValueError:
-            return {'type': info[0].info}
+        return json.loads(info[0].info)
 
     def get_sales_order(self, tenant_id, target):
         query = self.session.query(SalesOrder).\
             filter(SalesOrder.start <= target, SalesOrder.end >= target).\
             filter(SalesOrder.tenant_id == tenant_id)
         return query[0]
+
+    def merge_resource_metadata(self, md_dict, entry):
+        fields = config.collection['metadata_def'].get(md_dict['type'], {})
+        for field, sources in fields.iteritems():
+            for i, source in enumerate(sources):
+                try:
+                    md_dict[field] = entry['resource_metadata'][sources[0]]
+                    break
+                except KeyError:
+                    # Just means we haven't found the right value yet.
+                    pass
+
+        return md_dict

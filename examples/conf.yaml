@@ -27,6 +27,15 @@ collection:
       type: Volume
       transformer: GaugeMax
       unit: gigabyte
+  metadata_def:
+    Virtual Machine:
+      name:
+        - display_name
+      availability zone:
+        - OS-EXT-AZ:availability_zone
+    Volume:
+      name:
+        - display_name
 transformers:
   uptime:
     tracked_states: 

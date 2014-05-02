@@ -98,7 +98,7 @@ def collect_usage(tenant, db, session, resp, end):
                         meter_name, entries, window_start, window_end)
 
                     db.insert_resource(tenant.id, res, meter_info['type'],
-                                       timestamp)
+                                       timestamp, entries[-1])
                     db.insert_usage(tenant.id, res, transformed,
                                     meter_info['unit'],
                                     window_start, window_end, timestamp)
