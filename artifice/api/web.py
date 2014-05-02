@@ -266,6 +266,10 @@ def generate_sales_order(draft, tenant_id, end):
         # Transform the query result into a billable dict.
         tenant_dict = build_tenant_dict(tenant_query[0], usage, db)
         tenant_dict = add_costs_for_tenant(tenant_dict, rates)
+
+        # add sales order range:
+        tenant_dict['start'] = str(start)
+        tenant_dict['end'] = str(end)
         session.close()
         return 200, tenant_dict
     except sqlalchemy.exc.IntegrityError:
@@ -311,6 +315,10 @@ def regenerate_sales_order(tenant_id, target):
     # Transform the query result into a billable dict.
     tenant_dict = build_tenant_dict(tenant_query[0], usage, db)
     tenant_dict = add_costs_for_tenant(tenant_dict, rates)
+
+    # add sales order range:
+    tenant_dict['start'] = str(sales_order.start)
+    tenant_dict['end'] = str(sales_order.end)
 
     return 200, tenant_dict
 
