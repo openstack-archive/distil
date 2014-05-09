@@ -65,3 +65,23 @@ class Client(object):
                     print json.dumps(response.json(), indent=2, sort_keys=True)
             except ConnectionError as e:
                 print e
+
+    def sales_range(self, tenants, start, end):
+        url = self.endpoint + "sales_range"
+
+        for tenant in tenants:
+            data = {"tenant": tenant, "start": start, "end": end}
+            try:
+                response = requests.post(url,
+                                         headers={"Content-Type":
+                                                  "application/json",
+                                                  "token": self.auth_token},
+                                         data=json.dumps(data))
+                if response.status_code != 200:
+                    raise AttributeError("Sales order cycle failed: " +
+                                         response.text + "  code: " +
+                                         str(response.status_code))
+                else:
+                    print json.dumps(response.json(), indent=2, sort_keys=True)
+            except ConnectionError as e:
+                print e

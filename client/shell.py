@@ -82,6 +82,22 @@ if __name__ == '__main__':
         "-d", "--date", dest="date",
         help='target search date for sales order.')
 
+    range_parser = subparsers.add_parser(
+        'sales-range',
+        help=('regenerate historic sales orders for given tenants,' +
+              'in a given range'))
+    range_parser.add_argument(
+        "-t", "--tenant", dest="tenants",
+        help='Tenants to create sales drafts for.',
+        action="append", default=[])
+    range_parser.add_argument(
+        "-s", "--start", dest="start",
+        help='start of range for sales orders.')
+    range_parser.add_argument(
+        "-e", "--end", dest="end",
+        help='end of range for sales orders. Defaults to now.',
+        default=None)
+
     args = parser.parse_args()
 
     conf = {'api': {'endpoint': 'http://0.0.0.0:8000/',
@@ -107,3 +123,6 @@ if __name__ == '__main__':
 
     if args.command == 'sales-historic':
         client.sales_historic(args.tenants, args.date)
+
+    if args.command == 'sales-range':
+        client.sales_range(args.tenants, args.start, args.end)

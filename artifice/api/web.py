@@ -3,7 +3,7 @@ from flask import Flask, Blueprint
 from artifice import interface, database, config
 from artifice.transformers import active_transformers
 from artifice.rates import RatesFile
-from artifice.models import SalesOrder, Tenant
+from artifice.models import SalesOrder
 from artifice.helpers import convert_to
 import sqlalchemy
 from sqlalchemy import create_engine, func
@@ -12,7 +12,7 @@ from sqlalchemy.pool import NullPool
 from datetime import datetime, timedelta
 import json
 
-from .helpers import returns_json, json_must
+from .helpers import returns_json, json_must, validate_tenant_id
 
 
 engine = None
@@ -224,18 +224,11 @@ def add_costs_for_tenant(tenant, RatesManager):
 
 def generate_sales_order(draft, tenant_id, end):
     session = Session()
-
-    if isinstance(tenant_id, unicode):
-        tenant_query = session.query(Tenant).\
-            filter(Tenant.id == tenant_id)
-        if tenant_query.count() == 0:
-            return 400, {"errors": ["No tenant matching ID found."]}
-    elif tenant_id is not None:
-        return 400, {"error": ["tenant must be a unicode string."]}
-    else:
-        return 400, {"missing parameter": {"tenant": "Tenant id."}}
-
     db = database.Database(session)
+
+    valid_tenant = validate_tenant_id(tenant_id, session)
+    if isinstance(valid_tenant, tuple):
+        return valid_tenant
 
     rates = RatesFile(config.rates_config)
 
@@ -268,7 +261,7 @@ def generate_sales_order(draft, tenant_id, end):
         session.commit()
 
         # Transform the query result into a billable dict.
-        tenant_dict = build_tenant_dict(tenant_query[0], usage, db)
+        tenant_dict = build_tenant_dict(valid_tenant, usage, db)
         tenant_dict = add_costs_for_tenant(tenant_dict, rates)
 
         # add sales order range:
@@ -285,39 +278,22 @@ def generate_sales_order(draft, tenant_id, end):
 
 def regenerate_sales_order(tenant_id, target):
     session = Session()
-
     db = database.Database(session)
-
-    if isinstance(tenant_id, unicode):
-        tenant_query = session.query(Tenant).\
-            filter(Tenant.id == tenant_id)
-        if tenant_query.count() == 0:
-            return 400, {"errors": ["No tenant matching ID found."]}
-    elif tenant_id is not None:
-        return 400, {"error": ["tenant must be a unicode string."]}
-    else:
-        return 400, {"missing parameter": {"tenant": "Tenant id."}}
-
-    if target is not None:
-        try:
-            target = datetime.strptime(target, iso_date)
-        except ValueError:
-            return 400, {"errors": ["date given needs to be in format: " +
-                                    "y-m-d"]}
-    else:
-        return 400, {"missing parameter": {"date": "target date in format: " +
-                                           "y-m-d"}}
-
     rates = RatesFile(config.rates_config)
+
+    valid_tenant = validate_tenant_id(tenant_id, session)
+    if isinstance(valid_tenant, tuple):
+        return valid_tenant
+
     try:
-        sales_order = db.get_sales_order(tenant_id, target)
+        sales_order = db.get_sales_orders(tenant_id, target, target)
     except IndexError:
         return 400, {"errors": ["Given date not in existing sales orders."]}
 
     usage = db.usage(sales_order.start, sales_order.end, tenant_id)
 
     # Transform the query result into a billable dict.
-    tenant_dict = build_tenant_dict(tenant_query[0], usage, db)
+    tenant_dict = build_tenant_dict(valid_tenant, usage, db)
     tenant_dict = add_costs_for_tenant(tenant_dict, rates)
 
     # add sales order range:
@@ -325,6 +301,34 @@ def regenerate_sales_order(tenant_id, target):
     tenant_dict['end'] = str(sales_order.end)
 
     return 200, tenant_dict
+
+
+def regenerate_sales_order_range(tenant_id, start, end):
+    session = Session()
+    db = database.Database(session)
+    rates = RatesFile(config.rates_config)
+
+    valid_tenant = validate_tenant_id(tenant_id, session)
+    if isinstance(valid_tenant, tuple):
+        return valid_tenant
+
+    sales_orders = db.get_sales_orders(tenant_id, start, end)
+
+    tenants = []
+    for sales_order in sales_orders:
+        usage = db.usage(sales_order.start, sales_order.end, tenant_id)
+
+        # Transform the query result into a billable dict.
+        tenant_dict = build_tenant_dict(valid_tenant, usage, db)
+        tenant_dict = add_costs_for_tenant(tenant_dict, rates)
+
+        # add sales order range:
+        tenant_dict['start'] = str(sales_order.start)
+        tenant_dict['end'] = str(sales_order.end)
+
+        tenants.append(tenant_dict)
+
+    return 200, tenants
 
 
 @app.route("sales_order", methods=["POST"])
@@ -377,7 +381,42 @@ def run_sales_historic_generation():
     tenant_id = flask.request.json.get("tenant", None)
     target = flask.request.json.get("date", None)
 
+    if target is not None:
+        try:
+            target = datetime.strptime(target, iso_date)
+        except ValueError:
+            return 400, {"errors": ["date given needs to be in format: " +
+                                    "y-m-d"]}
+    else:
+        return 400, {"missing parameter": {"date": "target date in format: " +
+                                           "y-m-d"}}
+
     return regenerate_sales_order(tenant_id, target)
+
+
+@app.route("sales_range", methods=["POST"])
+@json_must()
+@returns_json
+def run_sales_historic_range_generation():
+    tenant_id = flask.request.json.get("tenant", None)
+    start = flask.request.json.get("start", None)
+    end = flask.request.json.get("end", None)
+
+    try:
+        if start is not None:
+            start = datetime.strptime(start, iso_date)
+        else:
+            return 400, {"missing parameter": {"start": "start date in format: " +
+                                               "y-m-d"}}
+        if end is not None:
+                end = datetime.strptime(end, iso_date)
+        else:
+            end = datetime.utcnow()
+    except ValueError:
+            return 400, {"errors": ["dates given need to be in format: " +
+                                    "y-m-d"]}
+
+    return regenerate_sales_order_range(tenant_id, start, end)
 
 
 if __name__ == '__main__':

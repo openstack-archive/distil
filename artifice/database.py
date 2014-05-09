@@ -90,11 +90,11 @@ class Database(object):
             filter(Resource.id == resource_id)
         return json.loads(info[0].info)
 
-    def get_sales_order(self, tenant_id, target):
+    def get_sales_orders(self, tenant_id, start, end):
         query = self.session.query(SalesOrder).\
-            filter(SalesOrder.start <= target, SalesOrder.end >= target).\
+            filter(SalesOrder.start <= end, SalesOrder.end >= start).\
             filter(SalesOrder.tenant_id == tenant_id)
-        return query[0]
+        return query
 
     def merge_resource_metadata(self, md_dict, entry):
         fields = config.collection['metadata_def'].get(md_dict['type'], {})
