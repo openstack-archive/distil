@@ -54,7 +54,8 @@ if __name__ == '__main__':
     sales_parser.add_argument(
         "-t", "--tenant", dest="tenants",
         help='Tenants to create sales orders for.',
-        action="append", default=[])
+        action="append", default=[],
+        required=True)
     sales_parser.add_argument(
         "-e", "--end", dest="end",
         help='end date for sales order.')
@@ -65,7 +66,7 @@ if __name__ == '__main__':
     draft_parser.add_argument(
         "-t", "--tenant", dest="tenants",
         help='Tenants to create sales drafts for.',
-        action="append", default=[])
+        action="append", required=True)
     draft_parser.add_argument(
         "-e", "--end", dest="end",
         help='end date for sales order.')
@@ -77,10 +78,11 @@ if __name__ == '__main__':
     historic_parser.add_argument(
         "-t", "--tenant", dest="tenants",
         help='Tenants to create sales drafts for.',
-        action="append", default=[])
+        action="append", required=True)
     historic_parser.add_argument(
         "-d", "--date", dest="date",
-        help='target search date for sales order.')
+        help='target search date for sales order.',
+        required=True)
 
     range_parser = subparsers.add_parser(
         'sales-range',
@@ -89,10 +91,11 @@ if __name__ == '__main__':
     range_parser.add_argument(
         "-t", "--tenant", dest="tenants",
         help='Tenants to create sales drafts for.',
-        action="append", default=[])
+        action="append", required=True)
     range_parser.add_argument(
         "-s", "--start", dest="start",
-        help='start of range for sales orders.')
+        help='start of range for sales orders.',
+        required=True)
     range_parser.add_argument(
         "-e", "--end", dest="end",
         help='end of range for sales orders. Defaults to now.',
