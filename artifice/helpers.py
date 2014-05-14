@@ -7,8 +7,6 @@ cache = {}
 
 
 def flavor_name(f_id):
-    f_id = int(f_id)
-
     if f_id not in cache:
         nova = client.Client(
             config.auth['username'],
