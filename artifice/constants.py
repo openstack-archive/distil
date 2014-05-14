@@ -1,3 +1,5 @@
+from datetime import datetime
+
 # Date format Ceilometer uses
 # 2013-07-03T13:34:17
 # which is, as an strftime:
@@ -10,6 +12,11 @@ date_format = "%Y-%m-%dT%H:%M:%S"
 # Sometimes things also have milliseconds, so we look for that too.
 # Because why not be annoying in all the ways?
 other_date_format = "%Y-%m-%dT%H:%M:%S.%f"
+
+# Some useful constants
+iso_time = "%Y-%m-%dT%H:%M:%S"
+iso_date = "%Y-%m-%d"
+dawn_of_time = datetime(2014, 4, 1)
 
 # VM states:
 states = {'active': 1,

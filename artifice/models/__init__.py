@@ -1,8 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Text, DateTime, Numeric, ForeignKey, String
+from sqlalchemy import Column, Text, DateTime, Numeric, ForeignKey
+from sqlalchemy import event, DDL, String, Integer
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
-
-from sqlalchemy import event, DDL
 
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import ForeignKeyConstraint
@@ -20,6 +19,13 @@ class _Version(Base):
     """
     __tablename__ = "artifice_database_version"
     id = Column(String(10), primary_key=True)
+
+
+class _Last_Run(Base):
+    """Model to store time of last completed usage run."""
+    __tablename__ = "artifice_last_run"
+    id = Column(Integer, primary_key=True)
+    last_run = Column(DateTime, nullable=False)
 
 
 class Resource(Base):
@@ -82,7 +88,7 @@ class Tenant(Base):
     name = Column(Text, nullable=False)
     info = Column(Text)
     created = Column(DateTime, nullable=False)
-    last_collected = Column(DateTime, nullable=True)
+    last_collected = Column(DateTime, nullable=False)
 
     resources = relationship(Resource, backref="tenant")
 

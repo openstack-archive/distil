@@ -1,9 +1,10 @@
 import flask
 from flask import Flask, Blueprint
 from artifice import interface, database, config
+from artifice.constants import iso_time, iso_date, dawn_of_time
 from artifice.transformers import active_transformers
 from artifice.rates import RatesFile
-from artifice.models import SalesOrder
+from artifice.models import SalesOrder, _Last_Run
 from artifice.helpers import convert_to
 import sqlalchemy
 from sqlalchemy import create_engine, func
@@ -43,12 +44,6 @@ def get_app(conf):
     return actual_app
 
 
-# Some useful constants
-iso_time = "%Y-%m-%dT%H:%M:%S"
-iso_date = "%Y-%m-%d"
-dawn_of_time = datetime(2014, 4, 1)
-
-
 def generate_windows(start, end):
     window_size = timedelta(hours=1)
     while start + window_size <= end:
@@ -58,6 +53,7 @@ def generate_windows(start, end):
 
 
 def collect_usage(tenant, db, session, resp, end):
+    run_once = False
     timestamp = datetime.utcnow()
     session.begin(subtransactions=True)
 
@@ -66,10 +62,6 @@ def collect_usage(tenant, db, session, resp, end):
                                  tenant.description, timestamp)
     start = db_tenant.last_collected
 
-    if not start:
-        print ('failed to find any previous usageentry for this tenant; ' +
-               'starting at %s' % dawn_of_time)
-        start = dawn_of_time
     session.commit()
 
     for window_start, window_end in generate_windows(start, end):
@@ -120,6 +112,7 @@ def collect_usage(tenant, db, session, resp, end):
                  "end": window_end.strftime(iso_time)
                  }
             )
+            run_once = True
         except sqlalchemy.exc.IntegrityError:
             # this is fine.
             session.rollback()
@@ -132,6 +125,8 @@ def collect_usage(tenant, db, session, resp, end):
                  }
             )
             resp["errors"] += 1
+
+    return run_once
 
 
 @app.route("collect_usage", methods=["POST"])
@@ -149,15 +144,28 @@ def run_usage_collection():
         artifice = interface.Artifice()
         db = database.Database(session)
 
-        tenants = artifice.tenants
-
         end = datetime.utcnow().\
             replace(minute=0, second=0, microsecond=0)
 
+        tenants = artifice.tenants
+
         resp = {"tenants": [], "errors": 0}
+        run_once = False
 
         for tenant in tenants:
-            collect_usage(tenant, db, session, resp, end)
+            if collect_usage(tenant, db, session, resp, end):
+                run_once = True
+
+        if(run_once):
+            session.begin()
+            last_run = session.query(_Last_Run)
+            if last_run.count() == 0:
+                last_run = _Last_Run(last_run=end)
+                session.add(last_run)
+                session.commit()
+            else:
+                last_run[0].last_run = end
+                session.commit()
 
         session.close()
         return json.dumps(resp)

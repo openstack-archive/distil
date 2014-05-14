@@ -1,5 +1,7 @@
 from sqlalchemy import func
-from .models import Resource, UsageEntry, Tenant, SalesOrder
+from .models import Resource, UsageEntry, Tenant, SalesOrder, _Last_Run
+from artifice.constants import dawn_of_time
+from datetime import timedelta
 import json
 import config
 
@@ -16,10 +18,18 @@ class Database(object):
         query = self.session.query(Tenant).\
             filter(Tenant.id == tenant_id)
         if query.count() == 0:
+            last_run = self.session.query(_Last_Run)
+            if last_run.count() == 0:
+                start = dawn_of_time
+            else:
+                # start equals the last run, minus an hour
+                # to ensure no data is missed
+                start = last_run[0].last_run - timedelta(hours=1)
             tenant = Tenant(id=tenant_id,
                             info=metadata,
                             name=tenant_name,
-                            created=timestamp
+                            created=timestamp,
+                            last_collected=start
                             )
             self.session.add(tenant)
             self.session.flush()           # can't assume deferred constraints.
