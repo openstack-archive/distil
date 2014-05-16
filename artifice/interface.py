@@ -6,6 +6,7 @@ from constants import date_format
 import config
 from datetime import timedelta, datetime
 from contextlib import contextmanager
+import logging as log
 
 
 @contextmanager
@@ -13,7 +14,7 @@ def timed(desc):
     start = datetime.utcnow()
     yield
     end = datetime.utcnow()
-    print "%s: %s" % (desc, end - start)
+    log.debug("%s: %s" % (desc, end - start))
 
 class Artifice(object):
     """Produces billable artifacts"""
@@ -45,7 +46,8 @@ class Artifice(object):
                 t = Tenant(tenant, self)
                 tenants.append(t)
             else:
-                print "Ignored tenant %s (%s) due to config." % (tenant.id, tenant.name)
+                log.debug("Ignored tenant %s (%s) due to config." %
+                          (tenant.id, tenant.name))
 
         return tenants
 

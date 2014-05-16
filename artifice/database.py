@@ -4,6 +4,7 @@ from artifice.constants import dawn_of_time
 from datetime import timedelta
 import json
 import config
+import logging as log
 
 
 class Database(object):
@@ -68,7 +69,7 @@ class Database(object):
                 end=end,
                 created=timestamp)
             self.session.add(entry)
-            print entry
+            log.debug(entry)
 
     def enter(self, tenant, resource, entries, timestamp):
         """Creates a new database entry for every usage strategy

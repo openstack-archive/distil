@@ -1,5 +1,6 @@
 from decimal import Decimal
 import csv
+import logging as log
 
 
 class RatesManager(object):
@@ -35,12 +36,12 @@ class RatesFile(RatesManager):
                         raise IndexError("Malformed rates CSV!")
             except KeyError:
                 # couldn't actually find the useful info for rates?
-                print "Couldn't find rates info configuration option!"
+                log.critical("Couldn't find rates info configuration option!")
                 raise
             except IndexError:
                 raise IndexError("Malformed rates CSV!")
             except IOError:
-                print "Couldn't open the file!"
+                log.critical("Couldn't open the file!")
                 raise
         return {'rate': self.__rates[name]["rate"],
                 'unit': self.__rates[name]["unit"]}

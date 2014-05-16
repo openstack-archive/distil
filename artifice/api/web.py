@@ -12,6 +12,7 @@ from sqlalchemy.orm import scoped_session, create_session
 from sqlalchemy.pool import NullPool
 from datetime import datetime, timedelta
 import json
+import logging as log
 
 from .helpers import returns_json, json_must, validate_tenant_id
 
@@ -41,6 +42,11 @@ def get_app(conf):
         global DEFAULT_TIMEZONE
         DEFAULT_TIMEZONE = config.main["timezone"]
 
+    log.basicConfig(filename='logs/billing.log',
+                    level=log.INFO,
+                    format='%(asctime)s %(message)s')
+    log.info("Billing API started.")
+
     return actual_app
 
 
@@ -57,7 +63,7 @@ def collect_usage(tenant, db, session, resp, end):
     timestamp = datetime.utcnow()
     session.begin(subtransactions=True)
 
-    print 'collect_usage for %s %s' % (tenant.id, tenant.name)
+    log.info('collect_usage for %s %s' % (tenant.id, tenant.name))
     db_tenant = db.insert_tenant(tenant.id, tenant.name,
                                  tenant.description, timestamp)
     start = db_tenant.last_collected
@@ -69,8 +75,8 @@ def collect_usage(tenant, db, session, resp, end):
             session.begin(subtransactions=True)
 
         try:
-            print "%s %s slice %s %s" % (tenant.id, tenant.name, window_start,
-                                         window_end)
+            log.info("%s %s slice %s %s" % (tenant.id, tenant.name,
+                                            window_start, window_end))
 
             mappings = config.collection['meter_mappings']
 
@@ -125,7 +131,11 @@ def collect_usage(tenant, db, session, resp, end):
                  }
             )
             resp["errors"] += 1
-
+            log.warning("IntegrityError for %s %s in window: %s - %s " %
+                        (tenant.name, tenant.id,
+                         window_start.strftime(iso_time),
+                         window_end.strftime(iso_time)))
+            return run_once
     return run_once
 
 
@@ -138,6 +148,7 @@ def run_usage_collection():
     The volume will be parsed from JSON as a Decimal object.
     """
     try:
+        log.info("Usage collection run started.")
 
         session = Session()
 
@@ -168,10 +179,11 @@ def run_usage_collection():
                 session.commit()
 
         session.close()
+        log.info("Usage collection run complete.")
         return json.dumps(resp)
 
     except Exception as e:
-        print 'Exception escaped!', type(e), e
+        log.critical('Exception escaped!', type(e), e)
         import traceback
         traceback.print_exc()
 
@@ -276,10 +288,16 @@ def generate_sales_order(draft, tenant_id, end):
         tenant_dict['start'] = str(start)
         tenant_dict['end'] = str(end)
         session.close()
+        if not draft:
+            log.info("Generated Sales Order for %s in range: %s - %s" %
+                     (tenant_id, start, end))
         return 200, tenant_dict
     except sqlalchemy.exc.IntegrityError:
         session.rollback()
         session.close()
+        log.warning("IntegrityError creating sales-order for " +
+                    "%s %s in range: %s - %s " %
+                    (valid_tenant.name, valid_tenant.id, start, end))
         return 400, {"id": tenant_id,
                      "error": "IntegrityError, existing sales_order overlap."}
 
