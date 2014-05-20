@@ -70,6 +70,8 @@ def collect_usage(tenant, db, session, resp, end):
 
     session.commit()
 
+    trust_sources = set(config.main.get('trust_sources', []))
+
     for window_start, window_end in generate_windows(start, end):
         with interface.timed("new transaction"):
             session.begin(subtransactions=True)
@@ -87,7 +89,16 @@ def collect_usage(tenant, db, session, resp, end):
                 transformer = active_transformers[meter_info['transformer']]()
 
                 with interface.timed("apply transformer + insert"):
+
                     for u in usage:
+                        # the user can make their own samples, including those
+                        # that would collide with what we care about for billing.
+                        # if we have a list of trust sources configured, then
+                        # discard everything not matching.
+                        if trust_sources and u['source'] not in trust_sources:
+                            print ('ignoring untrusted usage sample from source `%s`' % u['source'])
+                            continue
+
                         resource_id = u['resource_id']
                         entries = usage_by_resource.setdefault(resource_id, [])
                         entries.append(u)

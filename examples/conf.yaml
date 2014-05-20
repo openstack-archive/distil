@@ -3,6 +3,8 @@ main:
   region: Wellington
   timezone: Pacific/Auckland
   database_uri: postgres://admin:password@localhost:5432/artifice
+  trust_sources:
+    - openstack
 rates_config:
   file: test_rates.csv
 auth:
