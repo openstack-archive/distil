@@ -221,7 +221,16 @@ def add_costs_for_tenant(tenant, RatesManager):
     for resource in tenant['resources'].values():
         resource_total = 0
         for service in resource['services']:
-            rate = RatesManager.rate(service['name'])
+            try:
+                rate = RatesManager.rate(service['name'])
+            except KeyError:
+                # no rate exists for this service
+                service['cost'] = "0"
+                service['volume'] = "unknown unit conversion"
+                service['unit'] = "unknown"
+                service['rate'] = "missing rate"
+                continue
+
             volume = convert_to(service['volume'],
                                 service['unit'],
                                 rate['unit'])
