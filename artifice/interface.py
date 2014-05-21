@@ -91,7 +91,8 @@ class Tenant(object):
         fields.extend(add_dates(start - window_leadin, end))
 
         with timed('fetch global usage for meter %s' % meter_name):
-            r = self.conn.session.get('%s/v2/meters/%s' % (config.ceilometer['host'], meter_name),
+            endpoint = self.conn.auth.get_ceilometer_endpoint()
+            r = self.conn.session.get('%s/v2/meters/%s' % (endpoint, meter_name),
                     headers={
                         "X-Auth-Token": self.conn.auth.auth_token,
                         "Content-Type": "application/json"

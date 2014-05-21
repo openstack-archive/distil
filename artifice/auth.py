@@ -1,6 +1,7 @@
 import requests
 import json
 import urllib
+import config
 
 # Provides authentication against Openstack
 from keystoneclient.v2_0 import client as KeystoneClient
@@ -30,3 +31,10 @@ class Keystone(KeystoneClient.Client):
             if r.status_code == 404:
                 # couldn't find it
                 raise NotFound
+
+    def get_ceilometer_endpoint(self):
+        endpoint = self.service_catalog.url_for(
+            service_type="metering",
+            endpoint_type="adminURL",
+            region_name=config.main['region'])
+        return endpoint

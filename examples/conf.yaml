@@ -1,6 +1,6 @@
 ---
 main:
-  region: Wellington
+  region: nz_wlg_2
   timezone: Pacific/Auckland
   database_uri: postgres://admin:password@localhost:5432/artifice
   trust_sources:
@@ -13,8 +13,6 @@ auth:
   username: admin
   password: openstack
   insecure: True
-ceilometer:
-  host: http://api.cloud.catalyst.net.nz:8777
 collection:
   meter_mappings:
     state:
