@@ -95,7 +95,7 @@ def collect_usage(tenant, db, session, resp, end):
                         # if we have a list of trust sources configured, then
                         # discard everything not matching.
                         if trust_sources and u['source'] not in trust_sources:
-                            print ('ignoring untrusted usage sample from source `%s`' % u['source'])
+                            log.warning('ignoring untrusted usage sample from source `%s`' % u['source'])
                             continue
 
                         resource_id = u['resource_id']
