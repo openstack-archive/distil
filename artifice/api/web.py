@@ -289,8 +289,8 @@ def generate_sales_order(draft, tenant_id, end):
         tenant_dict['end'] = str(end)
         session.close()
         if not draft:
-            log.info("Generated Sales Order for %s in range: %s - %s" %
-                     (tenant_id, start, end))
+            log.info("Sales Order #%s Generated for %s in range: %s - %s" %
+                     (order.id, tenant_id, start, end))
         return 200, tenant_dict
     except sqlalchemy.exc.IntegrityError:
         session.rollback()

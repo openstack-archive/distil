@@ -97,6 +97,7 @@ class SalesOrder(Base):
     """Historic billing periods so that tenants
        cannot be rebilled accidentally."""
     __tablename__ = 'sales_orders'
+    id = Column(Integer, primary_key=True)
     tenant_id = Column(
         String(100),
         ForeignKey("tenants.id"),
