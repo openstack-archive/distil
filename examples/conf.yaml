@@ -5,6 +5,7 @@ main:
   database_uri: postgres://admin:password@localhost:5432/artifice
   trust_sources:
     - openstack
+  log_file: logs/billing.log
 rates_config:
   file: test_rates.csv
 auth:
