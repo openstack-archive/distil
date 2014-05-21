@@ -88,8 +88,7 @@ def collect_usage(tenant, db, session, resp, end):
 
                 transformer = active_transformers[meter_info['transformer']]()
 
-                with interface.timed("apply transformer + insert"):
-
+                with interface.timed("filter and group by resource"):
                     for u in usage:
                         # the user can make their own samples, including those
                         # that would collide with what we care about for billing.
@@ -103,6 +102,7 @@ def collect_usage(tenant, db, session, resp, end):
                         entries = usage_by_resource.setdefault(resource_id, [])
                         entries.append(u)
 
+                with interface.timed("apply transformer + insert"):
                     for res, entries in usage_by_resource.items():
                         # apply the transformer.
                         transformed = transformer.transform_usage(
