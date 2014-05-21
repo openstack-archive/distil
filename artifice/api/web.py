@@ -42,7 +42,7 @@ def get_app(conf):
         global DEFAULT_TIMEZONE
         DEFAULT_TIMEZONE = config.main["timezone"]
 
-    log.basicConfig(filename='logs/billing.log',
+    log.basicConfig(filename=config.main["log_file"],
                     level=log.INFO,
                     format='%(asctime)s %(message)s')
     log.info("Billing API started.")
