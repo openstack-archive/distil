@@ -13,35 +13,26 @@ class RatesManager(object):
 
 
 class RatesFile(RatesManager):
-    def rate(self, name, region=None):
+    def __init__(self, config):
+        super(RatesFile, self).__init__(config)
+
         try:
-            self.__rates
-        except AttributeError:
-            self.__rates = {}
-        if not self.__rates:
-            self.__rates = {}
-            try:
-                with open(self.config['file']) as fh:
-                    # Makes no opinions on the file structure
-                    reader = csv.reader(fh, delimiter="|")
-                    for row in reader:
-                        # The default layout is expected to be:
-                        # location | rate name | rate measurement | rate value
-                        self.__rates[row[1].strip()] = {
-                            "rate": Decimal(row[3].strip()),
-                            "region": row[0].strip(),
-                            "unit": row[2].strip()
-                        }
-                    if not self.__rates:
-                        raise IndexError("Malformed rates CSV!")
-            except KeyError:
-                # couldn't actually find the useful info for rates?
-                log.critical("Couldn't find rates info configuration option!")
-                raise
-            except IndexError:
-                raise IndexError("Malformed rates CSV!")
-            except IOError:
-                log.critical("Couldn't open the file!")
-                raise
-        return {'rate': self.__rates[name]["rate"],
-                'unit': self.__rates[name]["unit"]}
+            with open(self.config['file']) as fh:
+                # Makes no opinions on the file structure
+                reader = csv.reader(fh, delimiter="|")
+                self.__rates = {
+                    row[1].strip() : {
+                        'rate': Decimal(row[3].strip()),
+                        'region': row[0].strip(),
+                        'unit': row[2].strip()
+                    } for row in reader
+                }
+        except Exception as e:
+            log.critical('Failed to load rates file: `%s`' % e)
+            raise
+
+    def rate(self, name, region=None):
+        return {
+            'rate': self.__rates[name]['rate'],
+            'unit': self.__rates[name]['unit']
+        }
