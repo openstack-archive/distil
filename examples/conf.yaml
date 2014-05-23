@@ -1,25 +1,33 @@
 ---
 main:
   region: nz_wlg_2
-  timezone: Pacific/Auckland
-  database_uri: postgres://admin:password@localhost:5432/artifice
-  trust_sources:
+  # timezone is unused at this time
+  timezone: Pacific/Auckland 
+  database_uri: postgres://admin:password@localhost:5432/billing
+  trust_sources: 
     - openstack
   log_file: logs/billing.log
 rates_config:
   file: test_rates.csv
+# Keystone auth user details
 auth:
   end_point: https://api.cloud.catalyst.net.nz:5000/v2.0
   default_tenant: demo
   username: admin
   password: openstack
   insecure: True
+# configuration for defining usage collection
 collection:
+  # defines which meter is mapped to which transformer
   meter_mappings:
-    state:
+    # meter name as seen in ceilometer
+    state: 
+      # type of resource it maps to (seen on sales order)
       type: Virtual Machine
+      # which transformer to use
       transformer: Uptime
-      unit: second
+      # what unit type is coming in via the meter
+      unit: second 
     ip.floating:
       type: Floating IP
       transformer: GaugeMax
@@ -28,17 +36,24 @@ collection:
       type: Volume
       transformer: GaugeMax
       unit: gigabyte
+  # metadata definition for resources (seen on invoice)
   metadata_def:
+    # resource type (must match above definition)
     Virtual Machine:
+      # name the field will have on the sales order
       name:
-        - display_name
+        # which keys to search for in the ceilometer entry metadata
+        # this can be more than one as metadata is inconsistent between source types
+        - display_name 
       availability zone:
         - OS-EXT-AZ:availability_zone
     Volume:
       name:
         - display_name
+# transformer configs
 transformers:
   uptime:
+    # states marked as "billable" for VMs. 
     tracked_states: 
       - active
       - paused
