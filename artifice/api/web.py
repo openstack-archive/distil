@@ -1,11 +1,12 @@
 import flask
 from flask import Flask, Blueprint
-from artifice import interface, database, config
+from artifice import database, config
 from artifice.constants import iso_time, iso_date, dawn_of_time
 from artifice.transformers import active_transformers
 from artifice.rates import RatesFile
 from artifice.models import SalesOrder, _Last_Run
 from artifice.helpers import convert_to
+from artifice.interface import Interface, timed
 import sqlalchemy
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import scoped_session, create_session
@@ -51,6 +52,7 @@ def get_app(conf):
 
 
 def generate_windows(start, end):
+    """Generator for 1 hour windows in a given range."""
     window_size = timedelta(hours=1)
     while start + window_size <= end:
         window_end = start + window_size
@@ -59,21 +61,23 @@ def generate_windows(start, end):
 
 
 def collect_usage(tenant, db, session, resp, end):
+    """Collects usage for a given tenant from when they were last collected,
+       up to the given end, and breaks the range into one hour windows."""
     run_once = False
     timestamp = datetime.utcnow()
     session.begin(subtransactions=True)
 
     log.info('collect_usage for %s %s' % (tenant.id, tenant.name))
+
     db_tenant = db.insert_tenant(tenant.id, tenant.name,
                                  tenant.description, timestamp)
     start = db_tenant.last_collected
-
     session.commit()
 
     trust_sources = set(config.main.get('trust_sources', []))
 
     for window_start, window_end in generate_windows(start, end):
-        with interface.timed("new transaction"):
+        with timed("new transaction"):
             session.begin(subtransactions=True)
 
         try:
@@ -88,21 +92,23 @@ def collect_usage(tenant, db, session, resp, end):
 
                 transformer = active_transformers[meter_info['transformer']]()
 
-                with interface.timed("filter and group by resource"):
+                with timed("filter and group by resource"):
                     for u in usage:
                         # the user can make their own samples, including those
-                        # that would collide with what we care about for billing.
+                        # that would collide with what we care about for
+                        # billing.
                         # if we have a list of trust sources configured, then
                         # discard everything not matching.
                         if trust_sources and u['source'] not in trust_sources:
-                            log.warning('ignoring untrusted usage sample from source `%s`' % u['source'])
+                            log.warning('ignoring untrusted usage sample ' +
+                                        'from source `%s`' % u['source'])
                             continue
 
                         resource_id = u['resource_id']
                         entries = usage_by_resource.setdefault(resource_id, [])
                         entries.append(u)
 
-                with interface.timed("apply transformer + insert"):
+                with timed("apply transformer + insert"):
                     for res, entries in usage_by_resource.items():
                         # apply the transformer.
                         transformed = transformer.transform_usage(
@@ -114,7 +120,7 @@ def collect_usage(tenant, db, session, resp, end):
                                         meter_info['unit'],
                                         window_start, window_end, timestamp)
 
-            with interface.timed("commit insert"):
+            with timed("commit insert"):
                 # update the timestamp for the tenant so we won't examine this
                 # timespan again.
                 db_tenant.last_collected = window_end
@@ -152,24 +158,19 @@ def collect_usage(tenant, db, session, resp, end):
 
 @app.route("collect_usage", methods=["POST"])
 def run_usage_collection():
-    """
-    Adds usage for a given tenant T and resource R.
-    Expects to receive a Resource ID, a time range, and a volume.
-
-    The volume will be parsed from JSON as a Decimal object.
-    """
+    """Run usage collection on all tenants present in Keystone."""
     try:
         log.info("Usage collection run started.")
 
         session = Session()
 
-        artifice = interface.Artifice()
+        interface = Interface()
         db = database.Database(session)
 
         end = datetime.utcnow().\
             replace(minute=0, second=0, microsecond=0)
 
-        tenants = artifice.tenants
+        tenants = interface.tenants
 
         resp = {"tenants": [], "errors": 0}
         run_once = False
@@ -200,9 +201,7 @@ def run_usage_collection():
 
 
 def build_tenant_dict(tenant, entries, db):
-    """Builds a dict structure for a given tenant.
-       -usage: all the usage entries for a given tenant.
-        This function assumes all the entries are for the same tenant."""
+    """Builds a dict structure for a given tenant."""
     tenant_dict = {}
 
     tenant_dict = {'name': tenant.name, 'tenant_id': tenant.id,
@@ -263,6 +262,8 @@ def add_costs_for_tenant(tenant, RatesManager):
 
 
 def generate_sales_order(draft, tenant_id, end):
+    """Generates a sales order dict, and unless draft is true,
+       creates a database entry for sales_order."""
     session = Session()
     db = database.Database(session)
 
@@ -323,6 +324,8 @@ def generate_sales_order(draft, tenant_id, end):
 
 
 def regenerate_sales_order(tenant_id, target):
+    """Finds a sales order entry nearest to the target,
+       and returns a salesorder dict based on the entry."""
     session = Session()
     db = database.Database(session)
     rates = RatesFile(config.rates_config)
@@ -350,6 +353,8 @@ def regenerate_sales_order(tenant_id, target):
 
 
 def regenerate_sales_order_range(tenant_id, start, end):
+    """For all sales orders in a given range, generate sales order dicts,
+       and return them."""
     session = Session()
     db = database.Database(session)
     rates = RatesFile(config.rates_config)
@@ -381,6 +386,8 @@ def regenerate_sales_order_range(tenant_id, start, end):
 @json_must()
 @returns_json
 def run_sales_order_generation():
+    """Generates a sales order for the given tenant.
+       -end: a given end date, or uses default"""
     tenant_id = flask.request.json.get("tenant", None)
     end = flask.request.json.get("end", None)
     if not end:
@@ -401,6 +408,8 @@ def run_sales_order_generation():
 @json_must()
 @returns_json
 def run_sales_draft_generation():
+    """Generates a sales draft for the given tenant.
+       -end: a given end datetime, or uses default"""
     tenant_id = flask.request.json.get("tenant", None)
     end = flask.request.json.get("end", None)
 
@@ -424,6 +433,8 @@ def run_sales_draft_generation():
 @json_must()
 @returns_json
 def run_sales_historic_generation():
+    """Returns the sales order that intersects with the given target date.
+       -target: a given target date"""
     tenant_id = flask.request.json.get("tenant", None)
     target = flask.request.json.get("date", None)
 
@@ -444,6 +455,9 @@ def run_sales_historic_generation():
 @json_must()
 @returns_json
 def run_sales_historic_range_generation():
+    """Returns the sales orders that intersect with the given date range.
+       -start: a given start for the range.
+       -end: a given end for the range, defaults to now."""
     tenant_id = flask.request.json.get("tenant", None)
     start = flask.request.json.get("start", None)
     end = flask.request.json.get("end", None)
@@ -452,8 +466,8 @@ def run_sales_historic_range_generation():
         if start is not None:
             start = datetime.strptime(start, iso_date)
         else:
-            return 400, {"missing parameter": {"start": "start date in format: " +
-                                               "y-m-d"}}
+            return 400, {"missing parameter": {"start": "start date" +
+                                               " in format: y-m-d"}}
         if end is not None:
                 end = datetime.strptime(end, iso_date)
         else:

@@ -1,7 +1,6 @@
 import requests
 import json
 import auth
-from artifice.models import resources
 from constants import date_format
 import config
 from datetime import timedelta, datetime
@@ -16,8 +15,9 @@ def timed(desc):
     end = datetime.utcnow()
     log.debug("%s: %s" % (desc, end - start))
 
-class Artifice(object):
-    """Produces billable artifacts"""
+
+class Interface(object):
+    """Interface for talking to openstack components."""
     def __init__(self):
         self.session = requests.Session()
 
@@ -33,7 +33,7 @@ class Artifice(object):
 
     @property
     def tenants(self):
-        """All the tenants in our system"""
+        """All the tenants as known by keytone."""
         with timed("fetch tenant list from keystone"):
             _tenants = self.auth.tenants.list()
 
@@ -57,6 +57,7 @@ class InterfaceException(Exception):
 
 window_leadin = timedelta(minutes=10)
 
+
 def add_dates(start, end):
     return [
         {
@@ -71,33 +72,40 @@ def add_dates(start, end):
         }
     ]
 
+
 class Tenant(object):
+    """A wrapper object for the tenant recieved from keystone."""
     def __init__(self, tenant, conn):
         self.tenant = tenant
-        self.conn = conn            # the Artifice object that produced us.
+        self.conn = conn            # the Interface object that produced us.
 
     @property
     def id(self):
         return self.tenant.id
+
     @property
     def name(self):
         return self.tenant.name
+
     @property
     def description(self):
         return self.tenant.description
 
     def usage(self, meter_name, start, end):
+        """Queries ceilometer for all the entries in a given range,
+           for a given meter, from this tenant."""
         fields = [{'field': 'project_id', 'op': 'eq', 'value': self.tenant.id}]
         fields.extend(add_dates(start - window_leadin, end))
 
         with timed('fetch global usage for meter %s' % meter_name):
             endpoint = self.conn.auth.get_ceilometer_endpoint()
-            r = self.conn.session.get('%s/v2/meters/%s' % (endpoint, meter_name),
-                    headers={
-                        "X-Auth-Token": self.conn.auth.auth_token,
-                        "Content-Type": "application/json"
-                    },
-                    data=json.dumps({'q': fields}))
+            r = self.conn.session.get(
+                '%s/v2/meters/%s' % (endpoint, meter_name),
+                headers={
+                    "X-Auth-Token": self.conn.auth.auth_token,
+                    "Content-Type": "application/json"
+                },
+                data=json.dumps({'q': fields}))
 
             if r.status_code == 200:
                 return json.loads(r.text)

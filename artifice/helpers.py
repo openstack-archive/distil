@@ -7,6 +7,7 @@ cache = {}
 
 
 def flavor_name(f_id):
+    """Grabs the correct flavor name from Nova given the correct ID."""
     if f_id not in cache:
         nova = client.Client(
             config.auth['username'],

@@ -40,6 +40,8 @@ class Database(object):
 
     def insert_resource(self, tenant_id, resource_id, resource_type,
                         timestamp, entry):
+        """If a given resource does not exist, creates it,
+           otherwise merges the metadata with the new entry."""
         query = self.session.query(Resource).\
             filter(Resource.id == resource_id,
                    Resource.tenant_id == tenant_id)
@@ -58,6 +60,7 @@ class Database(object):
 
     def insert_usage(self, tenant_id, resource_id, entries, unit,
                      start, end, timestamp):
+        """Inserts all given entries into the database."""
         for service, volume in entries.items():
             entry = UsageEntry(
                 service=service,
@@ -71,11 +74,6 @@ class Database(object):
             self.session.add(entry)
             log.debug(entry)
 
-    def enter(self, tenant, resource, entries, timestamp):
-        """Creates a new database entry for every usage strategy
-           in a resource, for all the resources given"""
-        raise Exception("Dead!")
-
     def usage(self, start, end, tenant_id):
         """Returns a query of usage entries for a given tenant,
            in the given range.
@@ -83,7 +81,7 @@ class Database(object):
            tenant: a tenant entry (tenant_id for now)"""
 
         # build a query set in the format:
-        # tenant_id  | resource_id | service | sum(volume)
+        # tenant_id  | resource_id | service | unit | sum(volume)
         query = self.session.query(UsageEntry.tenant_id,
                                    UsageEntry.resource_id,
                                    UsageEntry.service,
@@ -97,17 +95,22 @@ class Database(object):
         return query
 
     def get_resource_metadata(self, resource_id):
+        """Gets the metadata for a resource and loads it into a dict."""
         info = self.session.query(Resource.info).\
             filter(Resource.id == resource_id)
         return json.loads(info[0].info)
 
     def get_sales_orders(self, tenant_id, start, end):
+        """Returns a query with all sales orders
+           for a tenant in the given range."""
         query = self.session.query(SalesOrder).\
             filter(SalesOrder.start <= end, SalesOrder.end >= start).\
             filter(SalesOrder.tenant_id == tenant_id)
         return query
 
     def merge_resource_metadata(self, md_dict, entry):
+        """Strips metadata from the entry as defined in the config,
+           and merges it with the given metadata dict."""
         fields = config.collection['metadata_def'].get(md_dict['type'], {})
         for field, sources in fields.iteritems():
             for i, source in enumerate(sources):

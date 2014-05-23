@@ -61,34 +61,39 @@ class Uptime(Transformer):
 
             last_state = val
 
-        # extend the last state we know about, to the end of the window, if we saw any
-        # actual uptime.
-        if end and last_state['counter_volume'] in tracked_states and seen_sample_in_window:
+        # extend the last state we know about, to the end of the window,
+        # if we saw any actual uptime.
+        if (end and last_state['counter_volume'] in tracked_states
+                and seen_sample_in_window):
             diff = end - last_timestamp
             _add_usage(diff)
 
         # map the flavors to names on the way out
-        return { helpers.flavor_name(f): v for f, v in usage_dict.items() }
+        return {helpers.flavor_name(f): v for f, v in usage_dict.items()}
 
     def _clean_entry(self, entry):
         result = {
             'counter_volume': entry['counter_volume'],
-            'flavor': entry['resource_metadata'].get('flavor.id',
-                entry['resource_metadata'].get('instance_flavor_id', 0))
+            'flavor': entry['resource_metadata'].get(
+                'flavor.id', entry['resource_metadata'].get(
+                    'instance_flavor_id', 0
+                )
+            )
         }
         try:
-            result['timestamp'] = datetime.datetime.strptime(entry['timestamp'],
-                    constants.date_format)
+            result['timestamp'] = datetime.datetime.strptime(
+                entry['timestamp'], constants.date_format)
         except ValueError:
-            result['timestamp'] = datetime.datetime.strptime(entry['timestamp'],
-                    constants.other_date_format)
+            result['timestamp'] = datetime.datetime.strptime(
+                entry['timestamp'], constants.other_date_format)
         return result
 
 
 class GaugeMax(Transformer):
     """
     Transformer for max-integration of a gauge value over time.
-    If the raw unit is 'gigabytes', then the transformed unit is 'gigabyte-hours'.
+    If the raw unit is 'gigabytes', then the transformed unit is
+    'gigabyte-hours'.
     """
 
     def _transform_usage(self, name, data, start, end):
@@ -97,6 +102,8 @@ class GaugeMax(Transformer):
         return {name: max_vol * hours}
 
 
+# Transformer dict for us with the config.
+# All usable transformers need to be here.
 active_transformers = {
     'Uptime': Uptime,
     'GaugeMax': GaugeMax
