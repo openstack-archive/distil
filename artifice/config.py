@@ -3,7 +3,6 @@
 main = None
 rates_config = None
 auth = None
-ceilometer = None
 collection = None
 transformers = None
 
@@ -15,8 +14,6 @@ def setup_config(conf):
     rates_config = conf['rates_config']
     global auth
     auth = conf['auth']
-    global ceilometer
-    ceilometer = conf['ceilometer']
     global collection
     collection = conf['collection']
     global transformers
