@@ -335,7 +335,7 @@ def regenerate_sales_order(tenant_id, target):
         return valid_tenant
 
     try:
-        sales_order = db.get_sales_orders(tenant_id, target, target)
+        sales_order = db.get_sales_orders(tenant_id, target, target)[0]
     except IndexError:
         return 400, {"errors": ["Given date not in existing sales orders."]}
 
