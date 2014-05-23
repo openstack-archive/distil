@@ -33,7 +33,7 @@ class Interface(object):
 
     @property
     def tenants(self):
-        """All the tenants as known by keytone."""
+        """All the tenants as known by keystone."""
         with timed("fetch tenant list from keystone"):
             _tenants = self.auth.tenants.list()
 
