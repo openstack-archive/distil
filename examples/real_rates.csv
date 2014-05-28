@@ -1,0 +1,12 @@
+region | c1.c1r1  | hour       | 0.048
+region | c1.c1r2  | hour       | 0.087
+region | c1.c1r4  | hour       | 0.134
+region | c1.c2r4  | hour       | 0.173
+region | c1.c2r8  | hour       | 0.227
+region | c1.c4r8  | hour       | 0.347
+region | c1.c4r16  | hour       | 0.594
+region | c1.c8r16  | hour       | 0.693
+region | c1.c8r30  | hour       | 1.040
+region | ip.floating  | hour       | 0.006
+region | volume.size  | gigabyte       | 0.0005
+region | storage.objects.size  | gigabyte       | 0.0005

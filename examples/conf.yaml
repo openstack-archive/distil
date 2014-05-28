@@ -7,6 +7,8 @@ main:
   trust_sources: 
     - openstack
   log_file: logs/billing.log
+  ignore_tenants:
+    - test
 rates_config:
   file: test_rates.csv
 # Keystone auth user details
