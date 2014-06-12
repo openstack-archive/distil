@@ -1,10 +1,10 @@
 from webtest import TestApp
 from . import test_interface, helpers, constants
-from artifice.api import web
-from artifice.api.web import get_app
-from artifice import models
-from artifice import interface
-from artifice.helpers import convert_to
+from distil.api import web
+from distil.api.web import get_app
+from distil import models
+from distil import interface
+from distil.helpers import convert_to
 from datetime import datetime
 from decimal import Decimal
 import unittest
@@ -28,7 +28,7 @@ class TestApi(test_interface.TestInterface):
 
         usage = helpers.get_usage(self.start, self.end)
 
-        with mock.patch('artifice.interface.Artifice') as Artifice:
+        with mock.patch('distil.interface.Interface') as Interface:
 
             tenants = []
 
@@ -42,14 +42,14 @@ class TestApi(test_interface.TestInterface):
                 t.description = tenant['description']
                 tenants.append(t)
 
-            artifice = mock.Mock(spec=interface.Artifice)
+            ceil_interface = mock.Mock(spec=interface.Interface)
 
-            artifice.tenants = tenants
+            ceil_interface.tenants = tenants
 
-            Artifice.return_value = artifice
+            Interface.return_value = ceil_interface
 
             # patch to mock out the novaclient call
-            with mock.patch('artifice.helpers.flavor_name') as flavor_name:
+            with mock.patch('distil.helpers.flavor_name') as flavor_name:
                 flavor_name.side_effect = lambda x: x
 
                 resp = self.app.post("/collect_usage")

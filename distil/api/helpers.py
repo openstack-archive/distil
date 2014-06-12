@@ -2,7 +2,7 @@ from decorator import decorator
 import flask
 import itertools
 import json
-from artifice.models import Tenant
+from distil.models import Tenant
 
 
 def _validate(data, *args, **kwargs):

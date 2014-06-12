@@ -1,6 +1,6 @@
 import unittest
-from artifice.models import Tenant as tenant_model
-from artifice.models import UsageEntry, Resource, SalesOrder
+from distil.models import Tenant as tenant_model
+from distil.models import UsageEntry, Resource, SalesOrder
 from sqlalchemy.pool import NullPool
 
 from sqlalchemy import create_engine

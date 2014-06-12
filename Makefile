@@ -1,13 +1,13 @@
 
 VERSION=0.1
-NAME=openstack-artifice
-INSTALL_PATH=/opt/stack/artifice
+NAME=openstack-distil
+INSTALL_PATH=/opt/stack/distil
 BILLING_PROGRAM=bill.py
 BINARY_PATH=/usr/local/bin
 
 WORK_DIR=./work
 
-CONF_DIR=${WORK_DIR}/${INSTALL_PATH}/etc/artifice
+CONF_DIR=${WORK_DIR}/${INSTALL_PATH}/etc/distil
 
 clean:
 	@rm -rf ./work
@@ -20,7 +20,7 @@ init:
 
 deb: clean init
 
-	@cp -r ./artifice \
+	@cp -r ./distil \
 		./scripts \
 		./README.md \
 		./INVOICES.md \
@@ -36,10 +36,10 @@ deb: clean init
 	@cp -r ./packaging/fs/* ${WORK_DIR}/
 	@mkdir -p ${CONF_DIR}
 	@mkdir -p ${WORK_DIR}/etc/init.d
-	@mkdir -p ${WORK_DIR}/etc/artifice
-	@chmod +x ${WORK_DIR}/etc/init.d/artifice
-	@cp ./examples/conf.yaml ${WORK_DIR}/etc/artifice/conf.yaml
-	@cp ./examples/csv_rates.yaml ${WORK_DIR}/etc/artifice/csv_rates.yaml
+	@mkdir -p ${WORK_DIR}/etc/distil
+	@chmod +x ${WORK_DIR}/etc/init.d/distil
+	@cp ./examples/conf.yaml ${WORK_DIR}/etc/distil/conf.yaml
+	@cp ./examples/csv_rates.yaml ${WORK_DIR}/etc/distil/csv_rates.yaml
 	@fpm -s dir -t deb -n ${NAME} -v ${VERSION} \
 	--post-install=packaging/scripts/post_install.sh  \
 	--depends 'libpq-dev' \

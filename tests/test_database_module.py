@@ -1,5 +1,5 @@
 from . import test_interface, helpers
-from artifice import database
+from distil import database
 from datetime import timedelta
 
 

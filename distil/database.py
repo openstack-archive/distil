@@ -1,6 +1,6 @@
 from sqlalchemy import func
 from .models import Resource, UsageEntry, Tenant, SalesOrder, _Last_Run
-from artifice.constants import dawn_of_time
+from distil.constants import dawn_of_time
 from datetime import timedelta
 import json
 import config

@@ -1,12 +1,12 @@
 import flask
 from flask import Flask, Blueprint
-from artifice import database, config
-from artifice.constants import iso_time, iso_date, dawn_of_time
-from artifice.transformers import active_transformers
-from artifice.rates import RatesFile
-from artifice.models import SalesOrder, _Last_Run
-from artifice.helpers import convert_to
-from artifice.interface import Interface, timed
+from distil import database, config
+from distil.constants import iso_time, iso_date, dawn_of_time
+from distil.transformers import active_transformers
+from distil.rates import RatesFile
+from distil.models import SalesOrder, _Last_Run
+from distil.helpers import convert_to
+from distil.interface import Interface, timed
 import sqlalchemy
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import scoped_session, create_session

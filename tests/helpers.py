@@ -1,5 +1,5 @@
 import mock
-from artifice import models
+from distil import models
 from datetime import timedelta
 import json
 

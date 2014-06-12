@@ -1,5 +1,5 @@
 
-DATABASE_NAME = "test_artifice"
+DATABASE_NAME = "test_distil"
 
 PG_DATABASE_URI = "postgresql://aurynn:postgres@localhost/%s" % DATABASE_NAME
 MY_DATABASE_URI = "mysql://root:password@localhost/%s" % DATABASE_NAME

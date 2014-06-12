@@ -3,8 +3,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session,create_session
 
 from sqlalchemy.pool import NullPool
-from artifice.models import Resource, Tenant, UsageEntry, SalesOrder, Base
-from artifice import config
+from distil.models import Resource, Tenant, UsageEntry, SalesOrder, Base
+from distil import config
 from .constants import DATABASE_NAME, PG_DATABASE_URI, MY_DATABASE_URI
 from .constants import config as test_config
 

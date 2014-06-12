@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     parser.add_argument("-c", "--config", dest="config",
                         help="Config file",
-                        default="/etc/artifice/conf.yaml")
+                        default="/etc/distil/conf.yaml")
 
     # commands:
     subparsers = parser.add_subparsers(help='commands', dest='command')

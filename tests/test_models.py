@@ -2,7 +2,7 @@ import unittest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session,create_session
 from sqlalchemy.pool import NullPool
-from artifice.models import Resource, Tenant, UsageEntry, SalesOrder, Base
+from distil.models import Resource, Tenant, UsageEntry, SalesOrder, Base
 import datetime
 import subprocess
 

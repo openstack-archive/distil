@@ -1,6 +1,6 @@
-import artifice.transformers
-from artifice import constants
-from artifice.constants import states
+import distil.transformers
+from distil import constants
+from distil.constants import states
 import unittest
 import mock
 import datetime
@@ -39,8 +39,8 @@ class TestMeter(object):
 class UptimeTransformerTests(unittest.TestCase):
 
     def _run_transform(self, data):
-        xform = artifice.transformers.Uptime()
-        with mock.patch('artifice.helpers.flavor_name') as flavor_name:
+        xform = distil.transformers.Uptime()
+        with mock.patch('distil.helpers.flavor_name') as flavor_name:
             flavor_name.side_effect = lambda x: x
             return xform.transform_usage('state', data, testdata.ts0,
                                          testdata.ts1)
@@ -178,7 +178,7 @@ class GaugeMaxTransformerTests(unittest.TestCase):
             {'timestamp': testdata.t1, 'counter_volume': 6},
         ]
 
-        xform = artifice.transformers.GaugeMax()
+        xform = distil.transformers.GaugeMax()
         usage = xform.transform_usage('some_meter', data, testdata.ts0,
                                       testdata.ts1)
 
@@ -196,7 +196,7 @@ class GaugeMaxTransformerTests(unittest.TestCase):
             {'timestamp': testdata.t1, 'counter_volume': 25},
         ]
 
-        xform = artifice.transformers.GaugeMax()
+        xform = distil.transformers.GaugeMax()
         usage = xform.transform_usage('some_meter', data, testdata.ts0,
                                       testdata.ts1)
 

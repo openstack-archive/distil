@@ -17,13 +17,13 @@ class _Version(Base):
     """
     A model that knows what version we are, stored in the DB.
     """
-    __tablename__ = "artifice_database_version"
+    __tablename__ = "distil_database_version"
     id = Column(String(10), primary_key=True)
 
 
 class _Last_Run(Base):
     """Model to store time of last completed usage run."""
-    __tablename__ = "artifice_last_run"
+    __tablename__ = "distil_last_run"
     id = Column(Integer, primary_key=True)
     last_run = Column(DateTime, nullable=False)
 
