@@ -10,7 +10,8 @@ def fill_db(session, numb_tenants, numb_resources, now):
             id="tenant_id_" + str(i),
             info="metadata",
             name="tenant_name_" + str(i),
-            created=now
+            created=now,
+            last_collected=now
         ))
         for ii in range(numb_resources):
             session.add(models.Resource(

@@ -45,7 +45,8 @@ class db(unittest.TestCase):
 
     def test_create_tenant(self):
         self.db.begin()
-        t = Tenant(id="asfd", name="test", created=datetime.datetime.utcnow())
+        t = Tenant(id="asfd", name="test", created=datetime.datetime.utcnow(),
+                   last_collected=datetime.datetime.utcnow())
         self.db.add(t)
         self.db.commit()
         t2 = self.db.query(Tenant).get("asfd")

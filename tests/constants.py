@@ -9,7 +9,8 @@ config = {
     "main": {
         "region": "Wellington",
         "timezone": "Pacific/Auckland",
-        "database_uri": PG_DATABASE_URI
+        "database_uri": PG_DATABASE_URI,
+        "log_file": "logs/tests.log"
     },
     "rates_config": {
         "file": "examples/test_rates.csv"
