@@ -2,7 +2,6 @@
 VERSION=0.1
 NAME=openstack-distil
 INSTALL_PATH=/opt/stack/distil
-BILLING_PROGRAM=bill.py
 BINARY_PATH=/usr/local/bin
 
 WORK_DIR=./work
@@ -28,20 +27,14 @@ deb: clean init
 		setup.py \
 		${WORK_DIR}${INSTALL_PATH}
 	@mkdir ${WORK_DIR}${INSTALL_PATH}/bin
-	@cp ./bin/collect ./bin/collect.py \
-		./bin/usage ./bin/usage.py \
-		./bin/web ./bin/web.py \
+	@cp     ./bin/web ./bin/web.py \
 		${WORK_DIR}${INSTALL_PATH}/bin
 	@chmod 0755 ${WORK_DIR}${INSTALL_PATH}/bin/web
-	@cp -r ./packaging/fs/* ${WORK_DIR}/
 	@mkdir -p ${CONF_DIR}
-	@mkdir -p ${WORK_DIR}/etc/init.d
 	@mkdir -p ${WORK_DIR}/etc/distil
-	@chmod +x ${WORK_DIR}/etc/init.d/distil
 	@cp ./examples/conf.yaml ${WORK_DIR}/etc/distil/conf.yaml
-	@cp ./examples/csv_rates.yaml ${WORK_DIR}/etc/distil/csv_rates.yaml
+	@cp ./examples/real_rates.csv ${WORK_DIR}/etc/distil/real_rates.csv
 	@fpm -s dir -t deb -n ${NAME} -v ${VERSION} \
-	--post-install=packaging/scripts/post_install.sh  \
 	--depends 'libpq-dev' \
 	--deb-pre-depends "libmysql++-dev" \
 	--deb-pre-depends python2.7 \

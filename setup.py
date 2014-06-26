@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(name='openstack-distil',
       version='0.1',
-      description='Artifice, a set of APIs for creating billable items from Openstack-Ceilometer',
+      description='Distil, a set of APIs for creating billable items from Openstack-Ceilometer',
       author='Aurynn Shaw',
       author_email='aurynn@catalyst.net.nz',
       contributors=["Chris Forbes", "Adrian Turjak"],
