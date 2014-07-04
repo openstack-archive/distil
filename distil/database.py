@@ -115,10 +115,11 @@ class Database(object):
         for field, sources in fields.iteritems():
             for i, source in enumerate(sources):
                 try:
-                    md_dict[field] = entry['resource_metadata'][sources[0]]
+                    md_dict[field] = entry['resource_metadata'][source]
                     break
                 except KeyError:
                     # Just means we haven't found the right value yet.
+                    # Or value isn't present.
                     pass
 
         return md_dict

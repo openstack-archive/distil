@@ -38,6 +38,10 @@ collection:
       type: Volume
       transformer: GaugeMax
       unit: gigabyte
+    image.size:
+      type: Image
+      transformer: GaugeMax
+      unit: byte
   # metadata definition for resources (seen on invoice)
   metadata_def:
     # resource type (must match above definition)
@@ -52,6 +56,15 @@ collection:
     Volume:
       name:
         - display_name
+      availability zone:
+        - availability_zone
+    Floating IP:
+      ip address:
+        - floating_ip_address
+    Image:
+      name:
+        - name
+        - properties.image_name
 # transformer configs
 transformers:
   uptime:
