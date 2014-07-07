@@ -41,7 +41,7 @@ class UsageEntry(Base):
     """Simplified data store of usage information for a given service,
        in a resource, in a tenant. Similar to ceilometer datastore,
        but stores local transformed data."""
-    __tablename__ = 'usage'
+    __tablename__ = 'usage_entry'
 
     # Service is things like incoming vs. outgoing, as well as instance
     # flavour
