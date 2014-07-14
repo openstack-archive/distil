@@ -7,6 +7,8 @@ from datetime import timedelta, datetime
 from contextlib import contextmanager
 import logging as log
 
+import urlparse
+
 
 @contextmanager
 def timed(desc):
@@ -100,7 +102,7 @@ class Tenant(object):
         with timed('fetch global usage for meter %s' % meter_name):
             endpoint = self.conn.auth.get_ceilometer_endpoint()
             r = self.conn.session.get(
-                '%s/v2/meters/%s' % (endpoint, meter_name),
+                urlparse.urljoin(endpoint, '/v2/meters/%s' % meter_name),
                 headers={
                     "X-Auth-Token": self.conn.auth.auth_token,
                     "Content-Type": "application/json"
