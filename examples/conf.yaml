@@ -42,6 +42,10 @@ collection:
       type: Image
       transformer: GaugeMax
       unit: byte
+    bandwidth:
+      type: Traffic
+      transformer: GaugeSum
+      unit: byte
   # metadata definition for resources (seen on invoice)
   metadata_def:
     # resource type (must match above definition)
@@ -65,6 +69,9 @@ collection:
       name:
         - name
         - properties.image_name
+    Traffic:
+      name:
+        - name
 # transformer configs
 transformers:
   uptime:

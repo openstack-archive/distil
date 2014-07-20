@@ -201,3 +201,23 @@ class GaugeMaxTransformerTests(unittest.TestCase):
                                       testdata.ts1)
 
         self.assertEqual({'some_meter': 25}, usage)
+
+
+class GaugeSumTransformerTests(unittest.TestCase):
+
+        def test_basic_sum(self):
+            """
+            Tests that the transformer correctly calculate the sum value.
+            """
+
+            data = [
+                {'timestamp': '2014-01-01T00:00:00.0', 'counter_volume': 1},
+                {'timestamp': '2014-01-01T00:10:00.0', 'counter_volume': 1},
+                {'timestamp': '2014-01-01T01:00:00.0', 'counter_volume': 1},
+            ]
+
+            xform = distil.transformers.GaugeSum()
+            usage = xform.transform_usage('fake_meter', data, testdata.ts0,
+                                          testdata.ts1)
+
+            self.assertEqual({'fake_meter': 2}, usage)

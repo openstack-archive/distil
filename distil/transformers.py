@@ -102,9 +102,24 @@ class GaugeMax(Transformer):
         return {name: max_vol * hours}
 
 
+class GaugeSum(Transformer):
+    """
+    Transformer for sum-integration of a gauge value for given period.
+    """
+    def _transform_usage(self, name, data, start, end):
+        sum_vol = 0
+        for sample in data:
+            t = datetime.datetime.strptime(sample['timestamp'],
+                                           '%Y-%m-%dT%H:%M:%S.%f')
+            if t >= start and t < end:
+                sum_vol += sample["counter_volume"]
+        return {name: sum_vol}
+
+
 # Transformer dict for us with the config.
 # All usable transformers need to be here.
 active_transformers = {
     'Uptime': Uptime,
-    'GaugeMax': GaugeMax
+    'GaugeMax': GaugeMax,
+    'GaugeSum': GaugeSum
 }
