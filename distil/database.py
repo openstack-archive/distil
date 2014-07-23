@@ -39,14 +39,15 @@ class Database(object):
             return query[0]
 
     def insert_resource(self, tenant_id, resource_id, resource_type,
-                        timestamp, entry):
+                        timestamp, entry, transform_info):
         """If a given resource does not exist, creates it,
            otherwise merges the metadata with the new entry."""
         query = self.session.query(Resource).\
             filter(Resource.id == resource_id,
                    Resource.tenant_id == tenant_id)
         if query.count() == 0:
-            info = self.merge_resource_metadata({'type': resource_type}, entry)
+            info = self.merge_resource_metadata({'type': resource_type},
+                                                entry, transform_info)
             self.session.add(Resource(
                 id=resource_id,
                 info=json.dumps(info),
@@ -55,7 +56,8 @@ class Database(object):
             self.session.flush()           # can't assume deferred constraints.
         else:
             md_dict = json.loads(query[0].info)
-            md_dict = self.merge_resource_metadata(md_dict, entry)
+            md_dict = self.merge_resource_metadata(md_dict, entry,
+                                                   transform_info)
             query[0].info = json.dumps(md_dict)
 
     def insert_usage(self, tenant_id, resource_id, entries, unit,
@@ -108,15 +110,20 @@ class Database(object):
             filter(SalesOrder.tenant_id == tenant_id)
         return query
 
-    def merge_resource_metadata(self, md_dict, entry):
+    def merge_resource_metadata(self, md_dict, entry, transform_info):
         """Strips metadata from the entry as defined in the config,
            and merges it with the given metadata dict."""
         fields = config.collection['metadata_def'].get(md_dict['type'], {})
-        for field, sources in fields.iteritems():
-            for i, source in enumerate(sources):
+        for field, parameters in fields.iteritems():
+            for i, source in enumerate(parameters['sources']):
                 try:
-                    md_dict[field] = entry['resource_metadata'][source]
-                    break
+                    value = entry['resource_metadata'][source]
+                    if transform_info and 'template' in parameters:
+                        md_dict[field] = parameters['template'] % value
+                        break
+                    else:
+                        md_dict[field] = value
+                        break
                 except KeyError:
                     # Just means we haven't found the right value yet.
                     # Or value isn't present.

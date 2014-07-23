@@ -221,3 +221,101 @@ class GaugeSumTransformerTests(unittest.TestCase):
                                           testdata.ts1)
 
             self.assertEqual({'fake_meter': 2}, usage)
+
+
+class FromImageTransformerTests(unittest.TestCase):
+    """
+    These tests rely on config settings for from_image,
+    as defined in test constants, or in conf.yaml
+    """
+
+    def test_from_volume_case(self):
+        """
+        If instance is booted from volume transformer should return none.
+        """
+        data = [
+            {'timestamp': testdata.t0,
+                'resource_metadata': {'image_ref': ""}},
+            {'timestamp': testdata.t0_30,
+                'resource_metadata': {'image_ref': "None"}},
+            {'timestamp': testdata.t1,
+                'resource_metadata': {'image_ref': "None"}}
+        ]
+
+        data2 = [
+            {'timestamp': testdata.t0_30,
+                'resource_metadata': {'image_ref': "None"}}
+        ]
+
+        xform = distil.transformers.FromImage()
+        usage = xform.transform_usage('instance', data, testdata.ts0,
+                                      testdata.ts1)
+        usage2 = xform.transform_usage('instance', data2, testdata.ts0,
+                                       testdata.ts1)
+
+        self.assertEqual(None, usage)
+        self.assertEqual(None, usage2)
+
+    def test_default_to_from_volume_case(self):
+        """
+        Unless all image refs contain something, assume booted from volume.
+        """
+        data = [
+            {'timestamp': testdata.t0,
+                'resource_metadata': {'image_ref': ""}},
+            {'timestamp': testdata.t0_30,
+                'resource_metadata': {'image_ref': "d5a4f118023928195f4ef"}},
+            {'timestamp': testdata.t1,
+                'resource_metadata': {'image_ref': "None"}}
+        ]
+
+        xform = distil.transformers.FromImage()
+        usage = xform.transform_usage('instance', data, testdata.ts0,
+                                      testdata.ts1)
+
+        self.assertEqual(None, usage)
+
+    def test_from_image_case(self):
+        """
+        If all image refs contain something, should return entry.
+        """
+        data = [
+            {'timestamp': testdata.t0,
+                'resource_metadata': {'image_ref': "d5a4f118023928195f4ef",
+                                      'root_gb': "20"}},
+            {'timestamp': testdata.t0_30,
+                'resource_metadata': {'image_ref': "d5a4f118023928195f4ef",
+                                      'root_gb': "20"}},
+            {'timestamp': testdata.t1,
+                'resource_metadata': {'image_ref': "d5a4f118023928195f4ef",
+                                      'root_gb': "20"}}
+        ]
+
+        xform = distil.transformers.FromImage()
+        usage = xform.transform_usage('instance', data, testdata.ts0,
+                                      testdata.ts1)
+
+        self.assertEqual({'volume.size': 20}, usage)
+
+    def test_from_image_case_highest_size(self):
+        """
+        If all image refs contain something,
+        should return entry with highest size from data.
+        """
+        data = [
+            {'timestamp': testdata.t0,
+                'resource_metadata': {'image_ref': "d5a4f118023928195f4ef",
+                                      'root_gb': "20"}},
+            {'timestamp': testdata.t0_30,
+                'resource_metadata': {'image_ref': "d5a4f118023928195f4ef",
+                                      'root_gb': "60"}},
+            {'timestamp': testdata.t1,
+                'resource_metadata': {'image_ref': "d5a4f118023928195f4ef",
+                                      'root_gb': "20"}}
+        ]
+
+        xform = distil.transformers.FromImage()
+        usage = xform.transform_usage('instance', data, testdata.ts0,
+                                      testdata.ts1)
+
+        self.assertEqual({'volume.size': 60}, usage)

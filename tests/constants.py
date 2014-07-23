@@ -29,6 +29,12 @@ config = {
         "uptime": {
             "tracked_states": ["active", "building",
                                "paused", "rescued", "resized"]
+        },
+        "from_image": {
+            "service": "volume.size",
+            "md_keys": ["image_ref", "image_meta.base_image_ref"],
+            "none_values": ["None", ""],
+            "size_keys": ["root_gb"]
         }
     },
     "collection": {}

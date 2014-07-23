@@ -114,11 +114,29 @@ def collect_usage(tenant, db, session, resp, end):
                         transformed = transformer.transform_usage(
                             meter_name, entries, window_start, window_end)
 
-                        db.insert_resource(tenant.id, res, meter_info['type'],
-                                           timestamp, entries[-1])
-                        db.insert_usage(tenant.id, res, transformed,
-                                        meter_info['unit'],
-                                        window_start, window_end, timestamp)
+                        if transformed:
+                            if meter_info.get('transform_info', False):
+                                if 'res_id_template' in meter_info:
+                                    res = (meter_info['res_id_template'] % res)
+
+                                db.insert_resource(tenant.id, res,
+                                                   meter_info['type'],
+                                                   timestamp, entries[-1],
+                                                   True)
+                                db.insert_usage(tenant.id, res, transformed,
+                                                meter_info['unit'],
+                                                window_start, window_end,
+                                                timestamp)
+
+                            else:
+                                db.insert_resource(tenant.id, res,
+                                                   meter_info['type'],
+                                                   timestamp, entries[-1],
+                                                   False)
+                                db.insert_usage(tenant.id, res, transformed,
+                                                meter_info['unit'],
+                                                window_start, window_end,
+                                                timestamp)
 
             with timed("commit insert"):
                 # update the timestamp for the tenant so we won't examine this

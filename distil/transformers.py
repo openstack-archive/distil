@@ -89,6 +89,40 @@ class Uptime(Transformer):
         return result
 
 
+class FromImage(Transformer):
+    """
+    Transformer for creating Volume entries from instance metadata.
+    Checks if image was booted from image, and finds largest root
+    disk size among entries.
+    This relies heaviliy on instance metadata.
+    """
+
+    def _transform_usage(self, name, data, start, end):
+        checks = config.transformers['from_image']['md_keys']
+        none_values = config.transformers['from_image']['none_values']
+        service = config.transformers['from_image']['service']
+        size_sources = config.transformers['from_image']['size_keys']
+
+        size = 0
+        for entry in data:
+            for source in checks:
+                try:
+                    if (entry['resource_metadata'][source] in none_values):
+                        return None
+                    break
+                except KeyError:
+                    pass
+            for source in size_sources:
+                try:
+                    root_size = float(entry['resource_metadata'][source])
+                    if root_size > size:
+                        size = root_size
+                except KeyError:
+                    pass
+        hours = (end - start).total_seconds() / 3600.0
+        return {service: size * hours}
+
+
 class GaugeMax(Transformer):
     """
     Transformer for max-integration of a gauge value over time.
@@ -121,5 +155,6 @@ class GaugeSum(Transformer):
 active_transformers = {
     'Uptime': Uptime,
     'GaugeMax': GaugeMax,
-    'GaugeSum': GaugeSum
+    'GaugeSum': GaugeSum,
+    'FromImage': FromImage
 }
