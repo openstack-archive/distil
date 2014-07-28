@@ -319,3 +319,22 @@ class FromImageTransformerTests(unittest.TestCase):
                                       testdata.ts1)
 
         self.assertEqual({'volume.size': 60}, usage)
+
+
+class GaugeNetworkServiceTransformerTests(unittest.TestCase):
+
+        def test_basic_sum(self):
+            """Tests that the transformer correctly calculate the sum value.
+            """
+
+            data = [
+                {'timestamp': '2014-01-01T00:00:00.0', 'counter_volume': 1},
+                {'timestamp': '2014-01-01T00:10:00.0', 'counter_volume': 0},
+                {'timestamp': '2014-01-01T01:00:00.0', 'counter_volume': 2},
+            ]
+
+            xform = distil.transformers.GaugeNetworkService()
+            usage = xform.transform_usage('fake_meter', data, testdata.ts0,
+                                          testdata.ts1)
+
+            self.assertEqual({'fake_meter': 1}, usage)

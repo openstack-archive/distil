@@ -56,6 +56,10 @@ collection:
       type: Traffic
       transformer: GaugeSum
       unit: byte
+    network.services.vpn:
+      type: VPN
+      transformer: GaugeNetworkService
+      unit: hour
   # metadata definition for resources (seen on invoice)
   metadata_def:
     # resource type (must match above definition)
@@ -91,6 +95,13 @@ collection:
       name:
         sources:
           - name
+    VPN:
+      name:
+        sources:
+          - name
+      subnet:
+        sources:
+          - subnet_id
 # transformer configs
 transformers:
   uptime:

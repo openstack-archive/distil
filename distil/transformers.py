@@ -150,11 +150,28 @@ class GaugeSum(Transformer):
         return {name: sum_vol}
 
 
+class GaugeNetworkService(Transformer):
+    """Transformer for Neutron network service, such as LBaaS, VPNaaS,
+    FWaaS, etc.
+    """
+
+    def _transform_usage(self, name, data, start, end):
+        # NOTE(flwang): The network service pollster of Ceilometer is using
+        # status as the volume(see https://github.com/openstack/ceilometer/
+        # blob/master/ceilometer/network/services/vpnaas.py#L55), so we have
+        # to check the volume to make sure only the active service is
+        # charged(0=inactive, 1=active).
+        max_vol = max([v["counter_volume"] for v in data
+                       if v["counter_volume"] < 2]) if len(data) else 0
+        hours = (end - start).total_seconds() / 3600.0
+        return {name: max_vol * hours}
+
 # Transformer dict for us with the config.
 # All usable transformers need to be here.
 active_transformers = {
     'Uptime': Uptime,
     'GaugeMax': GaugeMax,
     'GaugeSum': GaugeSum,
-    'FromImage': FromImage
+    'FromImage': FromImage,
+    'GaugeNetworkService': GaugeNetworkService
 }
