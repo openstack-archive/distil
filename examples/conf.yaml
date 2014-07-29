@@ -53,7 +53,7 @@ collection:
       transformer: GaugeMax
       unit: byte
     bandwidth:
-      type: Traffic
+      type: Network Traffic
       transformer: GaugeSum
       unit: byte
     network.services.vpn:
@@ -95,10 +95,6 @@ collection:
         sources:
           - name
           - properties.image_name
-    Traffic:
-      name:
-        sources:
-          - name
     VPN:
       name:
         sources:
@@ -110,6 +106,10 @@ collection:
       name:
         sources:
           - name
+    NetworkTraffic:
+      meter_label_id:
+        sources:
+          - label_id
 # transformer configs
 transformers:
   uptime:
