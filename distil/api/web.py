@@ -7,10 +7,10 @@ from distil.rates import RatesFile
 from distil.models import SalesOrder, _Last_Run
 from distil.helpers import convert_to
 from distil.interface import Interface, timed
-import sqlalchemy
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import scoped_session, create_session
 from sqlalchemy.pool import NullPool
+from sqlalchemy.exc import IntegrityError, OperationalError
 from datetime import datetime, timedelta
 import json
 import logging as log
@@ -154,7 +154,7 @@ def collect_usage(tenant, db, session, resp, end):
                  }
             )
             run_once = True
-        except sqlalchemy.exc.IntegrityError:
+        except (IntegrityError, OperationalError):
             # this is fine.
             session.rollback()
             resp["tenants"].append(
@@ -331,7 +331,7 @@ def generate_sales_order(draft, tenant_id, end):
             log.info("Sales Order #%s Generated for %s in range: %s - %s" %
                      (order.id, tenant_id, start, end))
         return 200, tenant_dict
-    except sqlalchemy.exc.IntegrityError:
+    except (IntegrityError, OperationalError):
         session.rollback()
         session.close()
         log.warning("IntegrityError creating sales-order for " +
