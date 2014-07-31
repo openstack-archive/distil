@@ -2,7 +2,7 @@ import flask
 from flask import Flask, Blueprint
 from distil import database, config
 from distil.constants import iso_time, iso_date, dawn_of_time
-from distil.transformers import active_transformers
+from distil.transformers import active_transformers as transformers
 from distil.rates import RatesFile
 from distil.models import SalesOrder, _Last_Run
 from distil.helpers import convert_to
@@ -60,6 +60,52 @@ def generate_windows(start, end):
         start = window_end
 
 
+def filter_and_group(usage, usage_by_resource):
+    with timed("filter and group by resource"):
+        trust_sources = set(config.main.get('trust_sources', []))
+        for u in usage:
+            # the user can make their own samples, including those
+            # that would collide with what we care about for
+            # billing.
+            # if we have a list of trust sources configured, then
+            # discard everything not matching.
+            if trust_sources and u['source'] not in trust_sources:
+                log.warning('ignoring untrusted usage sample ' +
+                            'from source `%s`' % u['source'])
+                continue
+
+            resource_id = u['resource_id']
+            entries = usage_by_resource.setdefault(resource_id, [])
+            entries.append(u)
+
+
+def transform_and_insert(tenant, usage_by_resource, transformer, meter_name,
+                         meter_info, window_start, window_end,
+                         db, timestamp):
+    with timed("apply transformer + insert"):
+        for res, entries in usage_by_resource.items():
+            # apply the transformer.
+            transformed = transformer.transform_usage(
+                meter_name, entries, window_start, window_end)
+
+            if transformed:
+                if meter_info.get('transform_info', False):
+                    if 'res_id_template' in meter_info:
+                        res = (meter_info['res_id_template'] % res)
+
+                    db.insert_resource(tenant.id, res, meter_info['type'],
+                                       timestamp, entries[-1], True)
+                    db.insert_usage(tenant.id, res, transformed,
+                                    meter_info['unit'], window_start,
+                                    window_end, timestamp)
+                else:
+                    db.insert_resource(tenant.id, res, meter_info['type'],
+                                       timestamp, entries[-1], False)
+                    db.insert_usage(tenant.id, res, transformed,
+                                    meter_info['unit'], window_start,
+                                    window_end, timestamp)
+
+
 def collect_usage(tenant, db, session, resp, end):
     """Collects usage for a given tenant from when they were last collected,
        up to the given end, and breaks the range into one hour windows."""
@@ -74,77 +120,29 @@ def collect_usage(tenant, db, session, resp, end):
     start = db_tenant.last_collected
     session.commit()
 
-    trust_sources = set(config.main.get('trust_sources', []))
-
     for window_start, window_end in generate_windows(start, end):
-        with timed("new transaction"):
-            session.begin(subtransactions=True)
-
         try:
-            log.info("%s %s slice %s %s" % (tenant.id, tenant.name,
-                                            window_start, window_end))
+            with session.begin(subtransactions=True):
+                log.info("%s %s slice %s %s" % (tenant.id, tenant.name,
+                                                window_start, window_end))
 
-            mappings = config.collection['meter_mappings']
+                mappings = config.collection['meter_mappings']
 
-            for meter_name, meter_info in mappings.items():
-                usage = tenant.usage(meter_name, window_start, window_end)
-                usage_by_resource = {}
+                for meter_name, meter_info in mappings.items():
+                    usage = tenant.usage(meter_name, window_start, window_end)
+                    usage_by_resource = {}
 
-                transformer = active_transformers[meter_info['transformer']]()
+                    transformer = transformers[meter_info['transformer']]()
 
-                with timed("filter and group by resource"):
-                    for u in usage:
-                        # the user can make their own samples, including those
-                        # that would collide with what we care about for
-                        # billing.
-                        # if we have a list of trust sources configured, then
-                        # discard everything not matching.
-                        if trust_sources and u['source'] not in trust_sources:
-                            log.warning('ignoring untrusted usage sample ' +
-                                        'from source `%s`' % u['source'])
-                            continue
+                    filter_and_group(usage, usage_by_resource)
 
-                        resource_id = u['resource_id']
-                        entries = usage_by_resource.setdefault(resource_id, [])
-                        entries.append(u)
+                    transform_and_insert(tenant, usage_by_resource,
+                                         transformer, meter_name, meter_info,
+                                         window_start, window_end, db,
+                                         timestamp)
 
-                with timed("apply transformer + insert"):
-                    for res, entries in usage_by_resource.items():
-                        # apply the transformer.
-                        transformed = transformer.transform_usage(
-                            meter_name, entries, window_start, window_end)
-
-                        if transformed:
-                            if meter_info.get('transform_info', False):
-                                if 'res_id_template' in meter_info:
-                                    res = (meter_info['res_id_template'] % res)
-
-                                db.insert_resource(tenant.id, res,
-                                                   meter_info['type'],
-                                                   timestamp, entries[-1],
-                                                   True)
-                                db.insert_usage(tenant.id, res, transformed,
-                                                meter_info['unit'],
-                                                window_start, window_end,
-                                                timestamp)
-
-                            else:
-                                db.insert_resource(tenant.id, res,
-                                                   meter_info['type'],
-                                                   timestamp, entries[-1],
-                                                   False)
-                                db.insert_usage(tenant.id, res, transformed,
-                                                meter_info['unit'],
-                                                window_start, window_end,
-                                                timestamp)
-
-            with timed("commit insert"):
-                # update the timestamp for the tenant so we won't examine this
-                # timespan again.
                 db_tenant.last_collected = window_end
                 session.add(db_tenant)
-
-                session.commit()
 
             resp["tenants"].append(
                 {"id": tenant.id,
