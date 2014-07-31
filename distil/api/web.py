@@ -213,9 +213,9 @@ def run_usage_collection():
         return json.dumps(resp)
 
     except Exception as e:
-        log.critical('Exception escaped!', type(e), e)
         import traceback
-        traceback.print_exc()
+        trace = traceback.format_exc()
+        log.critical('Exception escaped! %s \nTrace: \n%s' % (e, trace))
 
 
 def build_tenant_dict(tenant, entries, db):
