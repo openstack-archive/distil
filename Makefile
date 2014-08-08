@@ -1,5 +1,5 @@
 
-VERSION=0.1
+VERSION=0.2
 NAME=openstack-distil
 INSTALL_PATH=/opt/stack/distil
 BINARY_PATH=/usr/local/bin
@@ -41,6 +41,16 @@ deb: clean init
 	--deb-pre-depends python-pip \
 	--deb-pre-depends python-dev \
 	--deb-pre-depends python-virtualenv \
+	--deb-pre-depends libpq-dev \
+	--deb-pre-depends python-sqlalchemy \
+	--deb-pre-depends python-keystoneclient \
+	--deb-pre-depends python-requests \
+	--deb-pre-depends python-flask \
+	--deb-pre-depends python-novaclient \
+	--deb-pre-depends python-decorator \
+	--deb-pre-depends python-mysqldb \
+	--deb-pre-depends python-psycopg2 \
+	--deb-pre-depends python-yaml \
 	--template-scripts  \
 	--template-value install_path=${INSTALL_PATH} \
 	-C ${WORK_DIR} \
