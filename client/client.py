@@ -19,7 +19,8 @@ class Client(object):
             if response.status_code != 200:
                 raise AttributeError("Usage cycle failed: " + response.text +
                                      "  code: " + str(response.status_code))
-
+            else:
+                return response.json()
         except ConnectionError as e:
             print e
 
@@ -29,6 +30,7 @@ class Client(object):
         else:
             url = self.endpoint + "sales_order"
 
+        tenants_resp = {'sales_orders': [], 'errors': {}}
         for tenant in tenants:
             data = {"tenant": tenant, 'end': end}
             try:
@@ -38,17 +40,19 @@ class Client(object):
                                                   "token": self.auth_token},
                                          data=json.dumps(data))
                 if response.status_code != 200:
-                    raise AttributeError("Sales order cycle failed: " +
-                                         response.text + "  code: " +
-                                         str(response.status_code))
+                    error = ("Sales order cycle failed: %s Code: %s" %
+                            (response.text, response.status_code))
+                    tenants_resp['errors'][tenant] = error
                 else:
-                    print json.dumps(response.json(), indent=2, sort_keys=True)
+                    tenants_resp['sales_orders'].append(response.json())
             except ConnectionError as e:
                 print e
+        return tenants_resp
 
     def sales_historic(self, tenants, date):
         url = self.endpoint + "sales_historic"
 
+        tenants_resp = {'sales_orders': [], 'errors': []}
         for tenant in tenants:
             data = {"tenant": tenant, "date": date}
             try:
@@ -58,17 +62,19 @@ class Client(object):
                                                   "token": self.auth_token},
                                          data=json.dumps(data))
                 if response.status_code != 200:
-                    raise AttributeError("Sales order cycle failed: " +
-                                         response.text + "  code: " +
-                                         str(response.status_code))
+                    error = ("Sales order cycle failed: %s Code: %s" %
+                            (response.text, response.status_code))
+                    tenants_resp['errors'][tenant] = error
                 else:
-                    print json.dumps(response.json(), indent=2, sort_keys=True)
+                    tenants_resp['sales_orders'].append(response.json())
             except ConnectionError as e:
                 print e
+        return tenants_resp
 
     def sales_range(self, tenants, start, end):
         url = self.endpoint + "sales_range"
 
+        tenants_resp = {'sales_orders': [], 'errors': []}
         for tenant in tenants:
             data = {"tenant": tenant, "start": start, "end": end}
             try:
@@ -78,10 +84,11 @@ class Client(object):
                                                   "token": self.auth_token},
                                          data=json.dumps(data))
                 if response.status_code != 200:
-                    raise AttributeError("Sales order cycle failed: " +
-                                         response.text + "  code: " +
-                                         str(response.status_code))
+                    error = ("Sales order cycle failed: %s Code: %s" %
+                            (response.text, response.status_code))
+                    tenants_resp['errors'][tenant] = error
                 else:
-                    print json.dumps(response.json(), indent=2, sort_keys=True)
+                    tenants_resp['sales_orders'].append(response.json())
             except ConnectionError as e:
                 print e
+        return tenants_resp

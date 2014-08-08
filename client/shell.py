@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import json
 from client import Client
 
 # import yaml
@@ -116,16 +117,21 @@ if __name__ == '__main__':
                     token=conf["api"]["token"])
 
     if args.command == 'usage':
-        client.usage()
+        response = client.usage()
+        print json.dumps(response, indent=2)
 
     if args.command == 'sales-order':
-        client.sales_order(args.tenants, args.end, False)
+        response = client.sales_order(args.tenants, args.end, False)
+        print json.dumps(response, indent=2)
 
     if args.command == 'sales-draft':
-        client.sales_order(args.tenants, args.end, True)
+        response = client.sales_order(args.tenants, args.end, True)
+        print json.dumps(response, indent=2)
 
     if args.command == 'sales-historic':
-        client.sales_historic(args.tenants, args.date)
+        response = client.sales_historic(args.tenants, args.date)
+        print json.dumps(response, indent=2)
 
     if args.command == 'sales-range':
-        client.sales_range(args.tenants, args.start, args.end)
+        response = client.sales_range(args.tenants, args.start, args.end)
+        print json.dumps(response, indent=2)
