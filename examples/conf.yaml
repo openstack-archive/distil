@@ -60,6 +60,10 @@ collection:
       type: VPN
       transformer: GaugeNetworkService
       unit: hour
+    network:
+      type: Network
+      transformer: GaugeMax
+      unit: hour
   # metadata definition for resources (seen on invoice)
   metadata_def:
     # resource type (must match above definition)
@@ -102,6 +106,10 @@ collection:
       subnet:
         sources:
           - subnet_id
+    Network:
+      name:
+        sources:
+          - name
 # transformer configs
 transformers:
   uptime:
