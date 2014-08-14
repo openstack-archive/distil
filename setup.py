@@ -1,6 +1,6 @@
 from setuptools import setup
 
-setup(name='openstack-distil',
+setup(name='distil',
       version='0.1',
       description='Distil, a set of APIs for creating billable items from Openstack-Ceilometer',
       author='Aurynn Shaw',

@@ -1,8 +1,8 @@
-# Openstack-Distil
+# Distil
 
 ## What
 
-Openstack Distil is a web app to provide easy interactions with ERP systems, by exposing a configurable set of collection tools and transformers to make usable billing data out of Ceilometer entries.
+Distil is a web app to provide easy interactions with ERP systems, by exposing a configurable set of collection tools and transformers to make usable billing data out of Ceilometer entries.
 
 Distil provides a rest api to integrate with arbitrary ERP systems, and returns sales orders as json.
 What the ranges are, and how Ceilometer data is aggregated is intended to be configurable, and defined in the configuration file.

@@ -1,6 +1,6 @@
 
 VERSION=0.2
-NAME=openstack-distil
+NAME=distil
 INSTALL_PATH=/opt/stack/distil
 BINARY_PATH=/usr/local/bin
 
