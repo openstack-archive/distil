@@ -20,9 +20,7 @@ init:
 deb: clean init
 
 	@cp -r ./distil \
-		./scripts \
 		./README.md \
-		./INVOICES.md \
 		requirements.txt \
 		setup.py \
 		${WORK_DIR}${INSTALL_PATH}
