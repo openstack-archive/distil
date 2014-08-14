@@ -15,135 +15,9 @@ See: requirements.txt
 
 ## Configuration
 
-Configuring Distil is handled through its primary configuration file, which defaults to /etc/distil/conf.yaml.
-This is a yaml-format config file, in the format of:
-  ---
-  main:
-    region: nz_wlg_2
-    # timezone is unused at this time
-    timezone: Pacific/Auckland 
-    database_uri: postgres://admin:password@localhost:5432/billing
-    trust_sources: 
-      - openstack
-    log_file: logs/billing.log
-    ignore_tenants:
-      - test
-  rates_config:
-    file: test_rates.csv
-  # Keystone auth user details
-  auth:
-    end_point: https://api.cloud.catalyst.net.nz:5000/v2.0
-    default_tenant: demo
-    username: admin
-    password: openstack
-    insecure: True
-  # configuration for defining usage collection
-  collection:
-    # defines which meter is mapped to which transformer
-    meter_mappings:
-      # meter name as seen in ceilometer
-      state: 
-        # type of resource it maps to (seen on sales order)
-        type: Virtual Machine
-        # which transformer to use
-        transformer: Uptime
-        # what unit type is coming in via the meter
-        unit: second 
-      ip.floating:
-        type: Floating IP
-        transformer: GaugeMax
-        unit: hour
-      volume.size:
-        type: Volume
-        transformer: GaugeMax
-        unit: gigabyte
-      instance:
-        type: Volume
-        transformer: FromImage
-        unit: gigabyte
-        # if true allows id pattern, and metadata patterns
-        transform_info: True
-        # allows us to put the id into a pattern,
-        # only if transform_info is true,
-        # such as to append something to it
-        res_id_template: "%s-root_disk"
-      image.size:
-        type: Image
-        transformer: GaugeMax
-        unit: byte
-      bandwidth:
-        type: Traffic
-        transformer: GaugeSum
-        unit: byte
-      network.services.vpn:
-        type: VPN
-        transformer: GaugeNetworkService
-        unit: hour
-    # metadata definition for resources (seen on invoice)
-    metadata_def:
-      # resource type (must match above definition)
-      Virtual Machine:
-        # name the field will have on the sales order
-        name:
-          sources:
-            # which keys to search for in the ceilometer entry metadata
-            # this can be more than one as metadata is inconsistent between source types
-            - display_name
-        availability zone:
-          sources:
-            - OS-EXT-AZ:availability_zone
-      Volume:
-        name:
-          sources:
-            - display_name
-          # template is only used if 'transform_info' in meter mappings is true.
-          template: "%s - root disk"
-        availability zone:
-          sources:
-            - availability_zone
-      Floating IP:
-        ip address:
-          sources:
-            - floating_ip_address
-      Image:
-        name:
-          sources:
-            - name
-            - properties.image_name
-      Traffic:
-        name:
-          sources:
-            - name
-      VPN:
-        name:
-          sources:
-            - name
-        subnet:
-          sources:
-            - subnet_id
-  # transformer configs
-  transformers:
-    uptime:
-      # states marked as "billable" for VMs. 
-      tracked_states:
-        - active
-        - paused
-        - rescued
-        - resized
-    from_image:
-      service: volume.size
-      # What metadata values to check
-      md_keys:
-        - image_ref
-        - image_meta.base_image_ref
-      none_values:
-        - None
-        - ""
-      # where to get volume size from
-      size_keys:
-        - root_gb
+Configuring Distil is handled through its primary configuration file, which defaults to: /etc/distil/conf.yaml
 
-A sample configuration is included, but must be modified appropriately.
+A base configuration is included, but must be modified appropriately. It can be located at: /examples/conf.yaml
 
 ### Collection
 
@@ -182,33 +56,33 @@ IMPORTANT: Distil assumes all incoming datetimes are in UTC, conversion from loc
 
 ### Web Api
 
-The web app is a rest style api for starting usage collection, and for 
+The web app is a rest style api for starting usage collection, and for generating sales orders, drafts, and regenerating sales orders.
 
 #### Commands
 
-/collect_usage
-runs usage collection on all tenants present in Keystone
+* /collect_usage
+    * runs usage collection on all tenants present in Keystone
 
-/sales_order
-generate a sales order for a given tenant from the last generated sales order, or the first ever usage entry.
-tenant - tenant id for a given tenant, required.
-end - end date for the sales order (yyyy-mm-dd), defaults to 00:00:00 UTC for the current date.
+* /sales_order
+    * generate a sales order for a given tenant from the last generated sales order, or the first ever usage entry.
+        * tenant - tenant id for a given tenant, required.
+        * end - end date for the sales order (yyyy-mm-dd), defaults to 00:00:00 UTC for the current date.
 
-/collect_draft
-same as generating a sales order, but does not create the sales order in the database.
-tenant - tenant id for a given tenant, required.
-end - end date for the sales order (yyyy-mm-dd or yyyy-mm-ddThh-mm-ss), defaults to now in UTC.
+* /sales_draft
+    * same as generating a sales order, but does not create the sales order in the database.
+        * tenant - tenant id for a given tenant, required.
+        * end - end date for the sales order (yyyy-mm-dd or yyyy-mm-ddThh-mm-ss), defaults to now in UTC.
 
-/collect_historic
-regenerate a sales order for a tenant that intersects with the given date
-tenant - tenant id for a given tenant, required.
-date - target date (yyyy-mm-dd).
+* /sales_historic
+    * regenerate a sales order for a tenant that intersects with the given date
+        * tenant - tenant id for a given tenant, required.
+        * date - target date (yyyy-mm-dd).
 
-/collect_range
-get all sales orders that intersect with the given range
-tenant - tenant id for a given tenant, required.
-start - start of the range (yyyy-mm-dd).
-end - end of the range (yyyy-mm-dd), defaults to now in UTC.
+* /sales_range
+    * get all sales orders that intersect with the given range
+        * tenant - tenant id for a given tenant, required.
+        * start - start of the range (yyyy-mm-dd).
+        * end - end of the range (yyyy-mm-dd), defaults to now in UTC.
 
 ### Client/Command-line
 
