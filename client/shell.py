@@ -3,14 +3,32 @@
 import os
 import json
 from client import Client
+import exc
 
-# import yaml
 
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
 
     #main args:
+    parser.add_argument('-k', '--insecure',
+                        default=False,
+                        action='store_true',
+                        help="Explicitly allow distilclient to "
+                        "perform \"insecure\" SSL (https) requests. "
+                        "The server's certificate will "
+                        "not be verified against any certificate "
+                        "authorities. This option should be used with "
+                        "caution.")
+
+    parser.add_argument('--os-cacert',
+                        metavar='<ca-certificate-file>',
+                        dest='os_cacert',
+                        help='Path of CA TLS certificate(s) used to verify'
+                        'the remote server\'s certificate. Without this '
+                        'option distil looks for the default system '
+                        'CA certificates.')
+
     parser.add_argument('--os-username',
                         default=os.environ.get('OS_USERNAME'),
                         help='Defaults to env[OS_USERNAME]')
@@ -39,9 +57,17 @@ if __name__ == '__main__':
                         default=os.environ.get('OS_AUTH_TOKEN'),
                         help='Defaults to env[OS_AUTH_TOKEN]')
 
-    parser.add_argument("-c", "--config", dest="config",
-                        help="Config file",
-                        default="/etc/distil/conf.yaml")
+    parser.add_argument('--os-service-type',
+                        help='Defaults to env[OS_SERVICE_TYPE].',
+                        default='rating')
+
+    parser.add_argument('--os-endpoint-type',
+                        help='Defaults to env[OS_ENDPOINT_TYPE].',
+                        default='publicURL')
+
+    parser.add_argument("--distil-url",
+                        help="Distil endpoint, defaults to env[DISTIL_URL]",
+                        default=os.environ.get('DISTIL_URL'))
 
     # commands:
     subparsers = parser.add_subparsers(help='commands', dest='command')
@@ -104,17 +130,30 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    conf = {'api': {'endpoint': 'http://0.0.0.0:8000/',
-                    'token': 'sah324sdf5wad4dh839uhjuUH'}}
+    if not (args.os_auth_token and args.distil_url):
+        if not args.os_username:
+            raise exc.CommandError("You must provide a username via "
+                                   "either --os-username or via "
+                                   "env[OS_USERNAME]")
 
-    # try:
-    #     conf = yaml.load(open(args.config).read())
-    # except IOError:
-    #     print "couldn't load %s " % args.config
-    #     sys.exit(1)
+        if not args.os_password:
+            raise exc.CommandError("You must provide a password via "
+                                   "either --os-password or via "
+                                   "env[OS_PASSWORD]")
 
-    client = Client(conf["api"]["endpoint"],
-                    token=conf["api"]["token"])
+        if not (args.os_tenant_id or args.os_tenant_name):
+            raise exc.CommandError("You must provide a tenant_id via "
+                                   "either --os-tenant-id or via "
+                                   "env[OS_TENANT_ID]")
+
+        if not args.os_auth_url:
+            raise exc.CommandError("You must provide an auth url via "
+                                   "either --os-auth-url or via "
+                                   "env[OS_AUTH_URL]")
+
+    kwargs = vars(args)
+
+    client = Client(**kwargs)
 
     if args.command == 'usage':
         response = client.usage()
