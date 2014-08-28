@@ -1,5 +1,0 @@
-name 'catalyst-artifice'
-version '0.0.1'
-dependency 'reidmv/yamlfile', '0.2.0'
-description "This module handles the installation and configuration of an
-    Openstack-Billing server, associated plugins, and storage backend (currently mysql and postgres.). Depends upon yamlfile to handle construction of a configuration file.
