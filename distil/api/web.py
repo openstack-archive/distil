@@ -14,8 +14,10 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 from datetime import datetime, timedelta
 import json
 import logging as log
+from keystoneclient.middleware.auth_token import AuthProtocol as KeystoneMiddleware
 
 from .helpers import returns_json, json_must, validate_tenant_id
+from urlparse import urlparse
 
 
 engine = None
@@ -47,6 +49,20 @@ def get_app(conf):
                     level=log.INFO,
                     format='%(asctime)s %(message)s')
     log.info("Billing API started.")
+
+    # if configured to authenticate clients, then wrap the
+    # wsgi app in the keystone middleware.
+    if config.auth.get('authenticate_clients'):
+        identity_url = urlparse(config.auth['identity_url'])
+        conf = {
+            'admin_user': config.auth['username'],
+            'admin_password': config.auth['password'],
+            'admin_tenant_name': config.auth['default_tenant'],
+            'auth_host': identity_url.hostname,
+            'auth_port': identity_url.port,
+            'auth_protocol': identity_url.scheme
+        }
+        actual_app = KeystoneMiddleware(actual_app, conf)
 
     return actual_app
 
