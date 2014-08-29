@@ -39,7 +39,7 @@ class Client(object):
                    " X-Auth-Token": self.auth_token}
 
         try:
-            response = requests.post(url, headers)
+            response = requests.post(url, headers=headers)
             if response.status_code != 200:
                 raise AttributeError("Usage cycle failed: " + response.text +
                                      "  code: " + str(response.status_code))
@@ -61,7 +61,7 @@ class Client(object):
         for tenant in tenants:
             data = {"tenant": tenant, 'end': end}
             try:
-                response = requests.post(url, headers,
+                response = requests.post(url, headers=headers,
                                          data=json.dumps(data))
                 if response.status_code != 200:
                     error = ("Sales order cycle failed: %s Code: %s" %
@@ -83,7 +83,7 @@ class Client(object):
         for tenant in tenants:
             data = {"tenant": tenant, "date": date}
             try:
-                response = requests.post(url, headers,
+                response = requests.post(url, headers=headers,
                                          data=json.dumps(data))
                 if response.status_code != 200:
                     error = ("Sales order cycle failed: %s Code: %s" %
@@ -106,7 +106,7 @@ class Client(object):
         for tenant in tenants:
             data = {"tenant": tenant, "start": start, "end": end}
             try:
-                response = requests.post(url, headers,
+                response = requests.post(url, headers=headers,
                                          data=json.dumps(data))
                 if response.status_code != 200:
                     error = ("Sales order cycle failed: %s Code: %s" %
