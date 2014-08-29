@@ -13,14 +13,14 @@ rates_config:
   file: test_rates.csv
 # Keystone auth user details
 auth:
-  end_point: https://api.cloud.catalyst.net.nz:5000/v2.0
+  end_point: http://localhost:5000/v2.0
   default_tenant: demo
   username: admin
   password: openstack
   insecure: True
   authenticate_clients: True
   # used for authenticate_clients
-  identity_url: https://api.cloud.catalyst.net.nz:35357
+  identity_url: http://localhost:35357
 # configuration for defining usage collection
 collection:
   # defines which meter is mapped to which transformer
