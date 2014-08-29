@@ -16,7 +16,7 @@ import json
 import logging as log
 from keystoneclient.middleware.auth_token import AuthProtocol as KeystoneMiddleware
 
-from .helpers import returns_json, json_must, validate_tenant_id
+from .helpers import returns_json, json_must, validate_tenant_id, require_admin
 from urlparse import urlparse
 
 
@@ -189,6 +189,7 @@ def collect_usage(tenant, db, session, resp, end):
 
 
 @app.route("collect_usage", methods=["POST"])
+@require_admin
 def run_usage_collection():
     """Run usage collection on all tenants present in Keystone."""
     try:
@@ -415,6 +416,7 @@ def regenerate_sales_order_range(tenant_id, start, end):
 
 
 @app.route("sales_order", methods=["POST"])
+@require_admin
 @json_must()
 @returns_json
 def run_sales_order_generation():
@@ -437,6 +439,7 @@ def run_sales_order_generation():
 
 
 @app.route("sales_draft", methods=["POST"])
+@require_admin
 @json_must()
 @returns_json
 def run_sales_draft_generation():
@@ -462,6 +465,7 @@ def run_sales_draft_generation():
 
 
 @app.route("sales_historic", methods=["POST"])
+@require_admin
 @json_must()
 @returns_json
 def run_sales_historic_generation():
@@ -484,6 +488,7 @@ def run_sales_historic_generation():
 
 
 @app.route("sales_range", methods=["POST"])
+@require_admin
 @json_must()
 @returns_json
 def run_sales_historic_range_generation():

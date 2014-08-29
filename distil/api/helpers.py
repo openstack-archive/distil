@@ -3,6 +3,7 @@ import flask
 import itertools
 import json
 from distil.models import Tenant
+from distil import config
 
 
 def _validate(data, *args, **kwargs):
@@ -68,3 +69,13 @@ def validate_tenant_id(tenant_id, session):
     else:
         return 400, {"missing parameter": {"tenant": "Tenant id."}}
     return tenant_query[0]
+
+
+@decorator
+def require_admin(func, *args, **kwargs):
+    if config.auth.get('authenticate_clients'):
+        roles = flask.request.headers['X-Roles'].split(',')
+        if 'admin' not in roles:
+            return flask.make_response(403, "Must be admin")
+
+    return func(*args, **kwargs)
