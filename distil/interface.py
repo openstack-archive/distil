@@ -43,14 +43,19 @@ class Interface(object):
         tenants = []
 
         for tenant in _tenants:
-            # if this tenant is in the ignore_tenants, then just pretend
-            # it doesnt exist at all.
-            if tenant.name not in config.main.get('ignore_tenants', []):
-                t = Tenant(tenant, self)
-                tenants.append(t)
-            else:
-                log.debug("Ignored tenant %s (%s) due to config." %
-                          (tenant.id, tenant.name))
+            include_tenants = config.main.get('include_tenants', None)
+            if include_tenants and tenant.name not in include_tenants:
+                log.debug("Ignored tenant %s (%s); not in include_tenants" %
+                        (tenant.id, tenant.name))
+                continue
+
+            if tenant.name in config.main.get('ignore_tenants', []):
+                log.debug("Ignored tenant %s (%s); in ignore_tenants" %
+                        (tenant.id, tenant.name))
+                continue
+
+            t = Tenant(tenant, self)
+            tenants.append(t)
 
         return tenants
 
