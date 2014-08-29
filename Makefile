@@ -1,5 +1,5 @@
 
-VERSION=0.2
+VERSION=0.3
 NAME=distil
 INSTALL_PATH=/opt/stack/distil
 BINARY_PATH=/usr/local/bin
