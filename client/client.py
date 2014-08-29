@@ -36,7 +36,7 @@ class Client(object):
         url = self.endpoint + "collect_usage"
 
         headers = {"Content-Type": "application/json",
-                   " X-Auth-Token": self.auth_token}
+                   "X-Auth-Token": self.auth_token}
 
         try:
             response = requests.post(url, headers=headers)
@@ -55,7 +55,7 @@ class Client(object):
             url = self.endpoint + "sales_order"
 
         headers = {"Content-Type": "application/json",
-                   " X-Auth-Token": self.auth_token}
+                   "X-Auth-Token": self.auth_token}
 
         tenants_resp = {'sales_orders': [], 'errors': {}}
         for tenant in tenants:
@@ -77,7 +77,7 @@ class Client(object):
         url = self.endpoint + "sales_historic"
 
         headers = {"Content-Type": "application/json",
-                   " X-Auth-Token": self.auth_token}
+                   "X-Auth-Token": self.auth_token}
 
         tenants_resp = {'sales_orders': [], 'errors': []}
         for tenant in tenants:
@@ -101,7 +101,7 @@ class Client(object):
         tenants_resp = {'sales_orders': [], 'errors': []}
 
         headers = {"Content-Type": "application/json",
-                   " X-Auth-Token": self.auth_token}
+                   "X-Auth-Token": self.auth_token}
 
         for tenant in tenants:
             data = {"tenant": tenant, "start": start, "end": end}
