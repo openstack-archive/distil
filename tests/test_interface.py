@@ -1,6 +1,6 @@
 import unittest
 from distil.models import Tenant as tenant_model
-from distil.models import UsageEntry, Resource, SalesOrder
+from distil.models import UsageEntry, Resource, SalesOrder, _Last_Run
 from sqlalchemy.pool import NullPool
 
 from sqlalchemy import create_engine
@@ -41,6 +41,7 @@ class TestInterface(unittest.TestCase):
         self.session.query(Resource).delete()
         self.session.query(SalesOrder).delete()
         self.session.query(tenant_model).delete()
+        self.session.query(_Last_Run).delete()
         self.session.commit()
         self.session.close()
         self.contents = None

@@ -41,8 +41,24 @@ class Client(object):
         try:
             response = requests.post(url, headers=headers)
             if response.status_code != 200:
-                raise AttributeError("Usage cycle failed: " + response.text +
-                                     "  code: " + str(response.status_code))
+                raise AttributeError("Usage cycle failed: %s  code: %s" %
+                                     (response.text, response.status_code))
+            else:
+                return response.json()
+        except ConnectionError as e:
+            print e
+
+    def last_collected(self):
+        url = self.endpoint + "last_collected"
+
+        headers = {"Content-Type": "application/json",
+                   "X-Auth-Token": self.auth_token}
+
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code != 200:
+                raise AttributeError("Get last collected failed: %s code: %s" %
+                                     (response.text, response.status_code))
             else:
                 return response.json()
         except ConnectionError as e:

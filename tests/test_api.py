@@ -5,6 +5,7 @@ from distil.api.web import get_app
 from distil import models
 from distil import interface
 from distil.helpers import convert_to
+from distil.constants import dawn_of_time
 from datetime import datetime
 from decimal import Decimal
 import unittest
@@ -221,3 +222,18 @@ class TestApi(test_interface.TestInterface):
         tenant_dict = web.add_costs_for_tenant(empty_tenant, ratesManager)
 
         self.assertEquals(tenant_dict['total_cost'], str(0))
+
+    def test_get_last_collected(self):
+        """test to ensure last collected api call returns correctly"""
+        now = datetime.utcnow()
+        self.session.add(models._Last_Run(last_run=now))
+        self.session.commit()
+        resp = self.app.get("/last_collected")
+        resp_json = json.loads(resp.body)
+        self.assertEquals(resp_json['last_collected'], str(now))
+
+    def test_get_last_collected_default(self):
+        """test to ensure last collected returns correct default value"""
+        resp = self.app.get("/last_collected")
+        resp_json = json.loads(resp.body)
+        self.assertEquals(resp_json['last_collected'], str(dawn_of_time))

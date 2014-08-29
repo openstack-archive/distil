@@ -75,6 +75,9 @@ if __name__ == '__main__':
     usage_parser = subparsers.add_parser(
         'usage', help=('process usage for all tenants'))
 
+    usage_parser = subparsers.add_parser(
+        'last-collected', help=('get last collected time'))
+
     sales_parser = subparsers.add_parser(
         'sales-order',
         help=('create sales orders for given tenants'))
@@ -157,6 +160,10 @@ if __name__ == '__main__':
 
     if args.command == 'usage':
         response = client.usage()
+        print json.dumps(response, indent=2)
+
+    if args.command == 'last-collected':
+        response = client.last_collected()
         print json.dumps(response, indent=2)
 
     if args.command == 'sales-order':

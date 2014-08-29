@@ -67,6 +67,22 @@ def get_app(conf):
     return actual_app
 
 
+@app.route("last_collected", methods=["GET"])
+@returns_json
+@require_admin
+def get_last_collected():
+    """Simple call to get timestamp for the last collection run."""
+    session = Session()
+    session.begin()
+    last_run = session.query(_Last_Run)
+    if last_run.count() == 0:
+        last_collected = dawn_of_time
+    else:
+        last_collected = last_run[0].last_run
+    session.close()
+    return 200, {'last_collected': str(last_collected)}
+
+
 def generate_windows(start, end):
     """Generator for 1 hour windows in a given range."""
     window_size = timedelta(hours=1)
