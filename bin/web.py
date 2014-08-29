@@ -2,6 +2,7 @@
 from distil.api import web
 import yaml
 import sys
+from werkzeug.serving import run_simple
 
 import argparse
 a = argparse.ArgumentParser("Web service for Distil")
@@ -23,4 +24,4 @@ except IOError as e:
 
 
 app = web.get_app(conf)
-app.run(host=args.ip, port=int(args.port))
+run_simple(args.ip, int(args.port), app)
