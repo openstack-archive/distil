@@ -1,8 +1,8 @@
 
-VERSION=0.3
+VERSION=0.3.1
 NAME=distil
 INSTALL_PATH=/opt/stack/distil
-BINARY_PATH=/usr/local/bin
+BINARY_PATH=/opt/stack/distil
 
 WORK_DIR=./work
 
