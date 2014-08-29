@@ -33,6 +33,7 @@ deb: clean init
 	@cp ./examples/conf.yaml ${WORK_DIR}/etc/distil/conf.yaml
 	@cp ./examples/real_rates.csv ${WORK_DIR}/etc/distil/real_rates.csv
 	@fpm -s dir -t deb -n ${NAME} -v ${VERSION} \
+	--config-files etc \
 	--depends 'libpq-dev' \
 	--deb-pre-depends "libmysql++-dev" \
 	--deb-pre-depends python2.7 \
