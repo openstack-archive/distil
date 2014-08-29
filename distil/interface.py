@@ -30,7 +30,8 @@ class Interface(object):
             password=config.auth["password"],
             tenant_name=config.auth["default_tenant"],
             auth_url=config.auth["end_point"],
-            insecure=config.auth["insecure"]
+            insecure=config.auth["insecure"],
+            region_name=config.main['region']
         )
 
     @property

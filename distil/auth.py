@@ -35,6 +35,5 @@ class Keystone(KeystoneClient.Client):
     def get_ceilometer_endpoint(self):
         endpoint = self.service_catalog.url_for(
             service_type="metering",
-            endpoint_type="adminURL",
-            region_name=config.main['region'])
+            endpoint_type="adminURL")
         return endpoint
