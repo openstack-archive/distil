@@ -41,7 +41,7 @@ class Client(object):
             if distil_url:
                 self.endpoint = distil_url
             else:
-                ks.service_catalog.url_for(
+                self.endpoint = ks.service_catalog.url_for(
                     service_type=kwargs.get('os_service_type'),
                     endpoint_type=kwargs.get('os_endpoint_type')
                 )

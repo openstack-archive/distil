@@ -87,7 +87,7 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(help='commands', dest='command')
 
     usage_parser = subparsers.add_parser(
-        'usage', help=('process usage for all tenants'))
+        'collect-usage', help=('process usage for all tenants'))
 
     usage_parser = subparsers.add_parser(
         'last-collected', help=('get last collected time'))
@@ -172,7 +172,7 @@ if __name__ == '__main__':
 
     client = Client(**kwargs)
 
-    if args.command == 'usage':
+    if args.command == 'collect-usage':
         response = client.usage()
         print json.dumps(response, indent=2)
 
