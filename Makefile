@@ -1,27 +1,26 @@
 
-VERSION=0.3.1
+VERSION=0.3.2
 NAME=distil
 INSTALL_PATH=/opt/stack/distil
 BINARY_PATH=/opt/stack/distil
 
-WORK_DIR=./work
+WORK_DIR=./work-api
 
 CONF_DIR=${WORK_DIR}/${INSTALL_PATH}/etc/distil
 
 clean:
-	@rm -rf ./work
-	@rm -f *.deb
+	@rm -rf ${WORK_DIR}
+	@rm -f ${NAME}_*.deb
 
 init:
-	@mkdir ./work/
-	@mkdir -p ./work${INSTALL_PATH}
-	@mkdir -p ./work${BINARY_PATH}
+	@mkdir ${WORK_DIR}/
+	@mkdir -p ${WORK_DIR}${INSTALL_PATH}
+	@mkdir -p ${WORK_DIR}${BINARY_PATH}
 
 deb: clean init
 
 	@cp -r ./distil \
 		./README.md \
-		requirements.txt \
 		setup.py \
 		${WORK_DIR}${INSTALL_PATH}
 	@mkdir ${WORK_DIR}${INSTALL_PATH}/bin

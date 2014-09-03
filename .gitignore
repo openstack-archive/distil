@@ -9,7 +9,8 @@ work
 lib/
 man/
 build/
-work/
+work-api/
+work-client/
 env/
 dist/
 include/

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+DISTILPATH=/opt/stack/distilclient
+
+export PYTHONPATH=${DISTILPATH}:${PYTHONPATH}
+python ${DISTILPATH}/client/shell.py "$@"
