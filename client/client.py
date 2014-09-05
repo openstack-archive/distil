@@ -109,7 +109,7 @@ class Client(object):
         headers = {"Content-Type": "application/json",
                    "X-Auth-Token": self.auth_token}
 
-        tenants_resp = {'sales_orders': [], 'errors': []}
+        tenants_resp = {'sales_orders': [], 'errors': {}}
         for tenant in tenants:
             data = {"tenant": tenant, "date": date}
             try:
@@ -128,7 +128,7 @@ class Client(object):
     def sales_range(self, tenants, start, end):
         url = self.endpoint + "sales_range"
 
-        tenants_resp = {'sales_orders': [], 'errors': []}
+        tenants_resp = {'sales_orders': [], 'errors': {}}
 
         headers = {"Content-Type": "application/json",
                    "X-Auth-Token": self.auth_token}
