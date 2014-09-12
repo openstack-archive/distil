@@ -15,6 +15,7 @@
 import requests
 from keystoneclient.v2_0.client import Client as Keystone
 from requests.exceptions import ConnectionError
+from urlparse import urljoin
 import json
 
 
@@ -47,7 +48,7 @@ class Client(object):
                 )
 
     def usage(self):
-        url = self.endpoint + "collect_usage"
+        url = urljoin(self.endpoint, "collect_usage")
 
         headers = {"Content-Type": "application/json",
                    "X-Auth-Token": self.auth_token}
@@ -63,7 +64,7 @@ class Client(object):
             print e
 
     def last_collected(self):
-        url = self.endpoint + "last_collected"
+        url = urljoin(self.endpoint, "last_collected")
 
         headers = {"Content-Type": "application/json",
                    "X-Auth-Token": self.auth_token}
@@ -79,7 +80,7 @@ class Client(object):
             print e
 
     def get_usage(self, tenant, start, end):
-        url = self.endpoint + "get_usage"
+        url = urljoin(self.endpoint, "get_usage")
 
         headers = {
                 "X-Auth-Token": self.auth_token
@@ -102,10 +103,7 @@ class Client(object):
             print e
 
     def sales_order(self, tenants, end, draft):
-        if draft:
-            url = self.endpoint + "sales_draft"
-        else:
-            url = self.endpoint + "sales_order"
+        url = urljoin(self.endpoint, 'sales_draft' if draft else 'sales_order')
 
         headers = {"Content-Type": "application/json",
                    "X-Auth-Token": self.auth_token}
@@ -127,7 +125,7 @@ class Client(object):
         return tenants_resp
 
     def sales_historic(self, tenants, date):
-        url = self.endpoint + "sales_historic"
+        url = urljoin(self.endpoint, "sales_historic")
 
         headers = {"Content-Type": "application/json",
                    "X-Auth-Token": self.auth_token}
@@ -149,7 +147,7 @@ class Client(object):
         return tenants_resp
 
     def sales_range(self, tenants, start, end):
-        url = self.endpoint + "sales_range"
+        url = urljoin(self.endpoint, "sales_range")
 
         tenants_resp = {'sales_orders': [], 'errors': {}}
 
