@@ -78,6 +78,29 @@ class Client(object):
         except ConnectionError as e:
             print e
 
+    def get_usage(self, tenant, start, end):
+        url = self.endpoint + "get_usage"
+
+        headers = {
+                "X-Auth-Token": self.auth_token
+                }
+
+        params = {
+                "tenant": tenant,
+                "start": start,
+                "end": end
+                }
+
+        try:
+            response = requests.get(url, headers=headers, params=params)
+            if response.status_code != 200:
+                raise AttributeError("Get usage failed: %s code: %s" %
+                        (response.text, response.status_code))
+            else:
+                return response.json()
+        except ConnectionError as e:
+            print e
+
     def sales_order(self, tenants, end, draft):
         if draft:
             url = self.endpoint + "sales_draft"

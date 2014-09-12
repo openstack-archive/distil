@@ -26,6 +26,7 @@ from sqlalchemy.orm import scoped_session, create_session
 from sqlalchemy.pool import NullPool
 from sqlalchemy.exc import IntegrityError, OperationalError
 from datetime import datetime, timedelta
+from decimal import Decimal
 import json
 import logging as log
 from keystoneclient.middleware.auth_token import AuthProtocol as KeystoneMiddleware
@@ -261,6 +262,61 @@ def run_usage_collection():
         import traceback
         trace = traceback.format_exc()
         log.critical('Exception escaped! %s \nTrace: \n%s' % (e, trace))
+
+def make_serializable(obj):
+    if isinstance(obj, list):
+        return [make_serializable(x) for x in obj]
+    if isinstance(obj, dict):
+        return {make_serializable(k):make_serializable(v) for k,v in obj.items()}
+
+    if isinstance(obj, Decimal):
+        return str(obj)
+
+    return obj
+
+@app.route("get_usage", methods=["GET"])
+@returns_json
+@require_admin
+def get_usage():
+    """
+    Get raw aggregated usage for a tenant, in a given timespan.
+        - No rates are applied.
+        - No conversion from collection unit to billing unit
+        - No rounding
+    """
+    tenant_id = flask.request.args.get('tenant')
+    start = flask.request.args.get('start')
+    end = flask.request.args.get('end')
+
+    log.info("get_usage for %s %s %s" % (tenant_id, start, end))
+
+    try:
+        start_dt = datetime.strptime(end, iso_time)
+    except ValueError:
+        return 400, {'error': 'Invalid start datetime'}
+
+    try:
+        end_dt = datetime.strptime(end, iso_time)
+    except ValueError:
+        return 400, {'error': 'Invalid end datetime'}
+
+    if end_dt < start_dt:
+        return 400, {'error': 'End must be after start'}
+
+    session = Session()
+    db = database.Database(session)
+
+    valid_tenant = validate_tenant_id(tenant_id, session)
+    if isinstance(valid_tenant, tuple):
+        return valid_tenant
+
+    log.info("parameter validation ok")
+
+    # aggregate usage
+    usage = db.usage(start, end, tenant_id)
+    tenant_dict = build_tenant_dict(valid_tenant, usage, db)
+
+    return 200, {'usage': make_serializable(tenant_dict)}
 
 
 def build_tenant_dict(tenant, entries, db):

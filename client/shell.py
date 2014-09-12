@@ -89,8 +89,26 @@ if __name__ == '__main__':
     usage_parser = subparsers.add_parser(
         'collect-usage', help=('process usage for all tenants'))
 
-    usage_parser = subparsers.add_parser(
+    last_collected_parser = subparsers.add_parser(
         'last-collected', help=('get last collected time'))
+
+    get_usage_parser = subparsers.add_parser(
+            'get-usage', help=('get raw aggregated usage'))
+
+    get_usage_parser.add_argument(
+            "-t", "--tenant", dest="tenant",
+            help='Tenant to get usage for',
+            required=True)
+
+    get_usage_parser.add_argument(
+            "-s", "--start", dest="start",
+            help="Start time",
+            required=True)
+
+    get_usage_parser.add_argument(
+            "-e", "--end", dest="end",
+            help="End time",
+            required=True)
 
     sales_parser = subparsers.add_parser(
         'sales-order',
@@ -178,6 +196,10 @@ if __name__ == '__main__':
 
     if args.command == 'last-collected':
         response = client.last_collected()
+        print json.dumps(response, indent=2)
+
+    if args.command == 'get-usage':
+        response = client.get_usage(args.tenant, args.start, args.end)
         print json.dumps(response, indent=2)
 
     if args.command == 'sales-order':
