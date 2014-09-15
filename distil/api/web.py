@@ -136,21 +136,15 @@ def transform_and_insert(tenant, usage_by_resource, transformer, meter_name,
                 meter_name, entries, window_start, window_end)
 
             if transformed:
-                if meter_info.get('transform_info', False):
-                    if 'res_id_template' in meter_info:
-                        res = (meter_info['res_id_template'] % res)
+                transform_info = meter_info.get('transform_info', False)
 
-                    db.insert_resource(tenant.id, res, meter_info['type'],
-                                       timestamp, entries[-1], True)
-                    db.insert_usage(tenant.id, res, transformed,
-                                    meter_info['unit'], window_start,
-                                    window_end, timestamp)
-                else:
-                    db.insert_resource(tenant.id, res, meter_info['type'],
-                                       timestamp, entries[-1], False)
-                    db.insert_usage(tenant.id, res, transformed,
-                                    meter_info['unit'], window_start,
-                                    window_end, timestamp)
+                res = meter_info.get('res_id_template', '%s') % res
+
+                db.insert_resource(tenant.id, res, meter_info['type'],
+                                   timestamp, entries[-1], transform_info)
+                db.insert_usage(tenant.id, res, transformed,
+                                meter_info['unit'], window_start,
+                                window_end, timestamp)
 
 
 def collect_usage(tenant, db, session, resp, end):
@@ -321,8 +315,6 @@ def get_usage():
 
 def build_tenant_dict(tenant, entries, db):
     """Builds a dict structure for a given tenant."""
-    tenant_dict = {}
-
     tenant_dict = {'name': tenant.name, 'tenant_id': tenant.id,
                    'resources': {}}
 
