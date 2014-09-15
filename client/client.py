@@ -102,15 +102,15 @@ class Client(object):
         except ConnectionError as e:
             print e
 
-    def sales_order(self, tenants, end, draft):
-        url = urljoin(self.endpoint, 'sales_draft' if draft else 'sales_order')
+    def _sales_order_query(self, tenants, relative_url, make_data):
+        url = urljoin(self.endpoint, relative_url)
 
         headers = {"Content-Type": "application/json",
                    "X-Auth-Token": self.auth_token}
 
         tenants_resp = {'sales_orders': [], 'errors': {}}
         for tenant in tenants:
-            data = {"tenant": tenant, 'end': end}
+            data = make_data(tenant)
             try:
                 response = requests.post(url, headers=headers,
                                          data=json.dumps(data))
@@ -123,48 +123,24 @@ class Client(object):
             except ConnectionError as e:
                 print e
         return tenants_resp
+
+    def sales_order(self, tenants, end, draft):
+        return self._sales_order_query(
+            tenants,
+            'sales_draft' if draft else 'sales_order',
+            lambda tenant: {'tenant': tenant, 'end': end}
+            )
 
     def sales_historic(self, tenants, date):
-        url = urljoin(self.endpoint, "sales_historic")
-
-        headers = {"Content-Type": "application/json",
-                   "X-Auth-Token": self.auth_token}
-
-        tenants_resp = {'sales_orders': [], 'errors': {}}
-        for tenant in tenants:
-            data = {"tenant": tenant, "date": date}
-            try:
-                response = requests.post(url, headers=headers,
-                                         data=json.dumps(data))
-                if response.status_code != 200:
-                    error = ("Sales order cycle failed: %s Code: %s" %
-                            (response.text, response.status_code))
-                    tenants_resp['errors'][tenant] = error
-                else:
-                    tenants_resp['sales_orders'].append(response.json())
-            except ConnectionError as e:
-                print e
-        return tenants_resp
+        return self._sales_order_query(
+            tenants,
+            'sales_historic',
+            lambda tenant: {'tenant': tenant, 'date': date}
+            )
 
     def sales_range(self, tenants, start, end):
-        url = urljoin(self.endpoint, "sales_range")
-
-        tenants_resp = {'sales_orders': [], 'errors': {}}
-
-        headers = {"Content-Type": "application/json",
-                   "X-Auth-Token": self.auth_token}
-
-        for tenant in tenants:
-            data = {"tenant": tenant, "start": start, "end": end}
-            try:
-                response = requests.post(url, headers=headers,
-                                         data=json.dumps(data))
-                if response.status_code != 200:
-                    error = ("Sales order cycle failed: %s Code: %s" %
-                            (response.text, response.status_code))
-                    tenants_resp['errors'][tenant] = error
-                else:
-                    tenants_resp['sales_orders'].append(response.json())
-            except ConnectionError as e:
-                print e
-        return tenants_resp
+        return self._sales_order_query(
+            tenants,
+            'sales_range',
+            lambda tenant: {'tenant': tenant, 'start': start, 'end': end}
+            )
