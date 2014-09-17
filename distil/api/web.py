@@ -140,7 +140,7 @@ def transform_and_insert(tenant, usage_by_resource, transformer, meter_name,
 
                 res = meter_info.get('res_id_template', '%s') % res
 
-                md_def = config.collection['metadata_def'].get(meter_info['type'], {})
+                md_def = meter_info['metadata']
 
                 db.insert_resource(tenant.id, res, meter_info['type'],
                                    timestamp, entries[-1], transform_info, md_def)

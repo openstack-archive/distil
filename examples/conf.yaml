@@ -33,14 +33,35 @@ collection:
       transformer: Uptime
       # what unit type is coming in via the meter
       unit: second 
+      metadata:
+        name:
+          sources:
+            # which keys to search for in the ceilometer entry metadata
+            # this can be more than one as metadata is inconsistent between
+            # source types
+            - display_name
+        availability zone:
+          sources:
+            - OS-EXT-AZ:availability_zone
     ip.floating:
       type: Floating IP
       transformer: GaugeMax
       unit: hour
+      metadata:
+        ip address:
+          sources:
+            - floating_ip_address
     volume.size:
       type: Volume
       transformer: GaugeMax
       unit: gigabyte
+      metadata:
+        name:
+          sources:
+            - display_name
+        availability zone:
+          sources:
+            - availability_zone
     instance:
       type: Volume
       transformer: FromImage
@@ -51,68 +72,50 @@ collection:
       # only if transform_info is true,
       # such as to append something to it
       res_id_template: "%s-root_disk"
+      metadata:
+        name:
+          sources:
+            - display_name
+          template: "%s - root disk"
+        availability zone:
+          sources:
+            - availability_zone
     image.size:
       type: Image
       transformer: GaugeMax
       unit: byte
+      metadata:
+        name:
+          sources:
+            - name
+            - properties.image_name
     bandwidth:
       type: Network Traffic
       transformer: GaugeSum
       unit: byte
+      metadata:
+        meter_label_id:
+          sources:
+            - label_id
     network.services.vpn:
       type: VPN
       transformer: GaugeNetworkService
       unit: hour
+      metadata:
+        name:
+          sources:
+            - name
+        subnet:
+          sources:
+            - subnet_id
     network:
       type: Network
       transformer: GaugeMax
       unit: hour
-  # metadata definition for resources (seen on invoice)
-  metadata_def:
-    # resource type (must match above definition)
-    Virtual Machine:
-      # name the field will have on the sales order
-      name:
-        sources:
-          # which keys to search for in the ceilometer entry metadata
-          # this can be more than one as metadata is inconsistent between source types
-          - display_name
-      availability zone:
-        sources:
-          - OS-EXT-AZ:availability_zone
-    Volume:
-      name:
-        sources:
-          - display_name
-        # template is only used if 'transform_info' in meter mappings is true.
-        template: "%s - root disk"
-      availability zone:
-        sources:
-          - availability_zone
-    Floating IP:
-      ip address:
-        sources:
-          - floating_ip_address
-    Image:
-      name:
-        sources:
-          - name
-          - properties.image_name
-    VPN:
-      name:
-        sources:
-          - name
-      subnet:
-        sources:
-          - subnet_id
-    Network:
-      name:
-        sources:
-          - name
-    NetworkTraffic:
-      meter_label_id:
-        sources:
-          - label_id
+      metadata:
+        name:
+          sources:
+            - name
 # transformer configs
 transformers:
   uptime:
