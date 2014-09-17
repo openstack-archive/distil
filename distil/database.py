@@ -53,10 +53,9 @@ class Database(object):
             return query[0]
 
     def insert_resource(self, tenant_id, resource_id, resource_type,
-                        timestamp, entry, transform_info):
+                        timestamp, entry, transform_info, md_def):
         """If a given resource does not exist, creates it,
            otherwise merges the metadata with the new entry."""
-        md_def = config.collection['metadata_def'].get(resource_type, {})
 
         query = self.session.query(Resource).\
             filter(Resource.id == resource_id,
