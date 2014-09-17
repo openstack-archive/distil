@@ -56,12 +56,14 @@ class Database(object):
                         timestamp, entry, transform_info):
         """If a given resource does not exist, creates it,
            otherwise merges the metadata with the new entry."""
+        md_def = config.collection['metadata_def'].get(resource_type, {})
+
         query = self.session.query(Resource).\
             filter(Resource.id == resource_id,
                    Resource.tenant_id == tenant_id)
         if query.count() == 0:
             info = self.merge_resource_metadata({'type': resource_type},
-                                                entry, transform_info)
+                                                entry, transform_info, md_def)
             self.session.add(Resource(
                 id=resource_id,
                 info=json.dumps(info),
@@ -71,7 +73,7 @@ class Database(object):
         else:
             md_dict = json.loads(query[0].info)
             md_dict = self.merge_resource_metadata(md_dict, entry,
-                                                   transform_info)
+                                                   transform_info, md_def)
             query[0].info = json.dumps(md_dict)
 
     def insert_usage(self, tenant_id, resource_id, entries, unit,
@@ -124,11 +126,10 @@ class Database(object):
             filter(SalesOrder.tenant_id == tenant_id)
         return query
 
-    def merge_resource_metadata(self, md_dict, entry, transform_info):
+    def merge_resource_metadata(self, md_dict, entry, transform_info, md_def):
         """Strips metadata from the entry as defined in the config,
            and merges it with the given metadata dict."""
-        fields = config.collection['metadata_def'].get(md_dict['type'], {})
-        for field, parameters in fields.iteritems():
+        for field, parameters in md_def.iteritems():
             for i, source in enumerate(parameters['sources']):
                 try:
                     value = entry['resource_metadata'][source]
