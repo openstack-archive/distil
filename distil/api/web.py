@@ -136,14 +136,12 @@ def transform_and_insert(tenant, usage_by_resource, transformer, meter_name,
                 meter_name, entries, window_start, window_end)
 
             if transformed:
-                transform_info = meter_info.get('transform_info', False)
-
                 res = meter_info.get('res_id_template', '%s') % res
 
                 md_def = meter_info['metadata']
 
                 db.insert_resource(tenant.id, res, meter_info['type'],
-                                   timestamp, entries[-1], transform_info, md_def)
+                                   timestamp, entries[-1], md_def)
                 db.insert_usage(tenant.id, res, transformed,
                                 meter_info['unit'], window_start,
                                 window_end, timestamp)

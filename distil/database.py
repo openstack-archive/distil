@@ -53,7 +53,7 @@ class Database(object):
             return query[0]
 
     def insert_resource(self, tenant_id, resource_id, resource_type,
-                        timestamp, entry, transform_info, md_def):
+                        timestamp, entry, md_def):
         """If a given resource does not exist, creates it,
            otherwise merges the metadata with the new entry."""
 
@@ -62,7 +62,7 @@ class Database(object):
                    Resource.tenant_id == tenant_id)
         if query.count() == 0:
             info = self.merge_resource_metadata({'type': resource_type},
-                                                entry, transform_info, md_def)
+                                                entry, md_def)
             self.session.add(Resource(
                 id=resource_id,
                 info=json.dumps(info),
@@ -72,7 +72,7 @@ class Database(object):
         else:
             md_dict = json.loads(query[0].info)
             md_dict = self.merge_resource_metadata(md_dict, entry,
-                                                   transform_info, md_def)
+                                                   md_def)
             query[0].info = json.dumps(md_dict)
 
     def insert_usage(self, tenant_id, resource_id, entries, unit,
@@ -125,14 +125,14 @@ class Database(object):
             filter(SalesOrder.tenant_id == tenant_id)
         return query
 
-    def merge_resource_metadata(self, md_dict, entry, transform_info, md_def):
+    def merge_resource_metadata(self, md_dict, entry, md_def):
         """Strips metadata from the entry as defined in the config,
            and merges it with the given metadata dict."""
         for field, parameters in md_def.iteritems():
             for i, source in enumerate(parameters['sources']):
                 try:
                     value = entry['resource_metadata'][source]
-                    if transform_info and 'template' in parameters:
+                    if 'template' in parameters:
                         md_dict[field] = parameters['template'] % value
                         break
                     else:
