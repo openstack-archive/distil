@@ -116,6 +116,14 @@ collection:
         name:
           sources:
             - name
+    router:
+      type: Router
+      transformer: GaugeMax
+      unit: hour
+      metadata:
+        name:
+          sources:
+            - name
 # transformer configs
 transformers:
   uptime:
