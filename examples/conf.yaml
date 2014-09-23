@@ -50,6 +50,7 @@ collection:
       metadata:
         ip address:
           sources:
+            - address
             - floating_ip_address
     volume.size:
       type: Volume
