@@ -13,6 +13,7 @@
 #    under the License.
 
 from novaclient.v1_1 import client
+from cinderclient.v1 import client as cinderclient
 from decimal import Decimal
 import config
 import math
@@ -20,19 +21,44 @@ import math
 cache = {}
 
 
+def reset_cache():
+    global cache
+    cache = {'flavors': {}, 'volume_types': []}
+
+
 def flavor_name(f_id):
     """Grabs the correct flavor name from Nova given the correct ID."""
-    if f_id not in cache:
+    if f_id not in cache['flavors']:
         nova = client.Client(
             config.auth['username'],
             config.auth['password'],
             config.auth['default_tenant'],
             config.auth['end_point'],
-            service_type="compute",
             insecure=config.auth['insecure'])
 
-        cache[f_id] = nova.flavors.get(f_id).name
-    return cache[f_id]
+        cache['flavors'][f_id] = nova.flavors.get(f_id).name
+    return cache['flavors'][f_id]
+
+
+def volume_type(volume_type):
+    if not cache['volume_types']:
+        cinder = cinderclient.Client(
+            config.auth['username'],
+            config.auth['password'],
+            config.auth['default_tenant'],
+            config.auth['end_point'],
+            insecure=config.auth['insecure'])
+
+        for vtype in cinder.volume_types.list():
+            cache['volume_types'].append({'id': vtype.id,
+                                          'name': vtype.name})
+
+    for vtype in cache['volume_types']:
+        if vtype['id'] == volume_type:
+            return vtype['name']
+        elif vtype['name'] == volume_type:
+            return volume_type
+    return False
 
 
 def to_gigabytes_from_bytes(value):

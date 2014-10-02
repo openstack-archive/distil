@@ -19,7 +19,7 @@ from distil.constants import iso_time, iso_date, dawn_of_time
 from distil.transformers import active_transformers as transformers
 from distil.rates import RatesFile
 from distil.models import SalesOrder, _Last_Run
-from distil.helpers import convert_to
+from distil.helpers import convert_to, reset_cache
 from distil.interface import Interface, timed
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import scoped_session, create_session
@@ -223,6 +223,9 @@ def run_usage_collection():
         session = Session()
 
         interface = Interface()
+
+        reset_cache()
+
         db = database.Database(session)
 
         end = datetime.utcnow().\
