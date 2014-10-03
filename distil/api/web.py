@@ -126,14 +126,14 @@ def filter_and_group(usage, usage_by_resource):
             entries.append(u)
 
 
-def transform_and_insert(tenant, usage_by_resource, transformer, meter_name,
+def transform_and_insert(tenant, usage_by_resource, transformer, service,
                          meter_info, window_start, window_end,
                          db, timestamp):
     with timed("apply transformer + insert"):
         for res, entries in usage_by_resource.items():
             # apply the transformer.
             transformed = transformer.transform_usage(
-                meter_name, entries, window_start, window_end)
+                service, entries, window_start, window_end)
 
             if transformed:
                 res = meter_info.get('res_id_template', '%s') % res
@@ -177,8 +177,13 @@ def collect_usage(tenant, db, session, resp, end):
 
                     filter_and_group(usage, usage_by_resource)
 
+                    if 'service' in meter_info:
+                        service = meter_info['service']
+                    else:
+                        service = meter_name
+
                     transform_and_insert(tenant, usage_by_resource,
-                                         transformer, meter_name, meter_info,
+                                         transformer, service, meter_info,
                                          window_start, window_end, db,
                                          timestamp)
 

@@ -162,17 +162,15 @@ class StorageMax(Transformer):
         if not data:
             return None
 
-        default = config.transformers['StorageMax']['default_service']
-
         max_vol = max([v["counter_volume"] for v in data])
 
         if "volume_type" in data[-1]['resource_metadata']:
             vtype = data[-1]['resource_metadata']['volume_type']
             service = helpers.volume_type(vtype)
             if not service:
-                service = default
+                service = name
         else:
-            service = default
+            service = name
 
         hours = (end - start).total_seconds() / 3600.0
         return {service: max_vol * hours}

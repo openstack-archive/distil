@@ -44,6 +44,7 @@ collection:
           sources:
             - OS-EXT-AZ:availability_zone
     ip.floating:
+      service: n1.ipv4
       type: Floating IP
       transformer: GaugeMax
       unit: hour
@@ -52,6 +53,7 @@ collection:
           sources:
             - floating_ip_address
     volume.size:
+      service: b1.standard
       type: Volume
       transformer: GaugeMax
       unit: gigabyte
@@ -63,6 +65,7 @@ collection:
           sources:
             - availability_zone
     instance:
+      service: b1.standard
       type: Volume
       transformer: FromImage
       unit: gigabyte
@@ -81,6 +84,7 @@ collection:
           sources:
             - availability_zone
     image.size:
+      service: b1.standard
       type: Image
       transformer: GaugeMax
       unit: byte
@@ -145,5 +149,3 @@ transformers:
     # where to get volume size from
     size_keys:
       - root_gb
-  StorageMax:
-    default_service: b1.standard
