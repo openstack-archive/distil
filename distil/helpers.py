@@ -54,10 +54,11 @@ def volume_type(volume_type):
                                           'name': vtype.name})
 
     for vtype in cache['volume_types']:
-        if vtype['id'] == volume_type:
-            return vtype['name']
-        elif vtype['name'] == volume_type:
+        # check name first, as that will be more common
+        if vtype['name'] == volume_type:
             return volume_type
+        elif vtype['id'] == volume_type:
+            return vtype['name']
     return False
 
 

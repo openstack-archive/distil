@@ -150,6 +150,34 @@ class GaugeMax(Transformer):
         return {name: max_vol * hours}
 
 
+class StorageMax(Transformer):
+    """
+    Variantion on the GaugeMax Transformer that checks for
+    volume_type and uses that as the service, or uses the
+    default service name.
+    """
+
+    def _transform_usage(self, name, data, start, end):
+
+        if not data:
+            return None
+
+        default = config.transformers['StorageMax']['default_service']
+
+        max_vol = max([v["counter_volume"] for v in data])
+
+        if "volume_type" in data[-1]['resource_metadata']:
+            vtype = data[-1]['resource_metadata']['volume_type']
+            service = helpers.volume_type(vtype)
+            if not service:
+                service = default
+        else:
+            service = default
+
+        hours = (end - start).total_seconds() / 3600.0
+        return {service: max_vol * hours}
+
+
 class GaugeSum(Transformer):
     """
     Transformer for sum-integration of a gauge value for given period.
@@ -184,6 +212,7 @@ class GaugeNetworkService(Transformer):
 # All usable transformers need to be here.
 active_transformers = {
     'Uptime': Uptime,
+    'StorageMax': StorageMax,
     'GaugeMax': GaugeMax,
     'GaugeSum': GaugeSum,
     'FromImage': FromImage,

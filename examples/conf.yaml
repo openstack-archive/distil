@@ -134,7 +134,7 @@ transformers:
       - rescued
       - resized
   from_image:
-    service: volume.size
+    service: b1.standard
     # What metadata values to check
     md_keys:
       - image_ref
@@ -145,3 +145,5 @@ transformers:
     # where to get volume size from
     size_keys:
       - root_gb
+  StorageMax:
+    default_service: b1.standard
