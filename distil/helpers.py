@@ -17,12 +17,14 @@ from cinderclient.v1 import client as cinderclient
 from decimal import Decimal
 import config
 import math
+import logging as log
 
 cache = {}
 
 
 def reset_cache():
     global cache
+    log.info("flavors/volume_types cache reset")
     cache = {'flavors': {}, 'volume_types': []}
 
 
