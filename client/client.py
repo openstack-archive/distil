@@ -43,8 +43,8 @@ class Client(object):
                 self.endpoint = distil_url
             else:
                 self.endpoint = ks.service_catalog.url_for(
-                    service_type=kwargs.get('os_service_type'),
-                    endpoint_type=kwargs.get('os_endpoint_type')
+                    service_type=kwargs.get('os_service_type', 'rating'),
+                    endpoint_type=kwargs.get('os_endpoint_type', 'publicURL')
                 )
 
     def usage(self):
