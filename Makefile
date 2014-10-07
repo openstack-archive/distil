@@ -1,5 +1,5 @@
 
-VERSION=0.4.0
+VERSION=0.4.1
 NAME=distil
 INSTALL_PATH=/opt/stack/distil
 BINARY_PATH=/opt/stack/distil

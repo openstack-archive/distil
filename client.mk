@@ -1,5 +1,5 @@
 
-VERSION=0.4.0
+VERSION=0.4.1
 NAME=distilclient
 INSTALL_PATH=/opt/stack/distilclient
 BINARY_PATH=/usr/local/bin
