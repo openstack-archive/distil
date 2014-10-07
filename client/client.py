@@ -22,6 +22,8 @@ import json
 class Client(object):
 
     def __init__(self, distil_url=None, os_auth_token=None, **kwargs):
+        self.insecure = kwargs.get('insecure')
+
         if os_auth_token and distil_url:
             self.auth_token = os_auth_token
             self.endpoint = distil_url
@@ -54,7 +56,8 @@ class Client(object):
                    "X-Auth-Token": self.auth_token}
 
         try:
-            response = requests.post(url, headers=headers)
+            response = requests.post(url, headers=headers,
+                                     verify=not self.insecure)
             if response.status_code != 200:
                 raise AttributeError("Usage cycle failed: %s  code: %s" %
                                      (response.text, response.status_code))
@@ -70,7 +73,8 @@ class Client(object):
                    "X-Auth-Token": self.auth_token}
 
         try:
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers,
+                                    verify=not self.insecure)
             if response.status_code != 200:
                 raise AttributeError("Get last collected failed: %s code: %s" %
                                      (response.text, response.status_code))
@@ -93,7 +97,9 @@ class Client(object):
                 }
 
         try:
-            response = requests.get(url, headers=headers, params=params)
+            response = requests.get(url, headers=headers,
+                                    params=params,
+                                    verify=not self.insecure)
             if response.status_code != 200:
                 raise AttributeError("Get usage failed: %s code: %s" %
                         (response.text, response.status_code))
@@ -113,7 +119,8 @@ class Client(object):
             data = make_data(tenant)
             try:
                 response = requests.post(url, headers=headers,
-                                         data=json.dumps(data))
+                                         data=json.dumps(data),
+                                         verify=not self.insecure)
                 if response.status_code != 200:
                     error = ("Sales order cycle failed: %s Code: %s" %
                             (response.text, response.status_code))
