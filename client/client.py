@@ -21,21 +21,27 @@ import json
 
 class Client(object):
 
-    def __init__(self, distil_url=None, os_auth_token=None, **kwargs):
-        self.insecure = kwargs.get('insecure')
+    def __init__(self, distil_url=None, os_auth_token=None,
+                 os_username=None, os_password=None,
+                 os_tenant_id=None, os_tenant_name=None,
+                 os_auth_url=None, os_region_name=None,
+                 os_cacart=None, insecure=False,
+                 os_service_type='rating', os_endpoint_type='publicURL'):
+
+        self.insecure = insecure
 
         if os_auth_token and distil_url:
             self.auth_token = os_auth_token
             self.endpoint = distil_url
         else:
-            ks = Keystone(username=kwargs.get('os_username'),
-                          password=kwargs.get('os_password'),
-                          tenant_id=kwargs.get('os_tenant_id'),
-                          tenant_name=kwargs.get('os_tenant_name'),
-                          auth_url=kwargs.get('os_auth_url'),
-                          region_name=kwargs.get('os_region_name'),
-                          cacert=kwargs.get('os_cacert'),
-                          insecure=kwargs.get('insecure'))
+            ks = Keystone(username=os_username,
+                          password=os_password,
+                          tenant_id=os_tenant_id,
+                          tenant_name=os_tenant_name,
+                          auth_url=os_auth_url,
+                          region_name=os_region_name,
+                          cacert=os_cacert,
+                          insecure=insecure)
             if os_auth_token:
                 self.auth_token = os_auth_token
             else:
@@ -45,8 +51,8 @@ class Client(object):
                 self.endpoint = distil_url
             else:
                 self.endpoint = ks.service_catalog.url_for(
-                    service_type=kwargs.get('os_service_type', 'rating'),
-                    endpoint_type=kwargs.get('os_endpoint_type', 'publicURL')
+                    service_type=os_service_type,
+                    endpoint_type=os_endpoint_type
                 )
 
     def usage(self):
