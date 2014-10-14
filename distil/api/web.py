@@ -161,7 +161,13 @@ def collect_usage(tenant, db, session, resp, end):
     start = db_tenant.last_collected
     session.commit()
 
-    for window_start, window_end in generate_windows(start, end):
+    max_windows = config.collection.get('max_windows_per_cycle', 0)
+    windows = generate_windows(start, end)
+
+    if max_windows:
+        windows = list(windows)[:max_windows]
+
+    for window_start, window_end in windows:
         try:
             with session.begin(subtransactions=True):
                 log.info("%s %s slice %s %s" % (tenant.id, tenant.name,

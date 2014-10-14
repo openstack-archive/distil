@@ -23,6 +23,7 @@ auth:
   identity_url: http://localhost:35357
 # configuration for defining usage collection
 collection:
+  max_windows_per_cycle: 4
   # defines which meter is mapped to which transformer
   meter_mappings:
     # meter name as seen in ceilometer
