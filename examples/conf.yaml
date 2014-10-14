@@ -51,6 +51,7 @@ collection:
       metadata:
         ip address:
           sources:
+            - address
             - floating_ip_address
     volume.size:
       service: b1.standard
