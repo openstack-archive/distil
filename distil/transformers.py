@@ -42,8 +42,8 @@ class Uptime(Transformer):
 
         def sort_and_clip_end(usage):
             cleaned = (self._clean_entry(s) for s in usage)
-            clipped = (s for s in cleaned if s['timestamp'] < end)
-            return sorted(clipped, key=lambda x: x['timestamp'])
+            clipped = [s for s in cleaned if s['timestamp'] < end]
+            return clipped
 
         state = sort_and_clip_end(data)
 
@@ -92,14 +92,9 @@ class Uptime(Transformer):
                 'flavor.id', entry['resource_metadata'].get(
                     'instance_flavor_id', 0
                 )
-            )
+            ),
+            'timestamp': entry['timestamp']
         }
-        try:
-            result['timestamp'] = datetime.datetime.strptime(
-                entry['timestamp'], constants.date_format)
-        except ValueError:
-            result['timestamp'] = datetime.datetime.strptime(
-                entry['timestamp'], constants.other_date_format)
         return result
 
 
@@ -183,8 +178,7 @@ class GaugeSum(Transformer):
     def _transform_usage(self, name, data, start, end):
         sum_vol = 0
         for sample in data:
-            t = datetime.datetime.strptime(sample['timestamp'],
-                                           '%Y-%m-%dT%H:%M:%S.%f')
+            t = sample['timestamp']
             if t >= start and t < end:
                 sum_vol += sample["counter_volume"]
         return {name: sum_vol}

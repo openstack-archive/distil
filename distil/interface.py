@@ -15,7 +15,7 @@
 import requests
 import json
 import auth
-from constants import date_format
+from constants import date_format, other_date_format
 import config
 from datetime import timedelta, datetime
 from contextlib import contextmanager
@@ -95,6 +95,21 @@ def add_dates(start, end):
     ]
 
 
+def sort_entries(data):
+    """
+    Setup timestamps as datetime objects,
+    and sort.
+    """
+    for entry in data:
+        try:
+            entry['timestamp'] = datetime.strptime(
+                entry['timestamp'], date_format)
+        except ValueError:
+            entry['timestamp'] = datetime.strptime(
+                entry['timestamp'], other_date_format)
+    return sorted(data, key=lambda x: x['timestamp'])
+
+
 class Tenant(object):
     """A wrapper object for the tenant recieved from keystone."""
     def __init__(self, tenant, conn):
@@ -130,6 +145,6 @@ class Tenant(object):
                 data=json.dumps({'q': fields}))
 
             if r.status_code == 200:
-                return json.loads(r.text)
+                return sort_entries(json.loads(r.text))
             else:
                 raise InterfaceException('%d %s' % (r.status_code, r.text))
