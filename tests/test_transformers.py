@@ -19,23 +19,21 @@ import unittest
 import mock
 import datetime
 
+def p(timestr):
+    return datetime.datetime.strptime(timestr, constants.date_format)
 
 class testdata:
     # string timestamps to put in meter data
-    t0 = '2014-01-01T00:00:00'
-    t0_10 = '2014-01-01T00:10:00'
-    t0_20 = '2014-01-01T00:30:00'
-    t0_30 = '2014-01-01T00:30:00'
-    t0_40 = '2014-01-01T00:40:00'
-    t0_50 = '2014-01-01T00:50:00'
-    t1 = '2014-01-01T01:00:00'
+    t0 = p('2014-01-01T00:00:00')
+    t0_10 = p('2014-01-01T00:10:00')
+    t0_20 = p('2014-01-01T00:30:00')
+    t0_30 = p('2014-01-01T00:30:00')
+    t0_40 = p('2014-01-01T00:40:00')
+    t0_50 = p('2014-01-01T00:50:00')
+    t1 = p('2014-01-01T01:00:00')
 
     # and one outside the window
-    tpre = '2013-12-31T23:50:00'
-
-    # clipping window bounds -- expected to be actual datetimes.
-    ts0 = datetime.datetime.strptime(t0, constants.date_format)
-    ts1 = datetime.datetime.strptime(t1, constants.date_format)
+    tpre = p('2013-12-31T23:50:00')
 
     flavor = '1'
     flavor2 = '2'
@@ -56,8 +54,8 @@ class UptimeTransformerTests(unittest.TestCase):
         xform = distil.transformers.Uptime()
         with mock.patch('distil.helpers.flavor_name') as flavor_name:
             flavor_name.side_effect = lambda x: x
-            return xform.transform_usage('state', data, testdata.ts0,
-                                         testdata.ts1)
+            return xform.transform_usage('state', data, testdata.t0,
+                                         testdata.t1)
 
     def test_trivial_run(self):
         """
@@ -193,8 +191,8 @@ class GaugeMaxTransformerTests(unittest.TestCase):
         ]
 
         xform = distil.transformers.GaugeMax()
-        usage = xform.transform_usage('some_meter', data, testdata.ts0,
-                                      testdata.ts1)
+        usage = xform.transform_usage('some_meter', data, testdata.t0,
+                                      testdata.t1)
 
         self.assertEqual({'some_meter': 25}, usage)
 
@@ -211,8 +209,8 @@ class GaugeMaxTransformerTests(unittest.TestCase):
         ]
 
         xform = distil.transformers.GaugeMax()
-        usage = xform.transform_usage('some_meter', data, testdata.ts0,
-                                      testdata.ts1)
+        usage = xform.transform_usage('some_meter', data, testdata.t0,
+                                      testdata.t1)
 
         self.assertEqual({'some_meter': 25}, usage)
 
@@ -225,14 +223,14 @@ class GaugeSumTransformerTests(unittest.TestCase):
             """
 
             data = [
-                {'timestamp': '2014-01-01T00:00:00.0', 'counter_volume': 1},
-                {'timestamp': '2014-01-01T00:10:00.0', 'counter_volume': 1},
-                {'timestamp': '2014-01-01T01:00:00.0', 'counter_volume': 1},
+                {'timestamp': p('2014-01-01T00:00:00'), 'counter_volume': 1},
+                {'timestamp': p('2014-01-01T00:10:00'), 'counter_volume': 1},
+                {'timestamp': p('2014-01-01T01:00:00'), 'counter_volume': 1},
             ]
 
             xform = distil.transformers.GaugeSum()
-            usage = xform.transform_usage('fake_meter', data, testdata.ts0,
-                                          testdata.ts1)
+            usage = xform.transform_usage('fake_meter', data, testdata.t0,
+                                          testdata.t1)
 
             self.assertEqual({'fake_meter': 2}, usage)
 
@@ -262,10 +260,10 @@ class FromImageTransformerTests(unittest.TestCase):
         ]
 
         xform = distil.transformers.FromImage()
-        usage = xform.transform_usage('instance', data, testdata.ts0,
-                                      testdata.ts1)
-        usage2 = xform.transform_usage('instance', data2, testdata.ts0,
-                                       testdata.ts1)
+        usage = xform.transform_usage('instance', data, testdata.t0,
+                                      testdata.t1)
+        usage2 = xform.transform_usage('instance', data2, testdata.t0,
+                                       testdata.t1)
 
         self.assertEqual(None, usage)
         self.assertEqual(None, usage2)
@@ -284,8 +282,8 @@ class FromImageTransformerTests(unittest.TestCase):
         ]
 
         xform = distil.transformers.FromImage()
-        usage = xform.transform_usage('instance', data, testdata.ts0,
-                                      testdata.ts1)
+        usage = xform.transform_usage('instance', data, testdata.t0,
+                                      testdata.t1)
 
         self.assertEqual(None, usage)
 
@@ -306,8 +304,8 @@ class FromImageTransformerTests(unittest.TestCase):
         ]
 
         xform = distil.transformers.FromImage()
-        usage = xform.transform_usage('instance', data, testdata.ts0,
-                                      testdata.ts1)
+        usage = xform.transform_usage('instance', data, testdata.t0,
+                                      testdata.t1)
 
         self.assertEqual({'volume.size': 20}, usage)
 
@@ -329,8 +327,8 @@ class FromImageTransformerTests(unittest.TestCase):
         ]
 
         xform = distil.transformers.FromImage()
-        usage = xform.transform_usage('instance', data, testdata.ts0,
-                                      testdata.ts1)
+        usage = xform.transform_usage('instance', data, testdata.t0,
+                                      testdata.t1)
 
         self.assertEqual({'volume.size': 60}, usage)
 
@@ -342,13 +340,13 @@ class GaugeNetworkServiceTransformerTests(unittest.TestCase):
             """
 
             data = [
-                {'timestamp': '2014-01-01T00:00:00.0', 'counter_volume': 1},
-                {'timestamp': '2014-01-01T00:10:00.0', 'counter_volume': 0},
-                {'timestamp': '2014-01-01T01:00:00.0', 'counter_volume': 2},
+                {'timestamp': p('2014-01-01T00:00:00'), 'counter_volume': 1},
+                {'timestamp': p('2014-01-01T00:10:00'), 'counter_volume': 0},
+                {'timestamp': p('2014-01-01T01:00:00'), 'counter_volume': 2},
             ]
 
             xform = distil.transformers.GaugeNetworkService()
-            usage = xform.transform_usage('fake_meter', data, testdata.ts0,
-                                          testdata.ts1)
+            usage = xform.transform_usage('fake_meter', data, testdata.t0,
+                                          testdata.t1)
 
             self.assertEqual({'fake_meter': 1}, usage)
