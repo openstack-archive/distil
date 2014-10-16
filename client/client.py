@@ -25,7 +25,7 @@ class Client(object):
                  os_username=None, os_password=None,
                  os_tenant_id=None, os_tenant_name=None,
                  os_auth_url=None, os_region_name=None,
-                 os_cacart=None, insecure=False,
+                 os_cacert=None, insecure=False,
                  os_service_type='rating', os_endpoint_type='publicURL'):
 
         self.insecure = insecure

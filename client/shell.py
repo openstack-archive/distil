@@ -93,22 +93,22 @@ if __name__ == '__main__':
         'last-collected', help=('get last collected time'))
 
     get_usage_parser = subparsers.add_parser(
-            'get-usage', help=('get raw aggregated usage'))
+        'get-usage', help=('get raw aggregated usage'))
 
     get_usage_parser.add_argument(
-            "-t", "--tenant", dest="tenant",
-            help='Tenant to get usage for',
-            required=True)
+        "-t", "--tenant", dest="tenant",
+        help='Tenant to get usage for',
+        required=True)
 
     get_usage_parser.add_argument(
-            "-s", "--start", dest="start",
-            help="Start time",
-            required=True)
+        "-s", "--start", dest="start",
+        help="Start time",
+        required=True)
 
     get_usage_parser.add_argument(
-            "-e", "--end", dest="end",
-            help="End time",
-            required=True)
+        "-e", "--end", dest="end",
+        help="End time",
+        required=True)
 
     sales_parser = subparsers.add_parser(
         'sales-order',
@@ -188,7 +188,18 @@ if __name__ == '__main__':
 
     kwargs = vars(args)
 
-    client = Client(**kwargs)
+    client = Client(kwargs.get('distil_url', None),
+                    kwargs.get('os_auth_token', None),
+                    kwargs.get('os_username', None),
+                    kwargs.get('os_password', None),
+                    kwargs.get('os_tenant_id', None),
+                    kwargs.get('os_tenant_name', None),
+                    kwargs.get('os_auth_url', None),
+                    kwargs.get('os_region_name', None),
+                    kwargs.get('os_cacert', None),
+                    kwargs.get('insecure', None),
+                    kwargs.get('os_service_type', None),
+                    kwargs.get('os_endpoint_type', None))
 
     if args.command == 'collect-usage':
         response = client.usage()
