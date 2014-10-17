@@ -34,21 +34,20 @@ deb: clean init
 	@fpm -s dir -t deb -n ${NAME} -v ${VERSION} \
 	--config-files etc \
 	--depends 'libpq-dev' \
-	--deb-pre-depends "libmysql++-dev" \
-	--deb-pre-depends python2.7 \
-	--deb-pre-depends python-pip \
-	--deb-pre-depends python-dev \
-	--deb-pre-depends python-virtualenv \
-	--deb-pre-depends libpq-dev \
-	--deb-pre-depends python-sqlalchemy \
-	--deb-pre-depends python-keystoneclient \
-	--deb-pre-depends python-requests \
-	--deb-pre-depends python-flask \
-	--deb-pre-depends python-novaclient \
-	--deb-pre-depends python-decorator \
-	--deb-pre-depends python-mysqldb \
-	--deb-pre-depends python-psycopg2 \
-	--deb-pre-depends python-yaml \
+	--depends 'libmysql++-dev' \
+	--depends python2.7 \
+	--depends python-pip \
+	--depends python-dev \
+	--depends python-virtualenv \
+	--depends python-sqlalchemy \
+	--depends python-keystoneclient \
+	--depends python-requests \
+	--depends python-flask \
+	--depends python-novaclient \
+	--depends python-decorator \
+	--depends python-mysqldb \
+	--depends python-psycopg2 \
+	--depends python-yaml \
 	--template-scripts  \
 	--template-value install_path=${INSTALL_PATH} \
 	-C ${WORK_DIR} \

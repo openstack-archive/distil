@@ -23,9 +23,9 @@ deb: clean init
 	@cp		-r ./client/*.py ${WORK_DIR}${INSTALL_PATH}/client/
 	@chmod 0755 ${WORK_DIR}${BINARY_PATH}/distil
 	@fpm -s dir -t deb -n ${NAME} -v ${VERSION} \
-	--deb-pre-depends python2.7 \
-	--deb-pre-depends python-keystoneclient \
-	--deb-pre-depends python-requests \
+	--depends python2.7 \
+	--depends python-keystoneclient \
+	--depends python-requests \
 	--template-scripts  \
 	--template-value install_path=${INSTALL_PATH} \
 	-C ${WORK_DIR} \
