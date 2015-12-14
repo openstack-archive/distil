@@ -1,5 +1,4 @@
 [gerrit]
-host=gerrit.dmz.wgtn.cat-it.co.nz
+host=review.openstack.org
 port=29418
-project=openstack-artifice.git
-defaultbranch=to_production
+project=openstack/distil.git
