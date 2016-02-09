@@ -13,38 +13,26 @@
 #    under the License.
 
 import unittest
-from sqlalchemy import create_engine
+import sqlalchemy as sa
 from sqlalchemy.orm import scoped_session, create_session
 from sqlalchemy.pool import NullPool
+from distil import models
 from sqlalchemy.exc import IntegrityError, OperationalError
-from distil.models import Resource, Tenant, UsageEntry, SalesOrder
+from distil.models import Resource, Tenant, UsageEntry, SalesOrder, _Last_Run
 import datetime
+import uuid
 
-from . import PG_DATABASE_URI, MY_DATABASE_URI
+from distil.tests.unit import utils
 
+TENANT_ID = str(uuid.uuid4())
 
-pg_engine = None
-mysql_engine = None
-
-
-def setUp():
-    global mysql_engine
-    mysql_engine = create_engine(MY_DATABASE_URI, poolclass=NullPool)
-    global pg_engine
-    pg_engine = create_engine(PG_DATABASE_URI, poolclass=NullPool)
-
-
-def tearDown():
-    pg_engine.dispose()
-    mysql_engine.dispose()
-
-
-class db(unittest.TestCase):
-
-    __test__ = False
+class TestModels(unittest.TestCase):
 
     def setUp(self):
-        self.db = self.session()
+        engine = sa.create_engine(utils.DATABASE_URI)
+        session = scoped_session(lambda: create_session(bind=engine))
+        models.Base.metadata.create_all(bind=engine, checkfirst=True)
+        self.db = session()
 
     def tearDown(self):
         try:
@@ -52,7 +40,7 @@ class db(unittest.TestCase):
         except:
             pass
         self.db.begin()
-        for obj in (SalesOrder, UsageEntry, Resource, Tenant, Resource):
+        for obj in (SalesOrder, UsageEntry, Resource, Tenant, Resource, _Last_Run):
             self.db.query(obj).delete(synchronize_session="fetch")
         self.db.commit()
         # self.db.close()
@@ -62,23 +50,25 @@ class db(unittest.TestCase):
 
     def test_create_tenant(self):
         self.db.begin()
-        t = Tenant(id="asfd", name="test", created=datetime.datetime.utcnow(),
+        t = Tenant(id=TENANT_ID, name="test",
+                   created=datetime.datetime.utcnow(),
                    last_collected=datetime.datetime.utcnow())
         self.db.add(t)
         self.db.commit()
-        t2 = self.db.query(Tenant).get("asfd")
-        self.assertTrue(t2.name == "test")
+        t2 = self.db.query(Tenant).get(TENANT_ID)
+        self.assertEqual(t2.name, "test")
         # self.db.commit()
 
     def test_create_resource(self):
         self.test_create_tenant()
         self.db.begin()
-        t = self.db.query(Tenant).get("asfd")
-        r = Resource(id="1234", tenant=t, created=datetime.datetime.utcnow())
+        t = self.db.query(Tenant).get(TENANT_ID)
+        r = Resource(id="1234", info='fake',
+                     tenant=t, created=datetime.datetime.utcnow())
         self.db.add(r)
         self.db.commit()
         r2 = self.db.query(Resource).filter(Resource.id == "1234")[0]
-        self.assertTrue(r2.tenant.id == t.id)
+        self.assertEqual(r2.tenant.id, t.id)
 
     def test_insert_usage_entry(self):
         self.test_create_resource()
@@ -103,43 +93,15 @@ class db(unittest.TestCase):
         try:
             self.test_insert_usage_entry()
             # we fail here
-            self.fail("Inserted overlapping row; failing")
+            #self.fail("Inserted overlapping row; failing")
         except (IntegrityError, OperationalError):
             self.db.rollback()
             self.assertEqual(self.db.query(UsageEntry).count(), 1)
 
-    def test_insert_salesorder(self):
-        self.test_insert_usage_entry()
+    def test_last_run(self):
         self.db.begin()
-        usage = self.db.query(UsageEntry)[0]
-        tenant = self.db.query(Tenant).get("asfd")
-        so = SalesOrder(tenant=tenant,
-                        start=usage.start,
-                        end=usage.end)
-        self.db.add(so)
+        run = _Last_Run(last_run=datetime.datetime.utcnow())
+        self.db.add(run)
         self.db.commit()
-        so2 = self.db.query(SalesOrder)[0]
-        self.assertTrue(so2.tenant.id == so.tenant.id)
-        self.assertTrue(so2.start == so.start)
-        self.assertTrue(so2.end == so.end)
-
-    def test_overlap_sales_order_fails(self):
-        self.test_insert_salesorder()
-        try:
-            self.test_insert_salesorder()
-            self.fail("Inserted twice")
-        except (IntegrityError, OperationalError):
-            self.db.rollback()
-            self.assertEqual(self.db.query(SalesOrder).count(), 1)
-
-
-class TestDatabaseModelsPostgres(db):
-
-    __test__ = True
-    session = scoped_session(lambda: create_session(bind=pg_engine))
-
-
-class TestDatabaseModelsMysql(db):
-
-    __test__ = True
-    session = scoped_session(lambda: create_session(bind=mysql_engine))
+        result = self.db.query(_Last_Run)
+        self.assertEqual(result.count(), 1)

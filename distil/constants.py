@@ -32,7 +32,7 @@ iso_time = "%Y-%m-%dT%H:%M:%S"
 iso_date = "%Y-%m-%d"
 dawn_of_time = datetime(2014, 4, 1)
 
-# VM states:
+# VM states (SOON TO BE REMOVED):
 states = {'active': 1,
           'building': 2,
           'paused': 3,

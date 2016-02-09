@@ -1,5 +1,5 @@
 
-VERSION=0.4.2
+VERSION=0.5.3
 NAME=distil
 INSTALL_PATH=/opt/stack/distil
 BINARY_PATH=/opt/stack/distil
@@ -41,6 +41,7 @@ deb: clean init
 	--depends python-virtualenv \
 	--depends python-sqlalchemy \
 	--depends python-keystoneclient \
+	--depends python-cinderclient \
 	--depends python-requests \
 	--depends python-flask \
 	--depends python-novaclient \
@@ -48,6 +49,7 @@ deb: clean init
 	--depends python-mysqldb \
 	--depends python-psycopg2 \
 	--depends python-yaml \
+	--depends python-memcache \
 	--template-scripts  \
 	--template-value install_path=${INSTALL_PATH} \
 	-C ${WORK_DIR} \

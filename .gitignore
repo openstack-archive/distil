@@ -32,7 +32,15 @@ bin/pybabel
 bin/python
 bin/python2
 bin/python2.7
+.project
+.pydevproject
+.testrepository/
+.tox/
+.venv/
+bin/logs/
 bin/waitress-serve
 local/
 test_vm/
 env/
+ChangeLog
+.idea

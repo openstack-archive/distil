@@ -1,0 +1,46 @@
+odoo-glue
+=========
+
+This script includes the following 2 functions:
+
+- Pulls usage data from distil for a tenant, and creates a matching quote in OpenERP/Odoo.
+- Updates quotation status according to some criteria.
+
+dependencies
+------------
+
+- odoorpc==0.4.2
+- distilclient==0.4.2	(from this source tree, or deb from Catalyst repo)
+- OpenStack credentials in environment for an admin user.
+- glue.ini adapted to your environment (see glue.ini.example)
+
+Genertate quotations for all tenants
+------------------------------------
+
+**IMPORTANT: MAKE SURE DISTIL'S USAGE COLLECTION IS UP TO DATE.**
+
+Replace the --start, --end and logfile names appropriately:
+`start` should be the first instant inside the billing period (midnight UTC on the first day).
+`end` should be the first instant after the end of the billing period (midnight UTC on the first day after the end)
+The output will be useful in case anything goes wrong. An example::
+
+    $ ./odoo-glue.py quote --start 2014-09-01T00:00:00 --end 2014-10-01T00:00:00 1>~/distil-odoo-201409 2>&1
+
+Update quotation status
+-----------------------
+
+Updates status of some quotations from draft to new status(can be chosen from manual/cancel/draft) according to order_id, company name and/or tenant_id, please see the following examples.
+
+Update status of all the quotations of a specified tenant to manual::
+
+    $ ./odoo-glue.py --debug update-quote -s manual -t <tenant_id>
+
+Update status of a specified quotation to cancel::
+
+    $ ./odoo-glue.py --debug update-quote -s cancel --id <order_id>
+
+*NOTE*: The ID param is NOT quotation number(something like SO1955), updating quotation status using ID is just for recovery in case of executing this command erroneously. You can find order ID in log.
+
+Please refer to more detailed description about this command by running::
+
+    $ ./odoo-glue.py help update-quote
