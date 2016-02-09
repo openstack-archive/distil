@@ -13,11 +13,13 @@
 #    under the License.
 
 from webtest import TestApp
-from . import test_interface, helpers, constants
+from distil.tests.unit import test_interface
+from distil.tests.unit import utils
 from distil.api import web
 from distil.api.web import get_app
 from distil import models
 from distil import interface
+from distil import config
 from distil.helpers import convert_to
 from distil.constants import dawn_of_time
 from datetime import datetime
@@ -27,14 +29,17 @@ import json
 import mock
 
 
-class TestApi(test_interface.TestInterface):
+class TestAPI(test_interface.TestInterface):
+    __name__ = 'TestAPI'
 
     def setUp(self):
-        super(TestApi, self).setUp()
-        self.app = TestApp(get_app(constants.config))
+        self.db_uri = 'sqlite:////tmp/distl.db'
+        super(TestAPI, self).setUp()
+        with mock.patch("distil.api.web.setup_memcache") as setup_memcache:
+            self.app = TestApp(get_app(utils.FAKE_CONFIG))
 
     def tearDown(self):
-        super(TestApi, self).tearDown()
+        super(TestAPI, self).tearDown()
         self.app = None
 
     @unittest.skip
@@ -79,60 +84,85 @@ class TestApi(test_interface.TestInterface):
 
                 self.assertEquals(resources.count(), len(usage.values()))
 
-    def test_sales_run_for_all(self):
-        """Assertion that a sales run generates all tenant orders"""
-        numTenants = 7
+    @unittest.skip
+    def test_memcache_raw_usage(self):
+        """Tests that raw usage queries are cached, and returned."""
+        numTenants = 1
         numResources = 5
 
-        now = datetime.utcnow().\
-            replace(hour=0, minute=0, second=0, microsecond=0)
+        end = datetime.strptime("2014-08-01", "%Y-%m-%d")
 
-        helpers.fill_db(self.session, numTenants, numResources, now)
+        fake_memcache = {}
+        keys = []
+        values = []
 
-        for i in range(numTenants):
-            resp = self.app.post("/sales_order",
-                                 params=json.dumps({"tenant": "tenant_id_" +
-                                                    str(i)}),
-                                 content_type='application/json')
-            resp_json = json.loads(resp.body)
-            print resp_json
+        def set_mem(key, value):
+            keys.append(key)
+            values.append(value)
+            fake_memcache[key] = value
 
-            query = self.session.query(models.SalesOrder)
-            self.assertEquals(query.count(), i + 1)
+        def get_mem(key):
+            return fake_memcache.get(key, None)
 
-            self.assertEquals(len(resp_json['resources']), numResources)
+        utils.init_db(self.session, numTenants, numResources, end)
 
-    def test_sales_run_single(self):
-        """Assertion that a sales run generates one tenant only"""
-        numTenants = 5
+        with mock.patch("distil.api.web.memcache") as memcache:
+            memcache.get.side_effect = get_mem
+            memcache.set.side_effect = set_mem
+            resp = self.app.get("/get_usage",
+                                params={"tenant": "tenant_id_0",
+                                        "start": "2014-07-01T00:00:00",
+                                        "end": "2014-08-01T00:00:00"})
+            self.assertEquals(resp.body, values[0])
+
+            test_string = "this is not a valid computation"
+            fake_memcache[keys[0]] = test_string
+            resp2 = self.app.get("/get_usage",
+                                 params={"tenant": "tenant_id_0",
+                                         "start": "2014-07-01T00:00:00",
+                                         "end": "2014-08-01T00:00:00"})
+            self.assertEquals(1, len(values))
+            self.assertEquals(resp2.body, test_string)
+
+    @unittest.skip
+    def test_memcache_rated_usage(self):
+        """Tests that rated usage queries are cached, and returned."""
+        numTenants = 1
         numResources = 5
 
-        now = datetime.utcnow().\
-            replace(hour=0, minute=0, second=0, microsecond=0)
-        helpers.fill_db(self.session, numTenants, numResources, now)
-        resp = self.app.post("/sales_order",
-                             params=json.dumps({"tenant": "tenant_id_0"}),
-                             content_type="application/json")
-        resp_json = json.loads(resp.body)
+        end = datetime.strptime("2014-08-01", "%Y-%m-%d")
 
-        query = self.session.query(models.SalesOrder)
-        self.assertEquals(query.count(), 1)
-        # todo: assert things in the response
-        self.assertEquals(len(resp_json['resources']), numResources)
+        fake_memcache = {}
+        keys = []
+        values = []
 
-    def test_sales_raises_400(self):
-        """Assertion that 400 is being thrown if content is not json."""
-        resp = self.app.post("/sales_order", expect_errors=True)
-        self.assertEquals(resp.status_int, 400)
+        def set_mem(key, value):
+            keys.append(key)
+            values.append(value)
+            fake_memcache[key] = value
 
-    def test_sales_order_no_tenant_found(self):
-        """Test that if a tenant is provided and not found,
-        then we throw an error."""
-        resp = self.app.post('/sales_order',
-                             expect_errors=True,
-                             params=json.dumps({'tenant': 'bogus tenant'}),
-                             content_type='application/json')
-        self.assertEquals(resp.status_int, 400)
+        def get_mem(key):
+            return fake_memcache.get(key, None)
+
+        utils.init_db(self.session, numTenants, numResources, end)
+
+        with mock.patch("distil.api.web.memcache") as memcache:
+            memcache.get.side_effect = get_mem
+            memcache.set.side_effect = set_mem
+            resp = self.app.get("/get_rated",
+                                params={"tenant": "tenant_id_0",
+                                        "start": "2014-07-01T00:00:00",
+                                        "end": "2014-08-01T00:00:00"})
+            self.assertEquals(resp.body, values[0])
+
+            test_string = "this is not a valid computation"
+            fake_memcache[keys[0]] = test_string
+            resp2 = self.app.get("/get_rated",
+                                 params={"tenant": "tenant_id_0",
+                                         "start": "2014-07-01T00:00:00",
+                                         "end": "2014-08-01T00:00:00"})
+            self.assertEquals(1, len(values))
+            self.assertEquals(resp2.body, test_string)
 
     def test_tenant_dict(self):
         """Checking that the tenant dictionary is built correctly
@@ -141,15 +171,19 @@ class TestApi(test_interface.TestInterface):
         num_services = 2
         volume = 5
 
-        entries = helpers.create_usage_entries(num_resources,
-                                               num_services, volume)
+        entries = utils.create_usage_entries(num_resources,
+                                             num_services, volume)
 
         tenant = mock.MagicMock()
         tenant.name = "tenant_1"
         tenant.id = "tenant_id_1"
 
         db = mock.MagicMock()
-        db.get_resource_metadata.return_value = {}
+        db.get_resources.return_value = {
+                'resource_id_0': {},
+                'resource_id_1': {},
+                'resource_id_2': {},
+                }
 
         tenant_dict = web.build_tenant_dict(tenant, entries, db)
 
@@ -171,7 +205,6 @@ class TestApi(test_interface.TestInterface):
         tenant.id = "tenant_id_1"
 
         db = mock.MagicMock()
-        db.get_resource_metadata.return_value = {}
 
         tenant_dict = web.build_tenant_dict(tenant, entries, db)
 
@@ -187,7 +220,7 @@ class TestApi(test_interface.TestInterface):
 
         test_tenant = {
             'resources': {
-                'resouce_ID_1': {
+                'resource_1': {
                     'services': [{'name': 'service_1',
                                   'volume': Decimal(volume),
                                   'unit': 'second'},
@@ -195,7 +228,7 @@ class TestApi(test_interface.TestInterface):
                                   'volume': Decimal(volume),
                                   'unit': 'second'}]
                 },
-                'resouce_ID_2': {
+                'resource_2': {
                     'services': [{'name': 'service_1',
                                   'volume': Decimal(volume),
                                   'unit': 'second'},
@@ -239,7 +272,7 @@ class TestApi(test_interface.TestInterface):
 
     def test_get_last_collected(self):
         """test to ensure last collected api call returns correctly"""
-        now = datetime.utcnow()
+        now = datetime.now()
         self.session.add(models._Last_Run(last_run=now))
         self.session.commit()
         resp = self.app.get("/last_collected")
@@ -251,3 +284,18 @@ class TestApi(test_interface.TestInterface):
         resp = self.app.get("/last_collected")
         resp_json = json.loads(resp.body)
         self.assertEquals(resp_json['last_collected'], str(dawn_of_time))
+
+    def test_filter_and_group(self):
+        usage = [{'source': 'openstack', 'resource_id': 1},
+                 {'source': '22c4f150358e4ed287fa51e050d7f024:TrafficAccounting', 'resource_id': 2},
+                 {'source': 'fake', 'resource_id': 3},]
+        usage_by_resource = {}
+        config.main = {'trust_sources':
+                       ['openstack', '.{32}:TrafficAccounting']}
+        web.filter_and_group(usage, usage_by_resource)
+
+        expected = {1: [{'source': 'openstack', 'resource_id': 1}],
+                    2: [{'source':
+                         '22c4f150358e4ed287fa51e050d7f024:TrafficAccounting',
+                         'resource_id': 2}]}
+        self.assertEquals(usage_by_resource, expected)

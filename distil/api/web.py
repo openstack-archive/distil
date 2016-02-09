@@ -13,25 +13,32 @@
 #    under the License.
 
 import flask
+import hashlib
+import re
+from distil.NoPickle import NoPickle
 from flask import Flask, Blueprint
 from distil import database, config
 from distil.constants import iso_time, iso_date, dawn_of_time
 from distil.transformers import active_transformers as transformers
 from distil.rates import RatesFile
-from distil.models import SalesOrder, _Last_Run
+from distil.models import _Last_Run
 from distil.helpers import convert_to, reset_cache
 from distil.interface import Interface, timed
-from sqlalchemy import create_engine, func
+from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, create_session
 from sqlalchemy.pool import NullPool
 from sqlalchemy.exc import IntegrityError, OperationalError
+# Fix the the multithread issue when using strptime, based on this link:
+# stackoverflow.com/questions/2427240/thread-safe-equivalent-to-pythons-time-strptime   # noqa
+import _strptime
 from datetime import datetime, timedelta
 from decimal import Decimal
 import json
 import logging as log
-from keystoneclient.middleware.auth_token import AuthProtocol as KeystoneMiddleware
+from keystonemiddleware import auth_token
 
 from .helpers import returns_json, json_must, validate_tenant_id, require_admin
+from .helpers import require_admin_or_owner
 from urlparse import urlparse
 
 
@@ -39,10 +46,18 @@ engine = None
 
 Session = None
 
+memcache = None
+
 app = Blueprint("main", __name__)
 
 DEFAULT_TIMEZONE = "Pacific/Auckland"
 
+RATES = None
+
+# Double confirm by:
+# http://blog.namis.me/2012/02/14/python-strptime-is-not-thread-safe/
+dumy_call = datetime.strptime("2011-04-05 18:40:58.525996",
+                              "%Y-%m-%d %H:%M:%S.%f")
 
 def get_app(conf):
     actual_app = Flask(__name__)
@@ -65,6 +80,8 @@ def get_app(conf):
                     format='%(asctime)s %(message)s')
     log.info("Billing API started.")
 
+    setup_memcache()
+
     # if configured to authenticate clients, then wrap the
     # wsgi app in the keystone middleware.
     if config.auth.get('authenticate_clients'):
@@ -77,9 +94,20 @@ def get_app(conf):
             'auth_port': identity_url.port,
             'auth_protocol': identity_url.scheme
         }
-        actual_app = KeystoneMiddleware(actual_app, conf)
+        actual_app = auth_token.AuthProtocol(actual_app, conf)
 
     return actual_app
+
+
+def setup_memcache():
+    if config.memcache['enabled']:
+        log.info("Memcache enabled.")
+        import memcache as memcached
+        global memcache
+        memcache = memcached.Client(config.memcache['addresses'],
+                                    pickler=NoPickle, unpickler=NoPickle)
+    else:
+        log.info("Memcache disabled.")
 
 
 @app.route("last_collected", methods=["GET"])
@@ -116,8 +144,13 @@ def filter_and_group(usage, usage_by_resource):
             # billing.
             # if we have a list of trust sources configured, then
             # discard everything not matching.
-            if trust_sources and u['source'] not in trust_sources:
-                log.warning('ignoring untrusted usage sample ' +
+            # NOTE(flwang): When posting samples by ceilometer REST API, it
+            # will use the format <tenant_id>:<source_name_from_user>
+            # so we need to use a regex to recognize it.
+            if (trust_sources and
+                all([not re.match(source, u['source'])
+                     for source in trust_sources]) == True):
+                log.warning('Ignoring untrusted usage sample ' +
                             'from source `%s`' % u['source'])
                 continue
 
@@ -127,7 +160,7 @@ def filter_and_group(usage, usage_by_resource):
 
 
 def transform_and_insert(tenant, usage_by_resource, transformer, service,
-                         meter_info, window_start, window_end,
+                         mapping, window_start, window_end,
                          db, timestamp):
     with timed("apply transformer + insert"):
         for res, entries in usage_by_resource.items():
@@ -136,14 +169,14 @@ def transform_and_insert(tenant, usage_by_resource, transformer, service,
                 service, entries, window_start, window_end)
 
             if transformed:
-                res = meter_info.get('res_id_template', '%s') % res
+                res = mapping.get('res_id_template', '%s') % res
 
-                md_def = meter_info['metadata']
+                md_def = mapping['metadata']
 
-                db.insert_resource(tenant.id, res, meter_info['type'],
+                db.insert_resource(tenant.id, res, mapping['type'],
                                    timestamp, entries[-1], md_def)
                 db.insert_usage(tenant.id, res, transformed,
-                                meter_info['unit'], window_start,
+                                mapping['unit'], window_start,
                                 window_end, timestamp)
 
 
@@ -175,21 +208,21 @@ def collect_usage(tenant, db, session, resp, end):
 
                 mappings = config.collection['meter_mappings']
 
-                for meter_name, meter_info in mappings.items():
-                    usage = tenant.usage(meter_name, window_start, window_end)
+                for mapping in mappings:
+                    usage = tenant.usage(mapping['meter'], window_start, window_end)
                     usage_by_resource = {}
 
-                    transformer = transformers[meter_info['transformer']]()
+                    transformer = transformers[mapping['transformer']]()
 
                     filter_and_group(usage, usage_by_resource)
 
-                    if 'service' in meter_info:
-                        service = meter_info['service']
+                    if 'service' in mapping:
+                        service = mapping['service']
                     else:
-                        service = meter_name
+                        service = mapping['meter']
 
                     transform_and_insert(tenant, usage_by_resource,
-                                         transformer, service, meter_info,
+                                         transformer, service, mapping,
                                          window_start, window_end, db,
                                          timestamp)
 
@@ -271,6 +304,7 @@ def run_usage_collection():
         trace = traceback.format_exc()
         log.critical('Exception escaped! %s \nTrace: \n%s' % (e, trace))
 
+
 def make_serializable(obj):
     if isinstance(obj, list):
         return [make_serializable(x) for x in obj]
@@ -282,9 +316,10 @@ def make_serializable(obj):
 
     return obj
 
+
 @app.route("get_usage", methods=["GET"])
+@require_admin_or_owner
 @returns_json
-@require_admin
 def get_usage():
     """
     Get raw aggregated usage for a tenant, in a given timespan.
@@ -320,32 +355,117 @@ def get_usage():
 
     log.info("parameter validation ok")
 
+    if memcache is not None:
+        key = make_key("raw_usage", tenant_id, start, end)
+
+        data = memcache.get(key)
+        if data is not None:
+            log.info("Returning memcache raw data for %s in range: %s - %s" %
+                     (tenant_id, start, end))
+            return 200, data
+
+    log.info("Calculating raw data for %s in range: %s - %s" %
+             (tenant_id, start, end))
+
     # aggregate usage
     usage = db.usage(start, end, tenant_id)
     tenant_dict = build_tenant_dict(valid_tenant, usage, db)
 
-    return 200, {'usage': make_serializable(tenant_dict)}
+    response_json = json.dumps({'usage': make_serializable(tenant_dict)})
+
+    if memcache is not None:
+        memcache.set(key, response_json)
+
+    return 200, response_json
+
+
+@app.route("get_rated", methods=["GET"])
+@require_admin_or_owner
+@returns_json
+def get_rated():
+    """
+    Get rated aggregated usage for a tenant, in a given timespan.
+    Rates used are those at the 'start' of the timespan.
+       -tenant_id: tenant to get data for.
+       -start: a given start for the range.
+       -end: a given end for the range, defaults to now.
+    """
+    tenant_id = flask.request.args.get('tenant', None)
+    start = flask.request.args.get('start', None)
+    end = flask.request.args.get('end', None)
+
+    try:
+        if start is not None:
+            try:
+                start = datetime.strptime(start, iso_date)
+            except ValueError:
+                start = datetime.strptime(start, iso_time)
+        else:
+            return 400, {"missing parameter": {"start": "start date" +
+                                               " in format: y-m-d"}}
+        if not end:
+            end = datetime.utcnow()
+        else:
+            try:
+                end = datetime.strptime(end, iso_date)
+            except ValueError:
+                end = datetime.strptime(end, iso_time)
+    except ValueError:
+            return 400, {
+                "errors": ["'end' date given needs to be in format: " +
+                           "y-m-d, or y-m-dTH:M:S"]}
+
+    if end <= start:
+        return 400, {"errors": ["end date must be greater than start."]}
+
+    session = Session()
+
+    valid_tenant = validate_tenant_id(tenant_id, session)
+    if isinstance(valid_tenant, tuple):
+        return valid_tenant
+
+    if memcache is not None:
+        key = make_key("rated_usage", valid_tenant.id, start, end)
+
+        data = memcache.get(key)
+        if data is not None:
+            log.info("Returning memcache rated data for %s in range: %s - %s" %
+                     (valid_tenant.id, start, end))
+            return 200, data
+
+    log.info("Calculating rated data for %s in range: %s - %s" %
+             (valid_tenant.id, start, end))
+
+    tenant_dict = calculate_rated_data(valid_tenant, start, end, session)
+
+    response_json = json.dumps({'usage': tenant_dict})
+
+    if memcache is not None:
+        memcache.set(key, response_json)
+
+    return 200, response_json
+
+
+def make_key(api_call, tenant_id, start, end):
+    call_info = [config.memcache['key_prefix'], api_call,
+                 tenant_id, str(start), str(end)]
+    return hashlib.sha256(str(call_info)).hexdigest()
 
 
 def build_tenant_dict(tenant, entries, db):
     """Builds a dict structure for a given tenant."""
-    tenant_dict = {'name': tenant.name, 'tenant_id': tenant.id,
-                   'resources': {}}
+    tenant_dict = {'name': tenant.name, 'tenant_id': tenant.id}
+
+    all_resource_ids = {entry.resource_id for entry in entries}
+    tenant_dict['resources'] = db.get_resources(all_resource_ids)
 
     for entry in entries:
         service = {'name': entry.service, 'volume': entry.volume,
-                   'unit': entry.unit}
+                'unit': entry.unit}
 
-        if (entry.resource_id not in tenant_dict['resources']):
-            resource = db.get_resource_metadata(entry.resource_id)
-
-            resource['services'] = [service]
-
-            tenant_dict['resources'][entry.resource_id] = resource
-
-        else:
-            resource = tenant_dict['resources'][entry.resource_id]
-            resource['services'].append(service)
+        resource = tenant_dict['resources'][entry.resource_id]
+        service_list = resource.setdefault('services', [])
+        service_list.append(service)
 
     return tenant_dict
 
@@ -386,226 +506,26 @@ def add_costs_for_tenant(tenant, RatesManager):
     return tenant
 
 
-def generate_sales_order(draft, tenant_id, end):
-    """Generates a sales order dict, and unless draft is true,
-       creates a database entry for sales_order."""
-    session = Session()
+def calculate_rated_data(tenant, start, end, session):
+    """Calculate a rated data dict from the given range."""
+
     db = database.Database(session)
 
-    valid_tenant = validate_tenant_id(tenant_id, session)
-    if isinstance(valid_tenant, tuple):
-        return valid_tenant
+    global RATES
+    if not RATES:
+        RATES = RatesFile(config.rates_config)
 
-    rates = RatesFile(config.rates_config)
-
-    # Get the last sales order for this tenant, to establish
-    # the proper ranging
-    start = session.query(func.max(SalesOrder.end).label('end')).\
-        filter(SalesOrder.tenant_id == tenant_id).first().end
-    if not start:
-        start = dawn_of_time
-
-    # these coditionals need work, also some way to
-    # ensure all given timedate values are in UTC?
-    if end <= start:
-        return 400, {"errors": ["end date must be greater than " +
-                                "the end of the last sales order range."]}
-    if end > datetime.utcnow():
-        return 400, {"errors": ["end date cannot be a future date."]}
-
-    usage = db.usage(start, end, tenant_id)
-
-    session.begin()
-    if not draft:
-        order = SalesOrder(tenant_id=tenant_id, start=start, end=end)
-        session.add(order)
-
-    try:
-        # Commit the record before we generate the bill, to mark this as a
-        # billed region of data. Avoids race conditions by marking a tenant
-        # BEFORE we start to generate the data for it.
-        session.commit()
-
-        # Transform the query result into a billable dict.
-        tenant_dict = build_tenant_dict(valid_tenant, usage, db)
-        tenant_dict = add_costs_for_tenant(tenant_dict, rates)
-
-        # add sales order range:
-        tenant_dict['start'] = str(start)
-        tenant_dict['end'] = str(end)
-        session.close()
-        if not draft:
-            log.info("Sales Order #%s Generated for %s in range: %s - %s" %
-                     (order.id, tenant_id, start, end))
-        return 200, tenant_dict
-    except (IntegrityError, OperationalError):
-        session.rollback()
-        session.close()
-        log.warning("IntegrityError creating sales-order for " +
-                    "%s %s in range: %s - %s " %
-                    (valid_tenant.name, valid_tenant.id, start, end))
-        return 400, {"id": tenant_id,
-                     "error": "IntegrityError, existing sales_order overlap."}
-
-
-def regenerate_sales_order(tenant_id, target):
-    """Finds a sales order entry nearest to the target,
-       and returns a salesorder dict based on the entry."""
-    session = Session()
-    db = database.Database(session)
-    rates = RatesFile(config.rates_config)
-
-    valid_tenant = validate_tenant_id(tenant_id, session)
-    if isinstance(valid_tenant, tuple):
-        return valid_tenant
-
-    try:
-        sales_order = db.get_sales_orders(tenant_id, target, target)[0]
-    except IndexError:
-        return 400, {"errors": ["Given date not in existing sales orders."]}
-
-    usage = db.usage(sales_order.start, sales_order.end, tenant_id)
+    usage = db.usage(start, end, tenant.id)
 
     # Transform the query result into a billable dict.
-    tenant_dict = build_tenant_dict(valid_tenant, usage, db)
-    tenant_dict = add_costs_for_tenant(tenant_dict, rates)
+    tenant_dict = build_tenant_dict(tenant, usage, db)
+    tenant_dict = add_costs_for_tenant(tenant_dict, RATES)
 
     # add sales order range:
-    tenant_dict['start'] = str(sales_order.start)
-    tenant_dict['end'] = str(sales_order.end)
+    tenant_dict['start'] = str(start)
+    tenant_dict['end'] = str(end)
 
-    return 200, tenant_dict
-
-
-def regenerate_sales_order_range(tenant_id, start, end):
-    """For all sales orders in a given range, generate sales order dicts,
-       and return them."""
-    session = Session()
-    db = database.Database(session)
-    rates = RatesFile(config.rates_config)
-
-    valid_tenant = validate_tenant_id(tenant_id, session)
-    if isinstance(valid_tenant, tuple):
-        return valid_tenant
-
-    sales_orders = db.get_sales_orders(tenant_id, start, end)
-
-    tenants = []
-    for sales_order in sales_orders:
-        usage = db.usage(sales_order.start, sales_order.end, tenant_id)
-
-        # Transform the query result into a billable dict.
-        tenant_dict = build_tenant_dict(valid_tenant, usage, db)
-        tenant_dict = add_costs_for_tenant(tenant_dict, rates)
-
-        # add sales order range:
-        tenant_dict['start'] = str(sales_order.start)
-        tenant_dict['end'] = str(sales_order.end)
-
-        tenants.append(tenant_dict)
-
-    return 200, tenants
-
-
-@app.route("sales_order", methods=["POST"])
-@require_admin
-@json_must()
-@returns_json
-def run_sales_order_generation():
-    """Generates a sales order for the given tenant.
-       -end: a given end date, or uses default"""
-    tenant_id = flask.request.json.get("tenant", None)
-    end = flask.request.json.get("end", None)
-    if not end:
-        # Today, the beginning of.
-        end = datetime.utcnow().\
-            replace(hour=0, minute=0, second=0, microsecond=0)
-    else:
-        try:
-            end = datetime.strptime(end, iso_date)
-        except ValueError:
-            return 400, {"errors": ["'end' date given needs to be in format:" +
-                                    " y-m-d"]}
-
-    return generate_sales_order(False, tenant_id, end)
-
-
-@app.route("sales_draft", methods=["POST"])
-@require_admin
-@json_must()
-@returns_json
-def run_sales_draft_generation():
-    """Generates a sales draft for the given tenant.
-       -end: a given end datetime, or uses default"""
-    tenant_id = flask.request.json.get("tenant", None)
-    end = flask.request.json.get("end", None)
-
-    if not end:
-        end = datetime.utcnow()
-    else:
-        try:
-            end = datetime.strptime(end, iso_date)
-        except ValueError:
-            try:
-                end = datetime.strptime(end, iso_time)
-            except ValueError:
-                return 400, {
-                    "errors": ["'end' date given needs to be in format: " +
-                               "y-m-d, or y-m-dTH:M:S"]}
-
-    return generate_sales_order(True, tenant_id, end)
-
-
-@app.route("sales_historic", methods=["POST"])
-@require_admin
-@json_must()
-@returns_json
-def run_sales_historic_generation():
-    """Returns the sales order that intersects with the given target date.
-       -target: a given target date"""
-    tenant_id = flask.request.json.get("tenant", None)
-    target = flask.request.json.get("date", None)
-
-    if target is not None:
-        try:
-            target = datetime.strptime(target, iso_date)
-        except ValueError:
-            return 400, {"errors": ["date given needs to be in format: " +
-                                    "y-m-d"]}
-    else:
-        return 400, {"missing parameter": {"date": "target date in format: " +
-                                           "y-m-d"}}
-
-    return regenerate_sales_order(tenant_id, target)
-
-
-@app.route("sales_range", methods=["POST"])
-@require_admin
-@json_must()
-@returns_json
-def run_sales_historic_range_generation():
-    """Returns the sales orders that intersect with the given date range.
-       -start: a given start for the range.
-       -end: a given end for the range, defaults to now."""
-    tenant_id = flask.request.json.get("tenant", None)
-    start = flask.request.json.get("start", None)
-    end = flask.request.json.get("end", None)
-
-    try:
-        if start is not None:
-            start = datetime.strptime(start, iso_date)
-        else:
-            return 400, {"missing parameter": {"start": "start date" +
-                                               " in format: y-m-d"}}
-        if end is not None:
-                end = datetime.strptime(end, iso_date)
-        else:
-            end = datetime.utcnow()
-    except ValueError:
-            return 400, {"errors": ["dates given need to be in format: " +
-                                    "y-m-d"]}
-
-    return regenerate_sales_order_range(tenant_id, start, end)
+    return tenant_dict
 
 
 if __name__ == '__main__':

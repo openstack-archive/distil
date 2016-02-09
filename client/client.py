@@ -16,7 +16,6 @@ import requests
 from keystoneclient.v2_0.client import Client as Keystone
 from requests.exceptions import ConnectionError
 from urlparse import urljoin
-import json
 
 
 class Client(object):
@@ -55,7 +54,7 @@ class Client(object):
                     endpoint_type=os_endpoint_type
                 )
 
-    def usage(self):
+    def collect_usage(self):
         url = urljoin(self.endpoint, "collect_usage")
 
         headers = {"Content-Type": "application/json",
@@ -90,17 +89,20 @@ class Client(object):
             print e
 
     def get_usage(self, tenant, start, end):
-        url = urljoin(self.endpoint, "get_usage")
+        return self._query_usage(tenant, start, end, "get_usage")
 
-        headers = {
-                "X-Auth-Token": self.auth_token
-                }
+    def get_rated(self, tenant, start, end):
+        return self._query_usage(tenant, start, end, "get_rated")
 
-        params = {
-                "tenant": tenant,
-                "start": start,
-                "end": end
-                }
+    def _query_usage(self, tenant, start, end, endpoint):
+        url = urljoin(self.endpoint, endpoint)
+
+        headers = {"X-Auth-Token": self.auth_token}
+
+        params = {"tenant": tenant,
+                  "start": start,
+                  "end": end
+                  }
 
         try:
             response = requests.get(url, headers=headers,
@@ -108,52 +110,8 @@ class Client(object):
                                     verify=not self.insecure)
             if response.status_code != 200:
                 raise AttributeError("Get usage failed: %s code: %s" %
-                        (response.text, response.status_code))
+                                     (response.text, response.status_code))
             else:
                 return response.json()
         except ConnectionError as e:
             print e
-
-    def _sales_order_query(self, tenants, relative_url, make_data):
-        url = urljoin(self.endpoint, relative_url)
-
-        headers = {"Content-Type": "application/json",
-                   "X-Auth-Token": self.auth_token}
-
-        tenants_resp = {'sales_orders': [], 'errors': {}}
-        for tenant in tenants:
-            data = make_data(tenant)
-            try:
-                response = requests.post(url, headers=headers,
-                                         data=json.dumps(data),
-                                         verify=not self.insecure)
-                if response.status_code != 200:
-                    error = ("Sales order cycle failed: %s Code: %s" %
-                            (response.text, response.status_code))
-                    tenants_resp['errors'][tenant] = error
-                else:
-                    tenants_resp['sales_orders'].append(response.json())
-            except ConnectionError as e:
-                print e
-        return tenants_resp
-
-    def sales_order(self, tenants, end, draft):
-        return self._sales_order_query(
-            tenants,
-            'sales_draft' if draft else 'sales_order',
-            lambda tenant: {'tenant': tenant, 'end': end}
-            )
-
-    def sales_historic(self, tenants, date):
-        return self._sales_order_query(
-            tenants,
-            'sales_historic',
-            lambda tenant: {'tenant': tenant, 'date': date}
-            )
-
-    def sales_range(self, tenants, start, end):
-        return self._sales_order_query(
-            tenants,
-            'sales_range',
-            lambda tenant: {'tenant': tenant, 'start': start, 'end': end}
-            )

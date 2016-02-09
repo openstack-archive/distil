@@ -45,9 +45,17 @@ def must(*args, **kwargs):
 
 @decorator
 def returns_json(func, *args, **kwargs):
+    """Dumps content into a json and makes a response.
+       NOTE: If content is already a string assumes it is json."""
     status, content = func(*args, **kwargs)
+
+    if isinstance(content, str):
+        content_json = content
+    else:
+        content_json = json.dumps(content)
+
     response = flask.make_response(
-        json.dumps(content), status)
+        content_json, status)
     response.headers['Content-type'] = 'application/json'
     return response
 
@@ -73,7 +81,7 @@ def validate_tenant_id(tenant_id, session):
     """Tenant ID validation that check that the id you passed is valid,
        and that a tenant with this ID exists.
        - returns tenant query, or a tuple if validation failure."""
-    if isinstance(tenant_id, unicode):
+    if isinstance(tenant_id, basestring):
         tenant_query = session.query(Tenant).\
             filter(Tenant.id == tenant_id)
         if tenant_query.count() == 0:
@@ -90,6 +98,23 @@ def require_admin(func, *args, **kwargs):
     if config.auth.get('authenticate_clients'):
         roles = flask.request.headers['X-Roles'].split(',')
         if 'admin' not in roles:
-            return flask.make_response(403, "Must be admin")
+            return flask.make_response("Must be admin", 403)
+
+    return func(*args, **kwargs)
+
+
+@decorator
+def require_admin_or_owner(func, *args, **kwargs):
+    if config.auth.get('authenticate_clients'):
+        roles = flask.request.headers['X-Roles'].split(',')
+        tenant_id = flask.request.headers['X-tenant-id']
+        json_tenant_id = (None if not flask.request.json
+                          else flask.request.json['tenant'])
+        args_tenant_id = flask.request.args.get('tenant')
+        request_tenant_id = json_tenant_id or args_tenant_id
+        if 'admin' in roles or tenant_id == request_tenant_id:
+            return func(*args, **kwargs)
+
+        return flask.make_response("Must be admin or the tenant owner.", 403)
 
     return func(*args, **kwargs)

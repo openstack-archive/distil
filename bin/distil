@@ -1,6 +1,5 @@
 #!/bin/bash
 
-DISTILPATH=/opt/stack/distilclient
+DISTILPATH=/usr/lib/python2.7/dist-packages/distilclient
 
-export PYTHONPATH=${DISTILPATH}:${PYTHONPATH}
-python ${DISTILPATH}/client/shell.py "$@"
+python ${DISTILPATH}/shell.py "$@"

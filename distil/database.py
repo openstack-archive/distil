@@ -111,11 +111,11 @@ class Database(object):
 
         return query
 
-    def get_resource_metadata(self, resource_id):
-        """Gets the metadata for a resource and loads it into a dict."""
-        info = self.session.query(Resource.info).\
-            filter(Resource.id == resource_id)
-        return json.loads(info[0].info)
+    def get_resources(self, resource_id_list):
+        """Gets resource metadata in bulk."""
+        query = self.session.query(Resource.id, Resource.info).\
+                filter(Resource.id.in_(resource_id_list))
+        return {row.id: json.loads(row.info) for row in query}
 
     def get_sales_orders(self, tenant_id, start, end):
         """Returns a query with all sales orders

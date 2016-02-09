@@ -18,7 +18,58 @@ from datetime import timedelta
 import json
 
 
-def fill_db(session, numb_tenants, numb_resources, now):
+DATABASE_URI = 'sqlite:///:memory:'
+
+FAKE_CONFIG = {
+    "main": {
+        "region": "Wellington",
+        "timezone": "Pacific/Auckland",
+        "database_uri": 'sqlite:////tmp/distl.db',
+        "log_file": "/tmp/distil-api.log"
+    },
+    "rates_config": {
+        "file": "examples/test_rates.csv"
+    },
+    "auth": {
+        "end_point": "http://localhost:35357/v2.0",
+        "username": "admin",
+        "password": "openstack",
+        "default_tenant": "demo",
+        "insecure": False,
+    },
+    "memcache": {
+        "key_prefix": "distil",
+        "addresses": ["127.0.0.1:11211"]
+    },
+    "ceilometer": {
+        "host": "http://localhost:8777/"
+    },
+    "transformers": {
+        "uptime": {
+            "tracked_states": ["active", "building",
+                               "paused", "rescued", "resized"]
+        },
+        "from_image": {
+            "service": "volume.size",
+            "md_keys": ["image_ref", "image_meta.base_image_ref"],
+            "none_values": ["None", ""],
+            "size_keys": ["root_gb"]
+        }
+    },
+    "collection": {}
+}
+
+FAKE_TENANT_ID = "cd3deadd3d5a4f11802d03928195f4ef"
+
+FAKE_TENANT = [
+    {u'enabled': True,
+     u'description': None,
+     u'name': u'demo',
+     u'id': u'cd3deadd3d5a4f11802d03928195f4ef'}
+]
+
+
+def init_db(session, numb_tenants, numb_resources, now):
     for i in range(numb_tenants):
         session.add(models.Tenant(
             id="tenant_id_" + str(i),

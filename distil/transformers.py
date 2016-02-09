@@ -12,10 +12,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import datetime
 import constants
 import helpers
 import config
+import logging as log
+from distil.constants import iso_time, iso_date
 
 
 class Transformer(object):
@@ -30,6 +31,8 @@ class Uptime(Transformer):
     """
     Transformer to calculate uptime based on states,
     which is broken apart into flavor at point in time.
+    This is a soon to be deprecated version that uses our state
+    metric.
     """
 
     def _transform_usage(self, name, data, start, end):
@@ -98,6 +101,80 @@ class Uptime(Transformer):
         return result
 
 
+class InstanceUptime(Transformer):
+    """
+    Transformer to calculate uptime based on states,
+    which is broken apart into flavor at point in time.
+    """
+
+    def _transform_usage(self, name, data, start, end):
+        # get tracked states from config
+        tracked = config.transformers['uptime']['tracked_states']
+
+        usage_dict = {}
+
+        def sort_and_clip_end(usage):
+            cleaned = (self._clean_entry(s) for s in usage)
+            clipped = [s for s in cleaned if s['timestamp'] < end]
+            return clipped
+
+        state = sort_and_clip_end(data)
+
+        if not len(state):
+            # there was no data for this period.
+            return usage_dict
+
+        last_state = state[0]
+        if last_state['timestamp'] >= start:
+            last_timestamp = last_state['timestamp']
+            seen_sample_in_window = True
+        else:
+            last_timestamp = start
+            seen_sample_in_window = False
+
+        def _add_usage(diff):
+            flav = last_state['flavor']
+            usage_dict[flav] = usage_dict.get(flav, 0) + diff.total_seconds()
+
+        for val in state[1:]:
+            if last_state["status"] in tracked:
+                diff = val["timestamp"] - last_timestamp
+                if val['timestamp'] > last_timestamp:
+                    # if diff < 0 then we were looking back before the start
+                    # of the window.
+                    _add_usage(diff)
+                    last_timestamp = val['timestamp']
+                    seen_sample_in_window = True
+
+            last_state = val
+
+        # extend the last state we know about, to the end of the window,
+        # if we saw any actual uptime.
+        if (end and last_state['status'] in tracked
+                and seen_sample_in_window):
+            diff = end - last_timestamp
+            _add_usage(diff)
+
+        # map the flavors to names on the way out
+        return {helpers.flavor_name(f): v for f, v in usage_dict.items()}
+
+    def _clean_entry(self, entry):
+        result = {
+            'status': entry['resource_metadata'].get(
+                'status', entry['resource_metadata'].get(
+                    'state', ""
+                )
+            ),
+            'flavor': entry['resource_metadata'].get(
+                'flavor.id', entry['resource_metadata'].get(
+                    'instance_flavor_id', 0
+                )
+            ),
+            'timestamp': entry['timestamp']
+        }
+        return result
+
+
 class FromImage(Transformer):
     """
     Transformer for creating Volume entries from instance metadata.
@@ -141,6 +218,11 @@ class GaugeMax(Transformer):
 
     def _transform_usage(self, name, data, start, end):
         max_vol = max([v["counter_volume"] for v in data]) if len(data) else 0
+        if max_vol is None:
+            max_vol = 0
+            log.warning("None max_vol value for %s in window: %s - %s " %
+                        (name, start.strftime(iso_time),
+                         end.strftime(iso_time)))
         hours = (end - start).total_seconds() / 3600.0
         return {name: max_vol * hours}
 
@@ -158,6 +240,12 @@ class StorageMax(Transformer):
             return None
 
         max_vol = max([v["counter_volume"] for v in data])
+
+        if max_vol is None:
+            max_vol = 0
+            log.warning("None max_vol value for %s in window: %s - %s " %
+                        (name, start.strftime(iso_time),
+                         end.strftime(iso_time)))
 
         if "volume_type" in data[-1]['resource_metadata']:
             vtype = data[-1]['resource_metadata']['volume_type']
@@ -179,7 +267,7 @@ class GaugeSum(Transformer):
         sum_vol = 0
         for sample in data:
             t = sample['timestamp']
-            if t >= start and t < end:
+            if t >= start and t < end and sample["counter_volume"]:
                 sum_vol += sample["counter_volume"]
         return {name: sum_vol}
 
@@ -195,8 +283,9 @@ class GaugeNetworkService(Transformer):
         # blob/master/ceilometer/network/services/vpnaas.py#L55), so we have
         # to check the volume to make sure only the active service is
         # charged(0=inactive, 1=active).
-        max_vol = max([v["counter_volume"] for v in data
-                       if v["counter_volume"] < 2]) if len(data) else 0
+        volumes = [v["counter_volume"] for v in data
+                   if v["counter_volume"] < 2]
+        max_vol = max(volumes) if len(volumes) else 0
         hours = (end - start).total_seconds() / 3600.0
         return {name: max_vol * hours}
 
@@ -204,6 +293,7 @@ class GaugeNetworkService(Transformer):
 # All usable transformers need to be here.
 active_transformers = {
     'Uptime': Uptime,
+    'InstanceUptime': InstanceUptime,
     'StorageMax': StorageMax,
     'GaugeMax': GaugeMax,
     'GaugeSum': GaugeSum,

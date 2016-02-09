@@ -110,58 +110,22 @@ if __name__ == '__main__':
         help="End time",
         required=True)
 
-    sales_parser = subparsers.add_parser(
-        'sales-order',
-        help=('create sales orders for given tenants'))
-    sales_parser.add_argument(
-        "-t", "--tenant", dest="tenants",
-        help='Tenants to create sales orders for.',
-        action="append", default=[],
-        required=True)
-    sales_parser.add_argument(
-        "-e", "--end", dest="end",
-        help='end date for sales order.')
+    get_rated_parser = subparsers.add_parser(
+        'get-rated', help=('get rated usage'))
 
-    draft_parser = subparsers.add_parser(
-        'sales-draft',
-        help=('create sales drafts for given tenants'))
-    draft_parser.add_argument(
-        "-t", "--tenant", dest="tenants",
-        help='Tenants to create sales drafts for.',
-        action="append", required=True)
-    draft_parser.add_argument(
-        "-e", "--end", dest="end",
-        help='end date for sales order.')
-
-    historic_parser = subparsers.add_parser(
-        'sales-historic',
-        help=('regenerate historic sales orders for given tenants,' +
-              'at given date'))
-    historic_parser.add_argument(
-        "-t", "--tenant", dest="tenants",
-        help='Tenants to create sales drafts for.',
-        action="append", required=True)
-    historic_parser.add_argument(
-        "-d", "--date", dest="date",
-        help='target search date for sales order.',
+    get_rated_parser.add_argument(
+        "-t", "--tenant", dest="tenant",
+        help='Tenant to get usage for',
         required=True)
 
-    range_parser = subparsers.add_parser(
-        'sales-range',
-        help=('regenerate historic sales orders for given tenants,' +
-              'in a given range'))
-    range_parser.add_argument(
-        "-t", "--tenant", dest="tenants",
-        help='Tenants to create sales drafts for.',
-        action="append", required=True)
-    range_parser.add_argument(
+    get_rated_parser.add_argument(
         "-s", "--start", dest="start",
-        help='start of range for sales orders.',
+        help="Start time",
         required=True)
-    range_parser.add_argument(
+
+    get_rated_parser.add_argument(
         "-e", "--end", dest="end",
-        help='end of range for sales orders. Defaults to now.',
-        default=None)
+        help="End time")
 
     args = parser.parse_args()
 
@@ -202,7 +166,7 @@ if __name__ == '__main__':
                     kwargs.get('os_endpoint_type', None))
 
     if args.command == 'collect-usage':
-        response = client.usage()
+        response = client.collect_usage()
         print json.dumps(response, indent=2)
 
     if args.command == 'last-collected':
@@ -213,18 +177,6 @@ if __name__ == '__main__':
         response = client.get_usage(args.tenant, args.start, args.end)
         print json.dumps(response, indent=2)
 
-    if args.command == 'sales-order':
-        response = client.sales_order(args.tenants, args.end, False)
-        print json.dumps(response, indent=2)
-
-    if args.command == 'sales-draft':
-        response = client.sales_order(args.tenants, args.end, True)
-        print json.dumps(response, indent=2)
-
-    if args.command == 'sales-historic':
-        response = client.sales_historic(args.tenants, args.date)
-        print json.dumps(response, indent=2)
-
-    if args.command == 'sales-range':
-        response = client.sales_range(args.tenants, args.start, args.end)
+    if args.command == 'get-rated':
+        response = client.get_rated(args.tenant, args.start, args.end)
         print json.dumps(response, indent=2)

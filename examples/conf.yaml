@@ -6,6 +6,7 @@ main:
   database_uri: postgres://admin:password@localhost:5432/billing
   trust_sources: 
     - openstack
+    - .{32}:TrafficAccounting
   log_file: logs/billing.log
   ignore_tenants:
     - test
@@ -21,14 +22,39 @@ auth:
   authenticate_clients: True
   # used for authenticate_clients
   identity_url: http://localhost:35357
+# config for Memcache:
+memcache:
+  enabled: False
+  addresses:
+    - "127.0.0.1:11211"
+  key_prefix: distil
 # configuration for defining usage collection
 collection:
   max_windows_per_cycle: 4
   # defines which meter is mapped to which transformer
   meter_mappings:
-    # meter name as seen in ceilometer
-    state: 
-      # type of resource it maps to (seen on sales order)
+    # -
+    #   # meter name as seen in ceilometer
+    #   meter: instance
+    #   # type of resource it maps to (seen on sales order)
+    #   type: Virtual Machine
+    #   # which transformer to use
+    #   transformer: InstanceUptime
+    #   # what unit type is coming in via the meter
+    #   unit: second 
+    #   metadata:
+    #     name:
+    #       sources:
+    #         # which keys to search for in the ceilometer entry metadata
+    #         # this can be more than one as metadata is inconsistent between
+    #         # source types
+    #         - display_name
+    #     availability zone:
+    #       sources:
+    #         - OS-EXT-AZ:availability_zone
+    -
+      meter: state
+        # type of resource it maps to (seen on sales order)
       type: Virtual Machine
       # which transformer to use
       transformer: Uptime
@@ -44,7 +70,8 @@ collection:
         availability zone:
           sources:
             - OS-EXT-AZ:availability_zone
-    ip.floating:
+    -
+      meter: ip.floating
       service: n1.ipv4
       type: Floating IP
       transformer: GaugeMax
@@ -52,9 +79,9 @@ collection:
       metadata:
         ip address:
           sources:
-            - address
             - floating_ip_address
-    volume.size:
+    -
+      meter: volume.size
       service: b1.standard
       type: Volume
       transformer: GaugeMax
@@ -66,7 +93,8 @@ collection:
         availability zone:
           sources:
             - availability_zone
-    instance:
+    -
+      meter: instance
       service: b1.standard
       type: Volume
       transformer: FromImage
@@ -85,7 +113,8 @@ collection:
         availability zone:
           sources:
             - availability_zone
-    image.size:
+    -
+      meter: image.size
       service: b1.standard
       type: Image
       transformer: GaugeMax
@@ -95,7 +124,8 @@ collection:
           sources:
             - name
             - properties.image_name
-    bandwidth:
+    -
+      meter: bandwidth
       type: Network Traffic
       transformer: GaugeSum
       unit: byte
@@ -103,7 +133,8 @@ collection:
         meter_label_id:
           sources:
             - label_id
-    network.services.vpn:
+    -
+      meter: network.services.vpn
       type: VPN
       transformer: GaugeNetworkService
       unit: hour
@@ -114,7 +145,8 @@ collection:
         subnet:
           sources:
             - subnet_id
-    network:
+    -
+      meter: network
       type: Network
       transformer: GaugeMax
       unit: hour
@@ -122,7 +154,8 @@ collection:
         name:
           sources:
             - name
-    router:
+    -
+      meter: router
       type: Router
       transformer: GaugeMax
       unit: hour
@@ -139,6 +172,7 @@ transformers:
       - paused
       - rescued
       - resized
+      - verify_resize
   from_image:
     service: b1.standard
     # What metadata values to check

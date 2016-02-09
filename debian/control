@@ -1,0 +1,43 @@
+Source: distil
+Maintainer: OpenStack <openstack-dev@lists.openstack.org>
+Uploaders: Andrew Ruthven <puck@catalyst.net.nz>
+Section: python
+Priority: optional
+Build-Depends: python-setuptools (>= 0.6b3), python-all (>= 2.6.6-3), debhelper (>= 7), dh-python, python-yaml
+Standards-Version: 3.9.1
+X-Python-Version: >= 2.7
+
+Package: python-distil
+Architecture: all
+Depends:
+  ${misc:Depends},
+  ${python:Depends}
+Recommends: python-distilclient (= ${binary:Version})
+Provides: distil
+Replaces: distil
+Conflicts: distil
+Description: Distil project
+ Distil is a web app to provide easy interactions with ERP systems, by
+ exposing a configurable set of collection tools and transformers to make
+ usable billing data out of Ceilometer entries.
+ .
+ Distil provides a rest api to integrate with arbitrary ERP systems, and
+ returns sales orders as json.  What the ranges are, and how Ceilometer data
+ is aggregated is intended to be configurable, and defined in the configuration
+ file.
+ .
+ The Distil data store will prevent overlapping bills for a given tenant and
+ resource ever being stored, while still allowing for regeneration of a given
+
+Package: python-distilclient
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}, python2.7, python-keystoneclient, python-requests
+Provides: distilclient
+Replaces: distilclient
+Conflicts: distilclient
+Description: Client interface for Distil project
+ Distil is a web app to provide easy interactions with ERP systems, by
+ exposing a configurable set of collection tools and transformers to make
+ usable billing data out of Ceilometer entries.
+ .
+ This package provides a client to interact with the Distil web app.

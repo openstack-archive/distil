@@ -12,8 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from novaclient.v1_1 import client
-from cinderclient.v1 import client as cinderclient
+from novaclient import client as novaclient
+from cinderclient.v2 import client as cinderclient
 from decimal import Decimal
 import config
 import math
@@ -30,12 +30,15 @@ def reset_cache():
 
 def flavor_name(f_id):
     """Grabs the correct flavor name from Nova given the correct ID."""
+    _client_class = novaclient.get_client_class(2)
+
     if f_id not in cache['flavors']:
-        nova = client.Client(
+        nova = _client_class(
             config.auth['username'],
             config.auth['password'],
             config.auth['default_tenant'],
             config.auth['end_point'],
+            region_name=config.main['region'],
             insecure=config.auth['insecure'])
 
         cache['flavors'][f_id] = nova.flavors.get(f_id).name
@@ -49,6 +52,7 @@ def volume_type(volume_type):
             config.auth['password'],
             config.auth['default_tenant'],
             config.auth['end_point'],
+            region=config.main['region'],
             insecure=config.auth['insecure'])
 
         for vtype in cinder.volume_types.list():
