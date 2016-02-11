@@ -20,7 +20,6 @@ import ConfigParser
 import datetime
 from decimal import Decimal
 import math
-import oerplib
 import os
 import prettytable
 import re
@@ -230,6 +229,28 @@ class HelpFormatter(argparse.HelpFormatter):
         super(HelpFormatter, self).start_section(heading)
 
 
+def check_odoo_duplicate(shell, partner_id, tenant_id, billing_date):
+    """Avoid duplicate quotations in odoo.
+
+    The 'date_order' field in 'order' table indicates the billing date of a
+    quotation. Now it's the last day of a month.
+    """
+    orders = shell.Order.search(
+        [
+            ('partner_id', '=', partner_id),
+            ('date_order', '=', billing_date),
+            ('state', '!=', 'cancel')
+        ]
+    )
+
+    if len(orders) >= 1:
+        print('ERROR: order of tenant %s has been already generated. '
+              'Billing date: %s.' % (tenant_id, billing_date))
+        return True
+
+    return False
+
+
 @arg('--tenant-id', type=str, metavar='TENANT_ID',
      dest='TENANT_ID', required=False,
      help='The specific tenant which will be quoted.')
@@ -256,6 +277,12 @@ def do_quote(shell, args):
         return
 
     login_odoo(shell)
+
+    end_timestamp = datetime.datetime.strptime(
+        args.END,
+        '%Y-%m-%dT%H:%M:%S'
+    )
+    billing_date = str((end_timestamp - datetime.timedelta(days=1)).date())
 
     done = []
     skip = []
@@ -284,10 +311,19 @@ def do_quote(shell, args):
             print ("Skipping tenant: %s already skipped." % tenant.name)
             continue
 
+        # Find parter and pricelist of root parter.
         partner = find_oerp_partner_for_tenant(shell, tenant)
         if not partner or args.AUDIT:
             continue
+        root_partner = find_root_partner(shell, partner)
+        pricelist, _ = root_partner['property_product_pricelist']
 
+        # Duplicate quotation check in Odoo.
+        if check_odoo_duplicate(shell, partner['id'], tenant.id,
+                                billing_date):
+            continue
+
+        # Get resource usage of tenant.
         usage = get_tenant_usage(shell, tenant.id, args.START, args.END)
         if not usage:
             continue
@@ -301,13 +337,12 @@ def do_quote(shell, args):
             print(e.info)
             raise
 
-        root_partner = find_root_partner(shell, partner)
-        pricelist, _ = root_partner['property_product_pricelist']
         try:
             build_sales_order(shell, args, pricelist, usage, partner,
-                              tenant.name, tenant.id)
+                              tenant.name, tenant.id, billing_date)
         except Exception as e:
             print "Failed to create sales order for tenant: %s" % tenant.name
+
             with open('failed_tenants.txt', 'a') as f:
                 f.write(tenant.id + "\n")
             raise e
@@ -496,18 +531,16 @@ def get_price(shell, pricelist, product, volume):
 
 @retry(stop_max_attempt_number=3, wait_fixed=1000)
 def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
-                      tenant_id):
-    end_timestamp = datetime.datetime.strptime(args.END, '%Y-%m-%dT%H:%M:%S')
-    billing_date = str((end_timestamp - datetime.timedelta(days=1)).date())
-
+                      tenant_id, billing_date):
     log(shell.debug, 'Building sale.order')
+
     try:
         order_dict = {
             'partner_id': partner['id'],
             'pricelist_id': pricelist,
             'partner_invoice_id': partner['id'],
             'partner_shipping_id': partner['id'],
-            'order_date': billing_date,
+            'date_order': billing_date,
             'note': 'Tenant: %s (%s)' % (tenant_name, tenant_id),
             'section_id': 10,
         }
@@ -517,7 +550,7 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
         if not args.DRY_RUN:
             order = shell.Order.create(order_dict)
             shell.order_id = order
-            print('Order id: %s' % order)
+            print('Order id: %s.' % order)
 
         # Sort by product
         usage_dict_list = []
@@ -537,7 +570,10 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
                 # Odoo will round the product_uom_qty and if it's under 0.0005
                 # then it would be rounded to 0 and as a result the quoting
                 # will fail.
-                print('%s is too small.' % str(usage_dict['product_uom_qty']))
+                print(
+                    '%s is too small for %s.' %
+                    (str(usage_dict['product_uom_qty']), m['name'])
+                )
                 continue
 
             usage_dict_list.append(usage_dict)
