@@ -29,11 +29,13 @@ import sys
 import time
 import traceback
 
-from distilclient.client import Client as DistilClient
 from keystoneclient.v2_0 import client as keystone_client
 import odoorpc
 from oslo_utils import importutils
 from oslo_utils import strutils
+from retrying import retry
+
+from distilclient.client import Client as DistilClient
 
 
 TENANT = collections.namedtuple('Tenant', ['id', 'name'])
@@ -299,7 +301,6 @@ def do_quote(shell, args):
             print "Failed to create sales order for tenant: %s" % tenant.name
             with open('failed_tenants.txt', 'a') as f:
                 f.write(tenant.id + "\n")
-            print('To cancel use order id: %s' % shell.order_id)
             raise e
 
         with open('done_tenants.txt', 'a') as f:
@@ -486,6 +487,7 @@ def get_price(shell, pricelist, product, volume):
     return price if volume >= 0 else -price
 
 
+@retry(stop_max_attempt_number=3, wait_fixed=1000)
 def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
                       tenant_id):
     end_timestamp = datetime.datetime.strptime(args.END, '%Y-%m-%dT%H:%M:%S')
@@ -502,14 +504,15 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
 
     log(shell.debug, 'Building sale.order')
     try:
-        order_dict = {'partner_id': partner['id'],
-                      'pricelist_id': pricelist,
-                      'partner_invoice_id': partner['id'],
-                      'partner_shipping_id': partner['id'],
-                      'order_date': billing_date,
-                      'note': 'Tenant: %s (%s)' % (tenant_name, tenant_id),
-                      'section_id': 10,
-                      }
+        order_dict = {
+            'partner_id': partner['id'],
+            'pricelist_id': pricelist,
+            'partner_invoice_id': partner['id'],
+            'partner_shipping_id': partner['id'],
+            'order_date': billing_date,
+            'note': 'Tenant: %s (%s)' % (tenant_name, tenant_id),
+            'section_id': 10,
+        }
         order = 'DRY_RUN_MODE'
         print_dict(order_dict)
 
@@ -524,14 +527,14 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
             prod = find_oerp_product(shell, m['region'], m['product'])
 
             # TODO(flwang): 1. select the correct unit; 2. map via position
-            usage_dict = {'order_id': order,
-                          'product_id': prod['id'],
-                          'product_uom': prod['uom_id'][0],
-                          'product_uom_qty': math.fabs(m['volume']),
-                          'name': m['name'],
-                          'price_unit': get_price(shell, pricelist,
-                                                  prod, m['volume'])
-                          }
+            usage_dict = {
+                'order_id': order,
+                'product_id': prod['id'],
+                'product_uom': prod['uom_id'][0],
+                'product_uom_qty': math.fabs(m['volume']),
+                'name': m['name'],
+                'price_unit': get_price(shell, pricelist, prod, m['volume'])
+            }
             if usage_dict['product_uom_qty'] < 0.005:
                 # Odoo will round the product_uom_qty and if it's under 0.0005
                 # then it would be rounded to 0 and as a result the quoting
@@ -544,13 +547,24 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
             if not args.DRY_RUN:
                 shell.Orderline.create(usage_dict)
 
-        print_list(usage_dict_list, ['product_id', 'product_uom',
-                                     'product_uom_qty', 'name', 'price_unit'])
+        print_list(
+            usage_dict_list,
+            ['product_id', 'product_uom', 'product_uom_qty', 'name',
+             'price_unit']
+        )
+
+        shell.order_id = None
     except odoorpc.error.RPCError as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
                                   limit=2, file=sys.stdout)
         print(e.info)
+
+        # Cancel the quotation.
+        if shell.order_id:
+            print('Cancel order: %s' % shell.order_id)
+            update_order_status(shell, shell.order_id)
+
         raise e
     except Exception as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -621,6 +635,20 @@ def check_duplicate(order):
     return False
 
 
+def update_order_status(shell, order_id, new_status='cancel'):
+    print('Processing order: %s' % order_id)
+
+    order = shell.Order.browse(order_id)
+
+    # Just a placeholder for further improvement.
+    is_dup = check_duplicate(order)
+    if not is_dup:
+        print "changing state: %s -> %s" % (order.state, new_status)
+        # By default when updating values of a record, the change is
+        # automatically sent to the server.
+        order.state = new_status
+
+
 @arg('--new-status', '-s', type=str, metavar='STATUS',
      dest='STATUS', required=True,
      choices=['manual', 'cancel', 'draft'],
@@ -653,17 +681,7 @@ def do_update_quote(shell, args):
     ids = shell.Order.search(creterion)
     for id in ids:
         try:
-            print('Processing order: %s' % id)
-            order = shell.Order.browse(id)
-
-            # Just a placeholder for further improvement.
-            is_dup = check_duplicate(order)
-
-            if not is_dup:
-                print "changing state: %s -> %s" % (order.state, args.STATUS)
-                # By default when updating values of a record, the change is
-                # automatically sent to the server.
-                order.state = args.STATUS
+            update_order_status(shell, id, args.STATUS)
         except odoorpc.error.RPCError as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback,
