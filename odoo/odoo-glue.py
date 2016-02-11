@@ -29,11 +29,13 @@ import sys
 import time
 import traceback
 
-from distilclient.client import Client as DistilClient
 from keystoneclient.v2_0 import client as keystone_client
 import odoorpc
 from oslo_utils import importutils
 from oslo_utils import strutils
+from retrying import retry
+
+from distilclient.client import Client as DistilClient
 
 
 TENANT = collections.namedtuple('Tenant', ['id', 'name'])
@@ -308,7 +310,6 @@ def do_quote(shell, args):
             print "Failed to create sales order for tenant: %s" % tenant.name
             with open('failed_tenants.txt', 'a') as f:
                 f.write(tenant.id + "\n")
-            print('To cancel use order id: %s' % shell.order_id)
             raise e
 
         with open('done_tenants.txt', 'a') as f:
@@ -493,6 +494,7 @@ def get_price(shell, pricelist, product, volume):
     return price if volume >= 0 else -price
 
 
+@retry(stop_max_attempt_number=3, wait_fixed=1000)
 def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
                       tenant_id):
     end_timestamp = datetime.datetime.strptime(args.END, '%Y-%m-%dT%H:%M:%S')
@@ -548,11 +550,19 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
             ['product_id', 'product_uom', 'product_uom_qty', 'name',
              'price_unit']
         )
+
+        shell.order_id = None
     except odoorpc.error.RPCError as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
                                   limit=2, file=sys.stdout)
         print(e.info)
+
+        # Cancel the quotation.
+        if shell.order_id:
+            print('Cancel order: %s' % shell.order_id)
+            update_order_status(shell, shell.order_id)
+
         raise e
     except Exception as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
