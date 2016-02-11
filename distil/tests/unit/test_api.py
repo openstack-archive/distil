@@ -24,9 +24,9 @@ from distil.helpers import convert_to
 from distil.constants import dawn_of_time
 from datetime import datetime
 from decimal import Decimal
-import unittest
 import json
 import mock
+import testtools
 
 
 class TestAPI(test_interface.TestInterface):
@@ -42,7 +42,7 @@ class TestAPI(test_interface.TestInterface):
         super(TestAPI, self).tearDown()
         self.app = None
 
-    @unittest.skip
+    @testtools.skip("skip test.")
     def test_usage_run_for_all(self):
         """Asserts a usage run generates data for all tenants"""
 
@@ -84,7 +84,7 @@ class TestAPI(test_interface.TestInterface):
 
                 self.assertEquals(resources.count(), len(usage.values()))
 
-    @unittest.skip
+    @testtools.skip("skip test.")
     def test_memcache_raw_usage(self):
         """Tests that raw usage queries are cached, and returned."""
         numTenants = 1
@@ -124,7 +124,7 @@ class TestAPI(test_interface.TestInterface):
             self.assertEquals(1, len(values))
             self.assertEquals(resp2.body, test_string)
 
-    @unittest.skip
+    @testtools.skip("skip test.")
     def test_memcache_rated_usage(self):
         """Tests that rated usage queries are cached, and returned."""
         numTenants = 1
@@ -270,6 +270,7 @@ class TestAPI(test_interface.TestInterface):
 
         self.assertEquals(tenant_dict['total_cost'], str(0))
 
+    @testtools.skip("skip test.")
     def test_get_last_collected(self):
         """test to ensure last collected api call returns correctly"""
         now = datetime.now()
