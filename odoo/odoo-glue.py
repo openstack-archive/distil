@@ -285,12 +285,21 @@ def do_quote(shell, args):
         partner = find_oerp_partner_for_tenant(shell, tenant)
         if not partner or args.AUDIT:
             continue
-        root_partner = find_root_partner(shell, partner)
 
         usage = get_tenant_usage(shell, tenant.id, args.START, args.END)
         if not usage:
             continue
 
+        # Pre check, fetch all the products first.
+        try:
+            for m in usage:
+                if not find_oerp_product(shell, m['region'], m['product']):
+                    sys.exit(1)
+        except Exception as e:
+            print(e.info)
+            raise
+
+        root_partner = find_root_partner(shell, partner)
         pricelist, _ = root_partner['property_product_pricelist']
         try:
             build_sales_order(shell, args, pricelist, usage, partner,
@@ -372,6 +381,8 @@ def get_tenant_usage(shell, tenant, start, end):
                    'n1.international-out': 0}
 
         for res_id, res in raw_usage['usage']['resources'].items():
+            name = res.get('name', res.get('ip address', '')) or res_id
+
             for service_usage in res['services']:
                 if service_usage['volume'] == 'unknown unit conversion':
                     print('WARNING: Bogus unit: %s' % res.get('type'))
@@ -406,10 +417,6 @@ def get_tenant_usage(shell, tenant, start, end):
                     print('WARNING: Dropping 0.00001-volume line: %s' %
                           (service_usage,))
                     continue
-
-                name = res.get('name', res.get('ip address', ''))
-                if name == '':
-                    name = res_id
 
                 if service_usage['name'] in ('n1.national-in',
                                              'n1.national-out',
@@ -491,25 +498,17 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
     end_timestamp = datetime.datetime.strptime(args.END, '%Y-%m-%dT%H:%M:%S')
     billing_date = str((end_timestamp - datetime.timedelta(days=1)).date())
 
-    try:
-        # Pre check, fetch all the products first.
-        for m in usage:
-            if not find_oerp_product(shell, m['region'], m['product']):
-                sys.exit(1)
-    except Exception as e:
-        print(e.info)
-        raise
-
     log(shell.debug, 'Building sale.order')
     try:
-        order_dict = {'partner_id': partner['id'],
-                      'pricelist_id': pricelist,
-                      'partner_invoice_id': partner['id'],
-                      'partner_shipping_id': partner['id'],
-                      'order_date': billing_date,
-                      'note': 'Tenant: %s (%s)' % (tenant_name, tenant_id),
-                      'section_id': 10,
-                      }
+        order_dict = {
+            'partner_id': partner['id'],
+            'pricelist_id': pricelist,
+            'partner_invoice_id': partner['id'],
+            'partner_shipping_id': partner['id'],
+            'order_date': billing_date,
+            'note': 'Tenant: %s (%s)' % (tenant_name, tenant_id),
+            'section_id': 10,
+        }
         order = 'DRY_RUN_MODE'
         print_dict(order_dict)
 
@@ -524,14 +523,14 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
             prod = find_oerp_product(shell, m['region'], m['product'])
 
             # TODO(flwang): 1. select the correct unit; 2. map via position
-            usage_dict = {'order_id': order,
-                          'product_id': prod['id'],
-                          'product_uom': prod['uom_id'][0],
-                          'product_uom_qty': math.fabs(m['volume']),
-                          'name': m['name'],
-                          'price_unit': get_price(shell, pricelist,
-                                                  prod, m['volume'])
-                          }
+            usage_dict = {
+                'order_id': order,
+                'product_id': prod['id'],
+                'product_uom': prod['uom_id'][0],
+                'product_uom_qty': math.fabs(m['volume']),
+                'name': m['name'],
+                'price_unit': get_price(shell, pricelist, prod, m['volume'])
+            }
             if usage_dict['product_uom_qty'] < 0.005:
                 # Odoo will round the product_uom_qty and if it's under 0.0005
                 # then it would be rounded to 0 and as a result the quoting
@@ -544,8 +543,11 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
             if not args.DRY_RUN:
                 shell.Orderline.create(usage_dict)
 
-        print_list(usage_dict_list, ['product_id', 'product_uom',
-                                     'product_uom_qty', 'name', 'price_unit'])
+        print_list(
+            usage_dict_list,
+            ['product_id', 'product_uom', 'product_uom_qty', 'name',
+             'price_unit']
+        )
     except odoorpc.error.RPCError as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
@@ -621,6 +623,20 @@ def check_duplicate(order):
     return False
 
 
+def update_order_status(shell, order_id, new_status='cancel'):
+    print('Processing order: %s' % order_id)
+
+    order = shell.Order.browse(order_id)
+
+    # Just a placeholder for further improvement.
+    is_dup = check_duplicate(order)
+    if not is_dup:
+        print "changing state: %s -> %s" % (order.state, new_status)
+        # By default when updating values of a record, the change is
+        # automatically sent to the server.
+        order.state = new_status
+
+
 @arg('--new-status', '-s', type=str, metavar='STATUS',
      dest='STATUS', required=True,
      choices=['manual', 'cancel', 'draft'],
@@ -653,17 +669,7 @@ def do_update_quote(shell, args):
     ids = shell.Order.search(creterion)
     for id in ids:
         try:
-            print('Processing order: %s' % id)
-            order = shell.Order.browse(id)
-
-            # Just a placeholder for further improvement.
-            is_dup = check_duplicate(order)
-
-            if not is_dup:
-                print "changing state: %s -> %s" % (order.state, args.STATUS)
-                # By default when updating values of a record, the change is
-                # automatically sent to the server.
-                order.state = args.STATUS
+            update_order_status(shell, id, args.STATUS)
         except odoorpc.error.RPCError as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback,
