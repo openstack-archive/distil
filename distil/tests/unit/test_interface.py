@@ -32,7 +32,7 @@ class TestInterface(unittest.TestCase):
 
     def setUp(self):
         super(TestInterface, self).setUp()
-        engine = sa.create_engine(getattr(self, 'db_uri', utils.DATABASE_URI))
+        engine = sa.create_engine(getattr(self, 'db_uri', utils.DATABASE_URI, echo=True))
         models.Base.metadata.create_all(bind=engine, checkfirst=True)
         Session = sessionmaker(bind=engine)
         self.session = Session()
