@@ -17,6 +17,7 @@
 import argparse
 import collections
 import ConfigParser
+import csv
 import datetime
 from decimal import Decimal
 import math
@@ -263,6 +264,9 @@ def check_odoo_duplicate(shell, partner_id, tenant_id, billing_date):
 @arg('--dry-run', type=bool, metavar='DRY_RUN',
      dest='DRY_RUN', required=False, default=False,
      help='Do not actually create the sales order in Odoo.')
+@arg('--csv', type=bool, metavar='CSV',
+     dest='CSV', required=False, default=False,
+     help='Create Odoo formatted csv file.')
 @arg('--audit', type=bool, metavar='AUDIT',
      dest='AUDIT', required=False, default=False,
      help='Do nothing but check if there is out-of-sync between OpenStack'
@@ -547,10 +551,21 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
         order = 'DRY_RUN_MODE'
         print_dict(order_dict)
 
-        if not args.DRY_RUN:
+        if not args.DRY_RUN and not args.CSV:
             order = shell.Order.create(order_dict)
             shell.order_id = order
             print('Order id: %s.' % order)
+
+        if args.CSV:
+            fieldnames = [
+                'note', 'partner_id/id', 'order_line/product_id/id',
+                'order_line/price_unit', 'order_line/product_uom_qty',
+                'order_line/name']
+            shell.csvfile = open('%s_%s.csv' % (tenant_id, billing_date), 'w')
+            shell.writer = csv.DictWriter(
+                shell.csvfile, fieldnames=fieldnames)
+            shell.writer.writeheader()
+            first_row = True
 
         # Sort by product
         usage_dict_list = []
@@ -578,8 +593,29 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
 
             usage_dict_list.append(usage_dict)
 
-            if not args.DRY_RUN:
+            if not args.DRY_RUN and not args.CSV:
                 shell.Orderline.create(usage_dict)
+
+            if args.CSV:
+                    csv_dict = {
+                        'note': 'Tenant: %s (%s)' % (tenant_name, tenant_id),
+                        'partner_id/id': partner['id'],
+                        'order_line/product_id/id': prod['id'],
+                        'order_line/price_unit': get_price(
+                            shell, pricelist, prod, m['volume']),
+                        'order_line/product_uom_qty': math.fabs(m['volume']),
+                        'order_line/name': m['name']}
+
+                    if first_row:
+                        shell.writer.writerow(csv_dict)
+                        first_row = False
+                    else:
+                        csv_dict.pop('partner_id/id')
+                        csv_dict.pop('note')
+                        shell.writer.writerow(csv_dict)
+
+        if args.CSV:
+            shell.csvfile.close()
 
         print_list(
             usage_dict_list,
@@ -588,6 +624,7 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
         )
 
         shell.order_id = None
+
     except odoorpc.error.RPCError as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
