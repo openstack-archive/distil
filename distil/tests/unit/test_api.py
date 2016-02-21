@@ -33,7 +33,6 @@ class TestAPI(test_interface.TestInterface):
     __name__ = 'TestAPI'
 
     def setUp(self):
-        self.db_uri = 'sqlite:////tmp/distl.db'
         super(TestAPI, self).setUp()
         with mock.patch("distil.api.web.setup_memcache") as setup_memcache:
             self.app = TestApp(get_app(utils.FAKE_CONFIG))

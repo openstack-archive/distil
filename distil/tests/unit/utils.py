@@ -24,7 +24,7 @@ FAKE_CONFIG = {
     "main": {
         "region": "Wellington",
         "timezone": "Pacific/Auckland",
-        "database_uri": 'sqlite:////tmp/distl.db',
+        "database_uri": 'sqlite:////tmp/distil.db',
         "log_file": "/tmp/distil-api.log"
     },
     "rates_config": {
