@@ -13,6 +13,7 @@
 #    under the License.
 
 import unittest
+
 from distil.models import Tenant as tenant_model
 from distil.models import UsageEntry, Resource, SalesOrder, _Last_Run
 from distil import models
@@ -28,19 +29,20 @@ import sqlalchemy as sa
 from distil.tests.unit import data_samples
 from distil.tests.unit import utils
 
-class TestInterface(unittest.TestCase):
 
+class TestInterface(unittest.TestCase):
     def setUp(self):
         super(TestInterface, self).setUp()
-        engine = sa.create_engine(getattr(self, 'db_uri', utils.DATABASE_URI))
-        models.Base.metadata.create_all(bind=engine, checkfirst=True)
-        Session = sessionmaker(bind=engine)
+
+        self.engine = sa.create_engine('sqlite:////tmp/distil.db')
+        models.Base.metadata.create_all(bind=self.engine, checkfirst=True)
+        Session = sessionmaker(bind=self.engine)
         self.session = Session()
+
         self.objects = []
-        self.session.rollback()
         self.called_replacement_resources = False
 
-        self.resources = (data_samples.RESOURCES["networks"] + 
+        self.resources = (data_samples.RESOURCES["networks"] +
                           data_samples.RESOURCES["vms"] +
                           data_samples.RESOURCES["objects"] +
                           data_samples.RESOURCES["volumes"] +
@@ -60,4 +62,3 @@ class TestInterface(unittest.TestCase):
         self.session.close()
         self.contents = None
         self.resources = []
-        engine = sa.create_engine(getattr(self, 'db_uri', utils.DATABASE_URI))
