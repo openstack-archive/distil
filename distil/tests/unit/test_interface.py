@@ -30,34 +30,37 @@ from distil.tests.unit import utils
 
 class TestInterface(unittest.TestCase):
 
-    def setUp(self):
-        super(TestInterface, self).setUp()
-        engine = sa.create_engine(getattr(self, 'db_uri', utils.DATABASE_URI))
+    @classmethod
+    def setUpClass(cls):
+        super(TestInterface, cls).setUpClass()
+        engine = sa.create_engine(getattr(cls, 'db_uri', utils.DATABASE_URI))
         models.Base.metadata.create_all(bind=engine, checkfirst=True)
         Session = sessionmaker(bind=engine)
-        self.session = Session()
-        self.objects = []
-        self.session.rollback()
-        self.called_replacement_resources = False
+        cls.session = Session()
+        cls.objects = []
+        cls.session.rollback()
+        cls.called_replacement_resources = False
 
-        self.resources = (data_samples.RESOURCES["networks"] + 
+        cls.resources = (data_samples.RESOURCES["networks"] + 
                           data_samples.RESOURCES["vms"] +
                           data_samples.RESOURCES["objects"] +
                           data_samples.RESOURCES["volumes"] +
                           data_samples.RESOURCES["ips"])
 
         # TODO: make these constants.
-        self.end = datetime.utcnow()
-        self.start = self.end - timedelta(days=30)
+        cls.end = datetime.utcnow()
+        cls.start = cls.end - timedelta(days=30)
 
-    def tearDown(self):
-        self.session.query(UsageEntry).delete()
-        self.session.query(Resource).delete()
-        self.session.query(SalesOrder).delete()
-        self.session.query(tenant_model).delete()
-        self.session.query(_Last_Run).delete()
-        self.session.commit()
-        self.session.close()
-        self.contents = None
-        self.resources = []
+    @classmethod
+    def tearDownClass(cls):
+        cls.session.query(UsageEntry).delete()
+        cls.session.query(Resource).delete()
+        cls.session.query(SalesOrder).delete()
+        cls.session.query(tenant_model).delete()
+        cls.session.query(_Last_Run).delete()
+        cls.session.commit()
+        cls.session.close()
+        cls.contents = None
+        cls.resources = []
         engine = sa.create_engine(getattr(self, 'db_uri', utils.DATABASE_URI))
+        models.Base.metadata.create_all(bind=engine)
