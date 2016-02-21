@@ -12,35 +12,36 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import unittest
-from distil.models import Tenant as tenant_model
-from distil.models import UsageEntry, Resource, SalesOrder, _Last_Run
-from distil import models
-from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timedelta
-
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
-
+import unittest
 import sqlalchemy as sa
+from sqlalchemy.orm import scoped_session, create_session
+from sqlalchemy.orm import sessionmaker
 
+from distil.models import UsageEntry, Resource, SalesOrder, Tenant, _Last_Run
+from distil import models
 from distil.tests.unit import data_samples
-from distil.tests.unit import utils
+
 
 class TestInterface(unittest.TestCase):
-
     def setUp(self):
         super(TestInterface, self).setUp()
-        engine = sa.create_engine(getattr(self, 'db_uri', utils.DATABASE_URI))
-        models.Base.metadata.create_all(bind=engine, checkfirst=True)
-        Session = sessionmaker(bind=engine)
-        self.session = Session()
+
+        # self.engine = sa.create_engine('sqlite:////tmp/distil.db')
+        # Session = sessionmaker(bind=self.engine)
+        # self.session = Session()
+        #
+        # models.Base.metadata.create_all(bind=self.engine, checkfirst=True)
+
+        self.engine = sa.create_engine('sqlite:///:memory:')
+        session = scoped_session(lambda: create_session(bind=self.engine))
+        models.Base.metadata.create_all(bind=self.engine, checkfirst=True)
+        self.session = session()
+
         self.objects = []
-        self.session.rollback()
         self.called_replacement_resources = False
 
-        self.resources = (data_samples.RESOURCES["networks"] + 
+        self.resources = (data_samples.RESOURCES["networks"] +
                           data_samples.RESOURCES["vms"] +
                           data_samples.RESOURCES["objects"] +
                           data_samples.RESOURCES["volumes"] +
@@ -51,13 +52,23 @@ class TestInterface(unittest.TestCase):
         self.start = self.end - timedelta(days=30)
 
     def tearDown(self):
-        self.session.query(UsageEntry).delete()
-        self.session.query(Resource).delete()
-        self.session.query(SalesOrder).delete()
-        self.session.query(tenant_model).delete()
-        self.session.query(_Last_Run).delete()
+        try:
+            self.session.rollback()
+        except:
+            pass
+        self.session.begin()
+        for obj in (SalesOrder, UsageEntry, Resource, Tenant, Resource,
+                    _Last_Run):
+            self.session.query(obj).delete(synchronize_session="fetch")
         self.session.commit()
         self.session.close()
+        self.session = None
+
+        # for obj in (SalesOrder, UsageEntry, Resource, Tenant, _Last_Run):
+        #     self.session.query(obj).delete()
+        # self.session.commit()
+        # self.session.close()
+        # self.session = None
+
         self.contents = None
         self.resources = []
-        engine = sa.create_engine(getattr(self, 'db_uri', utils.DATABASE_URI))

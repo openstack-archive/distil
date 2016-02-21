@@ -24,7 +24,7 @@ FAKE_CONFIG = {
     "main": {
         "region": "Wellington",
         "timezone": "Pacific/Auckland",
-        "database_uri": 'sqlite:////tmp/distl.db',
+        "database_uri": 'sqlite:////tmp/distil.db',
         "log_file": "/tmp/distil-api.log"
     },
     "rates_config": {
@@ -70,6 +70,7 @@ FAKE_TENANT = [
 
 
 def init_db(session, numb_tenants, numb_resources, now):
+    session.begin()
     for i in range(numb_tenants):
         session.add(models.Tenant(
             id="tenant_id_" + str(i),
