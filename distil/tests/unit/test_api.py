@@ -32,15 +32,17 @@ import testtools
 class TestAPI(test_interface.TestInterface):
     __name__ = 'TestAPI'
 
-    def setUp(self):
-        self.db_uri = 'sqlite:////tmp/distl.db'
-        super(TestAPI, self).setUp()
+    @classmethod
+    def setUpClass(cls):
+        cls.db_uri = 'sqlite:////tmp/distl.db'
+        super(TestAPI, cls).setUpClass()
         with mock.patch("distil.api.web.setup_memcache") as setup_memcache:
-            self.app = TestApp(get_app(utils.FAKE_CONFIG))
+            cls.app = TestApp(get_app(utils.FAKE_CONFIG))
 
-    def tearDown(self):
-        super(TestAPI, self).tearDown()
-        self.app = None
+    @classmethod
+    def tearDownClass(cls):
+        super(TestAPI, cls).tearDownClass()
+        cls.app = None
 
     @testtools.skip("skip test.")
     def test_usage_run_for_all(self):
