@@ -12,68 +12,45 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import unittest
-import sqlalchemy as sa
-from sqlalchemy.orm import scoped_session, create_session
-from sqlalchemy.pool import NullPool
-from distil import models
-from sqlalchemy.exc import IntegrityError, OperationalError
-from distil.models import Resource, Tenant, UsageEntry, SalesOrder, _Last_Run
 import datetime
+from sqlalchemy.exc import IntegrityError, OperationalError
+import unittest
 import uuid
 
+from distil.models import Resource, Tenant, UsageEntry, _Last_Run
+from distil.tests.unit import test_interface
 from distil.tests.unit import utils
 
 TENANT_ID = str(uuid.uuid4())
 
-class TestModels(unittest.TestCase):
 
-    def setUp(self):
-        engine = sa.create_engine(utils.DATABASE_URI)
-        session = scoped_session(lambda: create_session(bind=engine))
-        models.Base.metadata.create_all(bind=engine, checkfirst=True)
-        self.db = session()
-
-    def tearDown(self):
-        try:
-            self.db.rollback()
-        except:
-            pass
-        self.db.begin()
-        for obj in (SalesOrder, UsageEntry, Resource, Tenant, Resource, _Last_Run):
-            self.db.query(obj).delete(synchronize_session="fetch")
-        self.db.commit()
-        # self.db.close()
-        self.db.close()
-        # self.session.close_all()
-        self.db = None
-
+class TestModels(test_interface.TestInterface):
     def test_create_tenant(self):
-        self.db.begin()
+        self.session.begin()
         t = Tenant(id=TENANT_ID, name="test",
                    created=datetime.datetime.utcnow(),
                    last_collected=datetime.datetime.utcnow())
-        self.db.add(t)
-        self.db.commit()
-        t2 = self.db.query(Tenant).get(TENANT_ID)
+        self.session.add(t)
+        self.session.commit()
+        t2 = self.session.query(Tenant).get(TENANT_ID)
         self.assertEqual(t2.name, "test")
-        # self.db.commit()
+        # self.session.commit()
 
     def test_create_resource(self):
         self.test_create_tenant()
-        self.db.begin()
-        t = self.db.query(Tenant).get(TENANT_ID)
+        self.session.begin()
+        t = self.session.query(Tenant).get(TENANT_ID)
         r = Resource(id="1234", info='fake',
                      tenant=t, created=datetime.datetime.utcnow())
-        self.db.add(r)
-        self.db.commit()
-        r2 = self.db.query(Resource).filter(Resource.id == "1234")[0]
+        self.session.add(r)
+        self.session.commit()
+        r2 = self.session.query(Resource).filter(Resource.id == "1234")[0]
         self.assertEqual(r2.tenant.id, t.id)
 
     def test_insert_usage_entry(self):
         self.test_create_resource()
-        self.db.begin()
-        r = self.db.query(Resource).filter(Resource.id == "1234")[0]
+        self.session.begin()
+        r = self.session.query(Resource).filter(Resource.id == "1234")[0]
         u = UsageEntry(service="cheese",
                        volume=1.23,
                        resource=r,
@@ -82,9 +59,9 @@ class TestModels(unittest.TestCase):
                               datetime.timedelta(minutes=5)),
                        end=datetime.datetime.utcnow(),
                        created=datetime.datetime.utcnow())
-        self.db.add(u)
+        self.session.add(u)
         try:
-            self.db.commit()
+            self.session.commit()
         except Exception as e:
             self.fail("Exception: %s" % e)
 
@@ -95,13 +72,13 @@ class TestModels(unittest.TestCase):
             # we fail here
             #self.fail("Inserted overlapping row; failing")
         except (IntegrityError, OperationalError):
-            self.db.rollback()
-            self.assertEqual(self.db.query(UsageEntry).count(), 1)
+            self.session.rollback()
+            self.assertEqual(self.session.query(UsageEntry).count(), 1)
 
     def test_last_run(self):
-        self.db.begin()
+        self.session.begin()
         run = _Last_Run(last_run=datetime.datetime.utcnow())
-        self.db.add(run)
-        self.db.commit()
-        result = self.db.query(_Last_Run)
+        self.session.add(run)
+        self.session.commit()
+        result = self.session.query(_Last_Run)
         self.assertEqual(result.count(), 1)
