@@ -40,7 +40,7 @@ class TestInterface(unittest.TestCase):
         self.session.rollback()
         self.called_replacement_resources = False
 
-        self.resources = (data_samples.RESOURCES["networks"] + 
+        self.resources = (data_samples.RESOURCES["networks"] +
                           data_samples.RESOURCES["vms"] +
                           data_samples.RESOURCES["objects"] +
                           data_samples.RESOURCES["volumes"] +
@@ -61,3 +61,4 @@ class TestInterface(unittest.TestCase):
         self.contents = None
         self.resources = []
         engine = sa.create_engine(getattr(self, 'db_uri', utils.DATABASE_URI))
+        models.Base.metadata.drop_all(bind=engine, checkfirst=False)
