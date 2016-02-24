@@ -26,7 +26,6 @@ requirements-parser==0.0.6
 simplejson==3.3.3
 urllib3==1.5
 waitress==0.8.8
-wsgiref==0.1.2
 
 six>=1.7.0
 pbr>=0.6,!=0.7,<1.0
