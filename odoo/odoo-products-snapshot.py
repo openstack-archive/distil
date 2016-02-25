@@ -1,5 +1,4 @@
 #!/usr/bin/env python2
-import oerplib
 import sys
 import os
 import pprint
@@ -7,6 +6,9 @@ import argparse
 import math
 import ConfigParser
 from decimal import Decimal
+
+import odoorpc
+
 # requires distilclient>=0.5.1
 from distilclient.client import Client as DistilClient
 
@@ -22,13 +24,17 @@ conf.read(['glue.ini'])
 
 region = conf.get('openstack', 'region')
 
-oerp = oerplib.OERP(conf.get('odoo', 'hostname'),
-                    protocol=conf.get('odoo', 'protocol'),
-                    port=conf.getint('odoo', 'port'),
-                    version=conf.get('odoo', 'version'))
-oerp.login(conf.get('odoo', 'user'),
-           conf.get('odoo', 'password'),
-           conf.get('odoo', 'database'))
+oerp = odoorpc.ODOO(
+    conf.get('odoo', 'hostname'),
+    protocol=conf.get('odoo', 'protocol'),
+    port=conf.getint('odoo', 'port'),
+    version=conf.get('odoo', 'version')
+)
+oerp.login(
+    conf.get('odoo', 'database'),
+    conf.get('odoo', 'user'),
+    conf.get('odoo', 'password')
+)
 
 # debug helper
 def dump_all(model, fields, conds=None):
@@ -38,7 +44,7 @@ def dump_all(model, fields, conds=None):
     for obj in objs:
         print ' %s %s' % (obj['id'], {f:obj[f] for f in fields})
 
-pricelist_model = oerp.get('product.pricelist')
+pricelist_model = oerp.env['product.pricelist']
 pricelist = oerp.search('product.pricelist',
                         [('name', '=', conf.get('odoo', 'export_pricelist'))])
 
