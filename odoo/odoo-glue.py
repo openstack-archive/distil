@@ -665,22 +665,16 @@ def login_odoo(shell):
     shell.Product = shell.oerp.env['product.product']
 
 
-def check_duplicate(order):
-    return False
-
-
 def update_order_status(shell, order_id, new_status='cancel'):
     print('Processing order: %s' % order_id)
 
     order = shell.Order.browse(order_id)
 
-    # Just a placeholder for further improvement.
-    is_dup = check_duplicate(order)
-    if not is_dup:
-        print "changing state: %s -> %s" % (order.state, new_status)
-        # By default when updating values of a record, the change is
-        # automatically sent to the server.
-        order.state = new_status
+    print "Changing state: %s -> %s" % (order.state, new_status)
+
+    # By default when updating values of a record, the change is
+    # automatically sent to the server.
+    order.state = new_status
 
 
 @arg('--new-status', '-s', type=str, metavar='STATUS',
