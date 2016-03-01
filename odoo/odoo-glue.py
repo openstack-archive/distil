@@ -242,11 +242,13 @@ def check_odoo_duplicate(shell, partner_id, tenant_id, billing_date):
             ('state', '!=', 'cancel')
         ]
     )
-
-    if len(orders) >= 1:
-        print('ERROR: order of tenant %s has been already generated. '
+    
+    for o_id in orders:
+        order = shell.Order.read(o_id)
+        if tenant_id in order['note']:
+            print('ERROR: order of tenant %s has been already generated. '
               'Billing date: %s.' % (tenant_id, billing_date))
-        return True
+            return True      
 
     return False
 
