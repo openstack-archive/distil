@@ -242,12 +242,15 @@ def check_odoo_duplicate(shell, partner_id, tenant_id, billing_date):
             ('state', '!=', 'cancel')
         ]
     )
-    
+
     for o_id in orders:
         order = shell.Order.read(o_id)
         if tenant_id in order['note']:
-            print('ERROR: order of tenant %s has been already generated. '
-              'Billing date: %s.' % (tenant_id, billing_date))
+            print(
+                'ERROR: order of tenant %s has been already generated. '
+                'Quotation name: %s, Billing date: %s.' %
+                (tenant_id, order['name'], billing_date)
+            )
             return True      
 
     return False
@@ -343,7 +346,10 @@ def do_quote(shell, args):
             build_sales_order(shell, args, pricelist, usage, partner,
                               tenant.name, tenant.id, billing_date)
         except Exception as e:
-            print "Failed to create sales order for tenant: %s" % tenant.name
+            print (
+                "\nFailed to create sales order for tenant: %s(%s)\n"
+                % (tenant.name, tenant.id)
+            )
 
             with open('failed_tenants.txt', 'a') as f:
                 f.write(tenant.id + "\n")
@@ -535,6 +541,7 @@ def get_price(shell, pricelist, product, volume):
 def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
                       tenant_id, billing_date):
     log(shell.debug, 'Building sale.order')
+    shell.order_id = None
 
     try:
         order_dict = {
