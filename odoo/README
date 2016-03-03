@@ -44,3 +44,14 @@ Update status of a specified quotation to cancel::
 Please refer to more detailed description about this command by running::
 
     $ ./odoo-glue.py help update-quote
+
+Check quotation duplication
+---------------------------
+
+It is always good habit(and important) to double check if there are quotation duplications in Odoo.
+
+This new command is designed for that purpose, regardless of the order status. It is highly recommended running this command every time right after the quotations are generated.
+
+For example, if you want to check if duplication exists for Feb, 2016, you need to run::
+
+    $ ./odoo-glue.py check-duplicate 2016-02
