@@ -14,6 +14,8 @@
 
 from novaclient import client as novaclient
 from cinderclient.v2 import client as cinderclient
+from glanceclient import client as glanceclient
+from keystoneclient.v2_0 import client as keystoneclient
 from decimal import Decimal
 import config
 import math
@@ -66,6 +68,26 @@ def volume_type(volume_type):
         elif vtype['id'] == volume_type:
             return vtype['name']
     return False
+
+
+def get_image(image_id):
+    keystone = keystoneclient.Client(username=config.auth['username'],
+                                     password=config.auth['password'],
+                                     tenant_name=config.auth['default_tenant'],
+                                     auth_url=config.auth['end_point'],
+                                     region_name=config.main['region'],
+                                     insecure=config.auth['insecure'])
+    client_kwargs = {
+        'token': keystone.auth_token,
+        'insecure': config.auth['insecure']
+    }
+    endpoint_kwargs = {
+        'service_type': 'image',
+        'endpoint_type': 'publicURL',
+    }
+    endpoint = keystone.service_catalog.url_for(**endpoint_kwargs)
+    glance = glanceclient.Client('2', endpoint, **client_kwargs)
+    return glance.images.get(image_id)
 
 
 def to_gigabytes_from_bytes(value):

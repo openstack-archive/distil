@@ -19,6 +19,7 @@ from datetime import timedelta
 import json
 import config
 import logging as log
+import helpers
 
 
 class Database(object):
@@ -63,6 +64,9 @@ class Database(object):
         if query.count() == 0:
             info = self.merge_resource_metadata({'type': resource_type},
                                                 entry, md_def)
+            if resource_type == 'Virtual Machine':
+                image_id = entry['resource_metadata']['image.id']
+                info['os_distro'] = getattr(helpers.get_image(image_id), 'os_distro', 'unknown')
             self.session.add(Resource(
                 id=resource_id,
                 info=json.dumps(info),
