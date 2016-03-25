@@ -426,6 +426,8 @@ def get_tenant_usage(shell, tenant, start, end):
 
         for res_id, res in raw_usage['usage']['resources'].items():
             name = res.get('name', res.get('ip address', '')) or res_id
+            type = res.get('type')
+            is_windows_instance = res.get('os_distro') == 'windows'
 
             for service_usage in res['services']:
                 if service_usage['volume'] == 'unknown unit conversion':
@@ -473,6 +475,14 @@ def get_tenant_usage(shell, tenant, start, end):
                                   'name': name,
                                   'volume': float(service_usage['volume']),
                                   'region': region})
+                    # NOTE(flwang): If this usage line is for VM(instance),
+                    # and the instance is windows image, then a new usage line
+                    # is added.
+                    if type == 'Virtual Machine' and is_windows_instance:
+                        usage.append({'product': service_usage['name'] + '-windows',
+                                      'name': name,
+                                      'volume': float(service_usage['volume']),
+                                      'region': region})
 
         # Aggregate traffic data
         for type, volume in traffic.items():

@@ -19,6 +19,7 @@ from datetime import timedelta
 import json
 import config
 import logging as log
+import helpers
 
 
 class Database(object):
@@ -63,6 +64,8 @@ class Database(object):
         if query.count() == 0:
             info = self.merge_resource_metadata({'type': resource_type},
                                                 entry, md_def)
+            if resource_type == 'Virtual Machine':
+                info['os_distro'] = self._get_os_distro(entry)
             self.session.add(Resource(
                 id=resource_id,
                 info=json.dumps(info),
@@ -71,9 +74,28 @@ class Database(object):
             self.session.flush()           # can't assume deferred constraints.
         else:
             md_dict = json.loads(query[0].info)
+            # NOTE(flwang): The os_distro property maybe set on the image
+            # after some instances created. Do we really care about this case?
+            # This may impact the performance a bit.
+            if resource_type == 'Virtual Machine':
+                md_dict['os_distro'] = self._get_os_distro(entry)
             md_dict = self.merge_resource_metadata(md_dict, entry,
                                                    md_def)
             query[0].info = json.dumps(md_dict)
+
+    def _get_os_distro(self, entry):
+        os_distro = 'unknown'
+        if 'image.id' in entry['resource_metadata']:
+            # Boot from image
+            image_id = entry['resource_metadata']['image.id']
+            os_distro = getattr(helpers.get_image(image_id), 'os_distro', 'unknown')
+
+        if entry['resource_metadata']['image_ref'] == 'None':
+            # Boot from volume
+            image_meta = getattr(helpers.get_volume(entry['resource_id']), 'volume_image_metadata', {})
+            os_distro = image_meta['os_distro'] if 'os_distro' in image_meta else 'unknown'
+
+        return os_distro
 
     def insert_usage(self, tenant_id, resource_id, entries, unit,
                      start, end, timestamp):
