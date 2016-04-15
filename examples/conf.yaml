@@ -33,31 +33,13 @@ collection:
   max_windows_per_cycle: 4
   # defines which meter is mapped to which transformer
   meter_mappings:
-    # -
-    #   # meter name as seen in ceilometer
-    #   meter: instance
-    #   # type of resource it maps to (seen on sales order)
-    #   type: Virtual Machine
-    #   # which transformer to use
-    #   transformer: InstanceUptime
-    #   # what unit type is coming in via the meter
-    #   unit: second 
-    #   metadata:
-    #     name:
-    #       sources:
-    #         # which keys to search for in the ceilometer entry metadata
-    #         # this can be more than one as metadata is inconsistent between
-    #         # source types
-    #         - display_name
-    #     availability zone:
-    #       sources:
-    #         - OS-EXT-AZ:availability_zone
     -
-      meter: state
-        # type of resource it maps to (seen on sales order)
+      # meter name as seen in ceilometer
+      meter: instance
+      # type of resource it maps to (seen on sales order)
       type: Virtual Machine
       # which transformer to use
-      transformer: Uptime
+      transformer: InstanceUptime
       # what unit type is coming in via the meter
       unit: second 
       metadata:
@@ -70,6 +52,9 @@ collection:
         availability zone:
           sources:
             - OS-EXT-AZ:availability_zone
+        host:
+          sources:
+            - instance_host
     -
       meter: ip.floating
       service: n1.ipv4
