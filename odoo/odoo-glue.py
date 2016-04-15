@@ -415,7 +415,6 @@ def get_tenant_usage(shell, tenant, start, end):
     for region in REGION_MAPPING.keys():
         distil_client = getattr(shell, 'distil' + region.replace('-', '_'))
         raw_usage = distil_client.get_usage(tenant, start, end)
-
         if not raw_usage:
             return None
 
@@ -442,15 +441,13 @@ def get_tenant_usage(shell, tenant, start, end):
                 if service_usage['unit'] == 'byte':
                     v = Decimal(service_usage['volume'])
                     service_usage['unit'] = 'gigabyte'
-                    service_usage['volume'] = str(v /
-                                                  Decimal(1024 * 1024 * 1024))
+                    service_usage['volume'] = str(v / Decimal(1024 * 1024 * 1024))
 
                 if service_usage['unit'] == 'second':
                     # convert seconds to hours, rounding up.
                     v = Decimal(service_usage['volume'])
                     service_usage['unit'] = 'hour'
-                    service_usage['volume'] = str(math.ceil(v /
-                                                            Decimal(60 * 60)))
+                    service_usage['volume'] = str(math.ceil(v / Decimal(60 * 60)))
 
                 # drop zero usages.
                 if not Decimal(service_usage['volume']):
@@ -474,7 +471,8 @@ def get_tenant_usage(shell, tenant, start, end):
                     usage.append({'product': service_usage['name'],
                                   'name': name,
                                   'volume': float(service_usage['volume']),
-                                  'region': region})
+                                  'region': region,
+                                  'resource_id': res_id})
                     # NOTE(flwang): If this usage line is for VM(instance),
                     # and the instance is windows image, then a new usage line
                     # is added.
@@ -482,7 +480,8 @@ def get_tenant_usage(shell, tenant, start, end):
                         usage.append({'product': service_usage['name'] + '-windows',
                                       'name': name,
                                       'volume': float(service_usage['volume']),
-                                      'region': region})
+                                      'region': region,
+                                      'resource_id': res_id})
 
         # Aggregate traffic data
         for type, volume in traffic.items():
@@ -682,6 +681,8 @@ def login_odoo(shell):
     shell.Partner = shell.oerp.env['res.partner']
     shell.Pricelist = shell.oerp.env['product.pricelist']
     shell.Product = shell.oerp.env['product.product']
+    shell.PurchaseOrder = shell.oerp.env['purchase.order']
+    shell.PurchaseOrderline = shell.oerp.env['purchase.order.line']
 
 
 def check_duplicate(order):
@@ -747,6 +748,107 @@ def do_update_quote(shell, args):
                                       limit=2, file=sys.stdout)
             print(e)
             print('Failed to update order: %s' % id)
+
+
+@arg('--start', type=str, metavar='START',
+     dest='START', required=True,
+     help='Start date for quote.')
+@arg('--end', type=str, metavar='END',
+     dest='END', required=True,
+     help='End date for quote.')
+@arg('--dry-run', type=bool, metavar='DRY_RUN',
+     dest='DRY_RUN', required=False, default=False,
+     help='Do not actually create the sales order in Odoo.')
+@arg('--audit', type=bool, metavar='AUDIT',
+     dest='AUDIT', required=False, default=False,
+     help='Do nothing but check if there is out-of-sync between OpenStack'
+     ' and OpenERP')
+def do_purchase_order_windows(shell, args):
+    """
+    Generate a purchase order based on the monthly Windows instances usage.
+    """
+    user_roles = shell.keystone.session.auth.auth_ref['user']['roles']
+    if {u'name': u'admin'} not in user_roles:
+        print('Admin permission is required.')
+        return
+
+    login_odoo(shell)
+
+    end_timestamp = datetime.datetime.strptime(
+        args.END,
+        '%Y-%m-%dT%H:%M:%S'
+    )
+    billing_date = str((end_timestamp - datetime.timedelta(days=1)).date())
+
+    windows_usage = []
+    tenants = shell.keystone.tenants.list()
+    pricelist = None
+    for t in tenants:
+        if t.name == 'openstack':
+            # NOTE(flwang): Using a default tenant to find parter and
+            # pricelist of root parter
+            partner = find_oerp_partner_for_tenant(shell, t)
+            root_partner = find_root_partner(shell, partner)
+            pricelist, _ = root_partner['property_product_pricelist']
+        usages = get_tenant_usage(shell, t.id, args.START, args.END)
+        for u in usages:
+            # TODO(flwang): Using regex to match 'c1.c%dr%d-windows'
+            #if u['product'].endswith('-windows'):
+            if u['product'].endswith('c2r4'):
+                windows_usage.append(u)
+
+    generate_purchase_order(shell, args, windows_usage, billing_date, pricelist)
+
+
+def generate_purchase_order(shell, args, usage, billing_date, pricelist):
+    """
+    Call odoo API to create a new purchase order
+    """
+    # TODO(flwang): Partner id is hardcoded for Provoke
+    # location id is hardcoded since we don't care the delivery location
+    partner_id = 1451
+    localtion_id = 10
+    try:
+        order_dict = {
+            'partner_id': partner_id,
+            'pricelist_id': pricelist,
+            'partner_invoice_id': partner_id,
+            'partner_shipping_id': partner_id,
+            'date_order': billing_date,
+            'location_id': localtion_id,
+        }
+        order = shell.PurchaseOrder.create(order_dict)
+
+        for m in sorted(usage, key=lambda m: m['product']):
+            prod = find_oerp_product(shell, m['region'], m['product'])
+            usage_dict = {
+                'order_id': order,
+                'date_planned': billing_date,
+                'account_analytic_id': '',
+                'product_id': prod['id'],
+                'product_uom': prod['uom_id'][0],
+                'product_qty': math.fabs(m['volume']),
+                'name': m['resource_id'],   # Hide the instance name
+                'price_unit': get_price(shell, pricelist, prod, m['volume'])
+            }
+            if usage_dict['product_qty'] < 0.005:
+                print(
+                    '%s is too small for %s.' %
+                    (str(usage_dict['product_qty']), m['name'])
+                )
+                continue
+
+            shell.PurchaseOrderline.create(usage_dict)
+    except odoorpc.error.RPCError as e:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                  limit=2, file=sys.stdout)
+        raise e
+    except Exception as e:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                  limit=2, file=sys.stdout)
+        raise e
 
 
 def print_dict(d, max_column_width=80):
