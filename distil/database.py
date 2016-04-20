@@ -61,11 +61,17 @@ class Database(object):
         query = self.session.query(Resource).\
             filter(Resource.id == resource_id,
                    Resource.tenant_id == tenant_id)
+
         if query.count() == 0:
             info = self.merge_resource_metadata({'type': resource_type},
                                                 entry, md_def)
             if resource_type == 'Virtual Machine':
                 info['os_distro'] = self._get_os_distro(entry)
+            if resource_type == 'Object Storage Container':
+                # NOTE(flwang): It's safe to get container name by /, since
+                # Swfit doesn't allow reject container name with /.
+                idx = resource_id.index('/') + 1
+                info['name'] = resource_id[idx:]
             self.session.add(Resource(
                 id=resource_id,
                 info=json.dumps(info),
