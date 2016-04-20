@@ -163,6 +163,19 @@ collection:
         name:
           sources:
             - name
+    -
+      meter: storage.containers.objects.size
+      service: o1.standard
+      type: Object Storage Container
+      transformer: GaugeMax
+      unit: byte
+      # NOTE(flwang): Nothing in resource_metadata from ceilometer actually.
+      # But to avoid any unnecessary issue and keeping consistency. Just keep
+      # 'name' as default key.
+      metadata:
+        name:
+          sources:
+            - name
 # transformer configs
 transformers:
   uptime:
