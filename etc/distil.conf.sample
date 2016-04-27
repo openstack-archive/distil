@@ -1,0 +1,40 @@
+[DEFAULT]
+debug = True
+ignore_tenants = demo
+timezone = Pacific/Auckland
+host = localhost
+port = 9999
+
+[collector]
+collector_config = /etc/distil/collector.yaml
+transformer_config = /etc/distil/transformer.yaml
+
+[rater]
+type = file
+rates_file = file:///etc/distil/rates.csv
+
+[odoo]
+version=8.0
+hostname=
+port=443
+protocol=jsonrpc+ssl
+database=
+user=
+password=
+
+[database]
+connection = mysql://root:passw0rd@127.0.0.1/distil?charset=utf8
+backend = sqlalchemy
+
+[keystone_authtoken]
+memcache_servers = 127.0.0.1:11211
+signing_dir = /var/cache/distil
+cafile = /opt/stack/data/ca-bundle.pem 
+auth_uri = http://127.0.0.1:5000
+project_domain_id = default
+project_name = service
+user_domain_id = default
+password = passw0rd
+username = distil
+auth_url = http://127.0.0.1:35357
+auth_type = password
