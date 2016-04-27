@@ -1,4 +1,4 @@
-# Copyright 2014 Catalyst IT Ltd
+# Copyright 2014 Red Hat, Inc.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,21 +13,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from oslo_config import cfg
-from oslo_log import log
+from oslo_i18n import *  # noqa
 
-REST_SERVICE_OPTS = [
-    cfg.IntOpt('port',
-               default=9999,
-               help='The port for the Rally API server',
-               ),
-    cfg.StrOpt('host',
-               default='0.0.0.0',
-               help='The listen IP for the Rally API server',
-               ),
-]
+_translators = TranslatorFactory(domain='zaqar')
 
+# The primary translation function using the well-known name "_"
+_ = _translators.primary
 
-CONF = cfg.CONF
-CONF.register_opts(REST_SERVICE_OPTS)
-log.register_options(CONF)
+# Translators for log levels.
+#
+# The abbreviated names are meant to reflect the usual use of a short
+# name like '_'. The "L" is for "log" and the other letter comes from
+# the level.
+_LI = _translators.log_info
+_LW = _translators.log_warning
+_LE = _translators.log_error
+_LC = _translators.log_critical
