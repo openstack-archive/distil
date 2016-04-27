@@ -12,6 +12,26 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_config import cfg
+
+from oslo_log import log
+
+
+cfg.set_defaults(log.log_opts, default_log_levels=[
+    'stevedore=INFO',
+    'eventlet.wsgi.server=WARN',
+    'sqlalchemy=WARN',
+    'boto=WARN',
+    'suds=INFO',
+    'keystone=INFO',
+    'paramiko=WARN',
+    'requests=WARN',
+    'iso8601=WARN',
+])
+
+
+CONF = cfg.CONF
+
 # This is simply a namespace for global config storage
 main = None
 rates_config = None
