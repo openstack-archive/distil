@@ -12,6 +12,37 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_config import cfg
+from oslo_log import log
+
+DEFAULT_OPTIONS = (
+    cfg.ListOpt('ignore_tenants', default=[],
+                help=(''),),
+)
+
+ODOO_OPTS = [
+    cfg.StrOpt('version', default='8.0',
+               help=''),
+    cfg.StrOpt('hostname',
+               help=''),
+    cfg.IntOpt('port', default=443,
+               help=''),
+    cfg.StrOpt('protocol', default='jsonrpc+ssl',
+               help=''),
+    cfg.StrOpt('database',
+               help=''),
+    cfg.StrOpt('user',
+               help=''),
+    cfg.StrOpt('password',
+               help=''),
+]
+
+ODOO_GROUP = 'odoo'
+
+def config_options():
+    return [(None, DEFAULT_OPTIONS),
+            (ODOO_GROUP, ODOO_OPTS),]
+
 # This is simply a namespace for global config storage
 main = None
 rates_config = None
