@@ -17,6 +17,7 @@ from dateutil import parser
 
 from oslo_log import log
 from distil.service.api.v2 import prices
+from distil.service.api.v2 import health
 from distil.utils import api
 
 LOG = log.getLogger(__name__)
@@ -30,6 +31,6 @@ def prices_get():
     return api.render(prices=prices.get_prices(format=format))
 
 
-@rest.get('/costs')
+@rest.get('/health')
 def costs_get():
-    return api.render(costs=costs.get_costs())
+    return api.render(health=health.get_health())

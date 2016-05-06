@@ -16,10 +16,8 @@
 from distil import rater
 from distil.utils import odoo
 
+
 class OdooRater(rater.BaseRater):
 
     def rate(self, name, region=None):
-        erp = odoo.Odoo()
-        import pdb
-        pdb.set_trace()
         pass

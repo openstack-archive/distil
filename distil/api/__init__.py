@@ -26,9 +26,9 @@ REST_SERVICE_OPTS = [
                help='The listen IP for the Distil API server',
                ),
     cfg.ListOpt('public_api_routes',
-               default=['/', '/v2/prices'],
-               help='The list of public API routes',
-               ),
+                default=['/', '/v2/prices', '/v2/health'],
+                help='The list of public API routes',
+                ),
 ]
 
 

@@ -99,8 +99,8 @@ def _init_resp_type():
 
     flask.request.resp_type = resp_type
 
-    
-def render(res=None, resp_type=None, status=None, **kwargs):  
+
+def render(res=None, resp_type=None, status=None, **kwargs):
     if not res:
         res = {}
     if type(res) is dict:
@@ -180,7 +180,8 @@ def abort_and_log(status_code, descr, exc=None):
         LOG.error(traceback.format_exc())
 
     flask.abort(status_code, description=descr)
-    
+
+
 def render_error_message(error_code, error_message, error_name):
     message = {
         "error_code": error_code,

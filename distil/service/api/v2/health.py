@@ -21,10 +21,5 @@ LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
 
-def get_prices(format=None):
-    import pdb
-    pdb.set_trace()
-    erp = odoo.Odoo()
-    erp.get_prices()
-    pdb.set_trace()
-    return {'id': 1}
+def get_health():
+    return {}

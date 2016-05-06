@@ -105,7 +105,7 @@ def model_query(model, context, session=None, project_only=True):
 
 def project_add(project):
     session = get_session()
-    project_ref = Project(id=project.id, name=project.name)
+    project_ref = Project(id=project.id, name=project.name, info=project.info)
 
     try:
         project_ref.save(session=session)
