@@ -17,9 +17,11 @@ from sqlalchemy import Column
 from sqlalchemy import Integer
 from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKeyConstraint
 from sqlalchemy import Numeric
 from sqlalchemy import Sequence
 from sqlalchemy import String
+from sqlalchemy import Text
 from sqlalchemy.orm import relationship
 
 from distil.db.sqlalchemy.model_base import JSONEncodedDict
@@ -27,85 +29,93 @@ from distil.db.sqlalchemy.model_base import DistilBase
 
 
 class Resource(DistilBase):
-    """Database model for storing metadata associated with a resource.
+    """Database model for storing metadata associated with a resource."""
+    __tablename__ = 'resources'
+    id = Column(String(100), primary_key=True)
+    tenant_id = Column(String(100), ForeignKey("tenants.id"), primary_key=True)
+    info = Column(Text)
+    created = Column(DateTime, nullable=False)
 
+
+class UsageEntry(DistilBase):
+    """Simplified data store of usage information for a given service
+
+       Similar to ceilometer datastore, but stores local transformed data.
     """
-    __tablename__ = 'resource'
-    id = Column(String(64), primary_key=True)
-    project_id = Column(String(64), ForeignKey("project.id"),
-                        primary_key=True)
-    resource_type = Column(String(64), nullable=True)
-    meta_data = Column(JSONEncodedDict(), default={})
 
+    __tablename__ = 'usage_entry'
 
-class Usage(DistilBase):
-    """Simplified data store of usage information for a given service,
-    in a resource, in a project. Similar to ceilometer datastore,
-    but stores local transformed data.
-    """
-    __tablename__ = 'usage'
+    # Service is things like incoming vs. outgoing, as well as instance
+    # flavour
     service = Column(String(100), primary_key=True)
-    unit = Column(String(255))
+    unit = Column(String(100))
     volume = Column(Numeric(precision=20, scale=2), nullable=False)
-    resource_id = Column(String(64), ForeignKey('resource.id'),
-                         primary_key=True)
-    project_id = Column(String(64), ForeignKey('project.id'), primary_key=True)
-    start_at = Column(DateTime, nullable=False, primary_key=True)
-    end_at = Column(DateTime, nullable=False, primary_key=True)
+    resource_id = Column(String(100), primary_key=True)
+    tenant_id = Column(String(100), primary_key=True)
+    start = Column(DateTime, nullable=False, primary_key=True)
+    end = Column(DateTime, nullable=False, primary_key=True)
+    created = Column(DateTime, nullable=False)
+
+    resource = relationship(Resource,
+                            primaryjoin=(resource_id == Resource.id))
+    tenant = relationship(Resource,
+                          primaryjoin=(tenant_id == Resource.tenant_id))
+
+    __table_args__ = (ForeignKeyConstraint(
+        ["resource_id", "tenant_id"],
+        ["resources.id", "resources.tenant_id"],
+        name="fk_resource_constraint"
+    ),
+    )
 
     @hybrid_property
     def length(self):
-        return self.end_at - self.start_at
+        return self.end - self.start
 
     @hybrid_method
     def intersects(self, other):
-        return (self.start_at <= other.end_at and
-                other.start_at <= self.end_at)
+        return (self.start <= other.end and other.start <= self.end)
 
     def __str__(self):
-        return ('<Usage {project_id=%s resource_id=%s service=%s'
-                'start_at=%s end_at =%s volume=%s}>' % (self.project_id,
-                                                        self.resource_id,
-                                                        self.service,
-                                                        self.start_at,
-                                                        self.end_at,
-                                                        self.volume))
+        return ('<UsageEntry {tenant_id=%s resource_id=%s service=%s '
+                'start=%s end=%s volume=%s}>' % (self.tenant_id,
+                                                 self.resource_id,
+                                                 self.service,
+                                                 self.start,
+                                                 self.end,
+                                                 self.volume))
 
 
-class Project(DistilBase):
-    """Model for storage of metadata related to a project.
+class Tenant(DistilBase):
+    """Model for storage of metadata related to a tenant."""
+    __tablename__ = 'tenants'
+    # ID is a uuid
+    id = Column(String(100), primary_key=True, nullable=False)
+    name = Column(Text, nullable=False)
+    info = Column(Text)
+    created = Column(DateTime, nullable=False)
+    last_collected = Column(DateTime, nullable=False)
 
-    """
-    __tablename__ = 'project'
-    id = Column(String(64), primary_key=True, nullable=False)
-    name = Column(String(64), nullable=False)
-    meta_data = Column(JSONEncodedDict(), default={})
+    resources = relationship(Resource, backref="tenant")
 
 
-class LastRun():
-    __tablename__ = 'last_run'
-    id = Column(Integer, Sequence("last_run_id_seq"), primary_key=True)
-    start_at = Column(DateTime, primary_key=True, nullable=False)
+class SalesOrder(DistilBase):
+    """Historic billing periods."""
+    __tablename__ = 'sales_orders'
+    id = Column(Integer, primary_key=True)
+    tenant_id = Column(
+        String(100),
+        ForeignKey("tenants.id"),
+        primary_key=True)
+    start = Column(DateTime, nullable=False, primary_key=True)
+    end = Column(DateTime, nullable=False, primary_key=True)
 
-# class SalesOrder(DistilBase):
-#     """Historic billing periods so that tenants
-#        cannot be rebilled accidentally.
-#     """
-#     __tablename__ = 'sales_orders'
-#     id = Column(Integer, primary_key=True)
-#     project_id = Column(
-#         String(100),
-#         ForeignKey("project.id"),
-#         primary_key=True)
-#     start = Column(DateTime, nullable=False, primary_key=True)
-#     end = Column(DateTime, nullable=False, primary_key=True)
-# 
-#     project = relationship("Project")
-# 
-#     @hybrid_property
-#     def length(self):
-#         return self.end - self.start
-# 
-#     @hybrid_method
-#     def intersects(self, other):
-#         return (self.start <= other.end and other.start <= self.end)
+    tenant = relationship("Tenant")
+
+    @hybrid_property
+    def length(self):
+        return self.end - self.start
+
+    @hybrid_method
+    def intersects(self, other):
+        return (self.start <= other.end and other.start <= self.end)

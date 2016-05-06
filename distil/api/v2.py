@@ -16,6 +16,8 @@
 from dateutil import parser
 
 from oslo_log import log
+from distil.service.api.v2 import costs
+from distil.service.api.v2 import health
 from distil.service.api.v2 import prices
 from distil.utils import api
 
@@ -42,4 +44,4 @@ def usages_get():
 
 @rest.get('/health')
 def health_get():
-    return api.render(health={})
+    return api.render(health=health.get_health())

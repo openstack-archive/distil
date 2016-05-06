@@ -22,26 +22,27 @@ DEFAULT_OPTIONS = (
 
 ODOO_OPTS = [
     cfg.StrOpt('version', default='8.0',
-               help=''),
+               help='Version of Odoo server.'),
     cfg.StrOpt('hostname',
-               help=''),
+               help='Host name of Odoo server.'),
     cfg.IntOpt('port', default=443,
-               help=''),
+               help='Port of Odoo server'),
     cfg.StrOpt('protocol', default='jsonrpc+ssl',
-               help=''),
+               help='Protocol to connect to Odoo server.'),
     cfg.StrOpt('database',
-               help=''),
+               help='Name of the Odoo database.'),
     cfg.StrOpt('user',
-               help=''),
+               help='Name of Odoo account to login.'),
     cfg.StrOpt('password',
-               help=''),
+               help='Password of Odoo account to login.'),
 ]
 
 ODOO_GROUP = 'odoo'
 
+
 def config_options():
     return [(None, DEFAULT_OPTIONS),
-            (ODOO_GROUP, ODOO_OPTS),]
+            (ODOO_GROUP, ODOO_OPTS)]
 
 # This is simply a namespace for global config storage
 main = None

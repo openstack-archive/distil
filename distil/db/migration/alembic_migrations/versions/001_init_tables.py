@@ -33,76 +33,78 @@ MYSQL_ENGINE = 'InnoDB'
 MYSQL_CHARSET = 'utf8'
 
 
-# TODO(flwang): Porting all the table structure we're using.
 def upgrade():
-    op.create_table('project',
-                    sa.Column('id', sa.String(length=64), nullable=False),
-                    sa.Column('name', sa.String(length=64), nullable=False),
-                    sa.Column('meta_data', model_base.JSONEncodedDict(),
+    op.create_table('tenants',
+                    sa.Column('id', sa.String(length=100), nullable=False),
+                    sa.Column('name', sa.String(length=100), nullable=False),
+                    sa.Column('info', model_base.JSONEncodedDict(),
                               nullable=True),
-                    sa.Column('created_at', sa.DateTime(), nullable=True),
-                    sa.Column('updated_at', sa.DateTime(), nullable=True),
+                    sa.Column('created', sa.DateTime(), nullable=True),
+                    sa.Column('last_collected', sa.DateTime(), nullable=True),
                     sa.PrimaryKeyConstraint('id'),
                     mysql_engine=MYSQL_ENGINE,
                     mysql_charset=MYSQL_CHARSET)
 
-    op.create_table('resource',
-                    sa.Column('id', sa.String(length=64)),
-                    sa.Column('project_id', sa.String(length=64),
+    op.create_table('resources',
+                    sa.Column('id', sa.String(length=100)),
+                    sa.Column('tenant_id', sa.String(length=100),
                               nullable=False),
-                    sa.Column('resource_type', sa.String(length=64),
+                    sa.Column('info', model_base.JSONEncodedDict(),
                               nullable=True),
-                    sa.Column('meta_data', model_base.JSONEncodedDict(),
-                              nullable=True),
-                    sa.Column('created_at', sa.DateTime(), nullable=True),
-                    sa.Column('updated_at', sa.DateTime(), nullable=True),
-                    sa.PrimaryKeyConstraint('id', 'project_id'),
-                    sa.ForeignKeyConstraint(['project_id'], ['project.id'], ),
+                    sa.Column('created', sa.DateTime(), nullable=True),
+                    sa.PrimaryKeyConstraint('id', 'tenant_id'),
+                    sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ),
                     mysql_engine=MYSQL_ENGINE,
                     mysql_charset=MYSQL_CHARSET)
 
-    op.create_table('usage',
-                    sa.Column('service', sa.String(length=64),
+    op.create_table('usage_entry',
+                    sa.Column('service', sa.String(length=100),
                               primary_key=True),
-                    sa.Column('unit', sa.String(length=255),
+                    sa.Column('unit', sa.String(length=100),
                               nullable=False),
                     sa.Column('volume', sa.Numeric(precision=20, scale=2),
                               nullable=True),
-                    sa.Column('project_id', sa.String(length=64),
+                    sa.Column('tenant_id', sa.String(length=100),
                               primary_key=True, nullable=False),
-                    sa.Column('resource_id', sa.String(length=64),
+                    sa.Column('resource_id', sa.String(length=100),
                               primary_key=True, nullable=False),
                     sa.Column('start_at', sa.DateTime(), primary_key=True,
                               nullable=True),
                     sa.Column('end_at', sa.DateTime(), primary_key=True,
                               nullable=True),
-                    sa.Column('created_at', sa.DateTime(), nullable=True),
-                    sa.Column('updated_at', sa.DateTime(), nullable=True),
-                    sa.ForeignKeyConstraint(['project_id'], ['project.id'], ),
+                    sa.Column('created', sa.DateTime(), nullable=True),
+                    sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ),
                     sa.ForeignKeyConstraint(['resource_id'],
-                                            ['resource.id'], ),
+                                            ['resources.id'], ),
                     mysql_engine=MYSQL_ENGINE,
                     mysql_charset=MYSQL_CHARSET)
 
-#     op.create_table('sales_order',
-#                     sa.Column('id', sa.Integer, primary_key=True),
-#                     sa.Column('project_id', sa.String(length=64),
-#                               nullable=False, primary_key=True),
-#                     sa.Column('start_at', sa.DateTime(), primary_key=True,
-#                               nullable=True),
-#                     sa.Column('end_at', sa.DateTime(), primary_key=True,
-#                               nullable=True),
-#                     sa.Column('created_at', sa.DateTime(), nullable=True),
-#                     sa.Column('updated_at', sa.DateTime(), nullable=True),
-#                     sa.PrimaryKeyConstraint('id', 'project_id', 'start_at',
-#                                             'end_at'),
-#                     sa.ForeignKeyConstraint(['project_id'], ['project.id'], ),
-#                     mysql_engine=MYSQL_ENGINE,
-#                     mysql_charset=MYSQL_CHARSET)
+    op.create_table('sales_orders',
+                    sa.Column('id', sa.Integer, primary_key=True),
+                    sa.Column('tenant_id', sa.String(length=64),
+                              nullable=False, primary_key=True),
+                    sa.Column('start_at', sa.DateTime(), primary_key=True,
+                              nullable=True),
+                    sa.Column('end_at', sa.DateTime(), primary_key=True,
+                              nullable=True),
+                    sa.PrimaryKeyConstraint('id', 'tenant_id', 'start_at',
+                                            'end_at'),
+                    sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ),
+                    mysql_engine=MYSQL_ENGINE,
+                    mysql_charset=MYSQL_CHARSET)
 
+    op.create_table('distil_last_run',
+                    sa.Column('id', sa.Integer,
+                              sa.Sequence("last_run_id_seq"),
+                              primary_key=True,),
+                    sa.Column('last_run', sa.DateTime(), nullable=True),
+                    mysql_engine=MYSQL_ENGINE,
+                    mysql_charset=MYSQL_CHARSET)
 
 
 def downgrade():
-    op.drop_table('project')
-    op.drop_table('usage')
-    op.drop_table('resource')
+    op.drop_table('tenants')
+    op.drop_table('usage_entry')
+    op.drop_table('resources')
+    op.drop_table('distil_last_run')
+    op.drop_table('sales_orders')

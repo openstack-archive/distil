@@ -18,8 +18,8 @@ import os
 from alembic import command as alembic_cmd
 from alembic import config as alembic_cfg
 from alembic import util as alembic_u
-from oslo.config import cfg
-from oslo.db import options
+from oslo_config import cfg
+from oslo_db import options
 
 CONF = cfg.CONF
 options.set_defaults(CONF)

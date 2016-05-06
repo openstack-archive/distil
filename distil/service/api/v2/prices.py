@@ -20,6 +20,7 @@ from distil.utils import odoo
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
+
 def get_prices(format=None):
     prices = odoo.Odoo().get_prices()
     return prices

@@ -19,5 +19,6 @@ from oslo_log import log as logging
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
+
 def get_costs():
     return {'id': 1}

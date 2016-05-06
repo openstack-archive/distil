@@ -17,17 +17,17 @@
 
 import sys
 
-from oslo.config import cfg
+from oslo_config import cfg
 import sqlalchemy as sa
 from distil.db.sqlalchemy import models as m
 
 from distil import exceptions
-from distil.openstack.common.db import exception as db_exception
-from distil.openstack.common.db.sqlalchemy import session as db_session
-from distil.openstack.common import log as logging
-from distil.db.sqlalchemy.models import Project
+from oslo_db import exception as db_exception
+from oslo_db.sqlalchemy import session as db_session
+from oslo_log import log as logging
+from distil.db.sqlalchemy.models import Tenant
 from distil.db.sqlalchemy.models import Resource
-from distil.db.sqlalchemy.models import Usage
+from distil.db.sqlalchemy.models import UsageEntry
 
 LOG = logging.getLogger(__name__)
 
@@ -105,7 +105,7 @@ def model_query(model, context, session=None, project_only=True):
 
 def project_add(project):
     session = get_session()
-    project_ref = Project(id=project.id, name=project.name)
+    project_ref = Tenant(id=project.id, name=project.name, info=project.info)
 
     try:
         project_ref.save(session=session)
@@ -117,12 +117,19 @@ def project_add(project):
         raise e
 
 
+def project_get_all():
+    session = get_session()
+    query = session.query(Tenant)
+    return query.all()
+
+
 def usage_get(project_id, start_at, end_at):
     session = get_session()
-    query = session.query(Usage)
+    query = session.query(UsageEntry)
 
-    query = (query.filter(Usage.start_at >= start_at, Usage.end_at <= end_at).
-             filter(Usage.project_id == project_id))
+    query = (query.filter(UsageEntry.start_at >= start_at,
+                          UsageEntry.end_at <= end_at).
+             filter(UsageEntry.project_id == project_id))
 
     return query.all()
 
@@ -134,11 +141,12 @@ def usage_add(project_id, resource_id, samples, unit,
     try:
         # NOTE(flwang): For now, there is only one entry in the samples dict
         service, volume = samples.popitem()
-        resource_ref = Usage(service=service,
-                             volume=volume,
-                             unit=unit,
-                             resource_id=resource_id, project_id=project_id,
-                             start_at=start_at, end_at=end_at)
+        resource_ref = UsageEntry(service=service,
+                                  volume=volume,
+                                  unit=unit,
+                                  resource_id=resource_id,
+                                  project_id=project_id,
+                                  start_at=start_at, end_at=end_at)
         resource_ref.save(session=session)
     except sa.exc.InvalidRequestError as e:
         # FIXME(flwang): I assume there should be a DBDuplicateEntry error

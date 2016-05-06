@@ -18,6 +18,7 @@ from keystonemiddleware import opts
 from oslo_config import cfg
 from oslo_log import log as logging
 import re
+from distil import exceptions
 
 CONF = cfg.CONF
 AUTH_GROUP_NAME = 'keystone_authtoken'
@@ -58,7 +59,7 @@ class AuthTokenMiddleware(auth_token.AuthProtocol):
             msg = _('Cannot compile public API routes: %s') % e
 
             LOG.error(msg)
-            raise exception.ConfigInvalid(error_msg=msg)
+            raise exceptions.InvalidConfig(error_msg=msg)
 
         super(AuthTokenMiddleware, self).__init__(app, conf)
 

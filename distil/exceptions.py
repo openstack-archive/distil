@@ -78,3 +78,15 @@ class NotFoundException(DistilException):
 
 class DuplicateException(DistilException):
     message = _("An object with the same identifier already exists.")
+
+
+class InvalidConfig(DistilException):
+    message = _("Invalid configuration file. %(error_msg)s")
+
+
+class MalformedRequestBody(DistilException):
+    message = _("Malformed message body: %(reason)s")
+
+    def __init__(self, reason):
+        formatted_message = self.message % {"reason": reason}
+        super(MalformedRequestBody, self).__init__(formatted_message)

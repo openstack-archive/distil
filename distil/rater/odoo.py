@@ -17,6 +17,7 @@ from distil import rater
 from distil.rater import rate_file
 from distil.utils import odoo
 
+
 class OdooRater(rater.BaseRater):
 
     def __init__(self, conf):

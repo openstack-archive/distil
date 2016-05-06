@@ -40,15 +40,9 @@ class JSONEncodedDict(TypeDecorator):
         return value
 
 
-class _DistilBase(oslo_models.ModelBase, oslo_models.TimestampMixin):
+class _DistilBase(oslo_models.ModelBase):
     """Base class for all SQLAlchemy DB Models."""
     __table_args__ = {'mysql_engine': 'InnoDB'}
-
-    created_at = Column(DateTime, default=lambda: timeutils.utcnow(),
-                        nullable=False)
-
-    updated_at = Column(DateTime, default=lambda: timeutils.utcnow(),
-                        nullable=False, onupdate=lambda: timeutils.utcnow())
 
     def keys(self):
         return self.__dict__.keys()

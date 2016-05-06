@@ -23,13 +23,14 @@ CONF = cfg.CONF
 PRODUCT_CATEGORY = ('Compute', 'Network', 'Block Storage', 'Object Storage')
 REGION_MAPPING = {'nz-por-1': 'NZ-POR-1', 'nz_wlg_2': 'NZ-WLG-2'}
 
+
 class Odoo(object):
-    
+
     def __init__(self):
         self.odoo = odoorpc.ODOO(CONF.odoo.hostname,
-                            protocol=CONF.odoo.protocol,
-                            port=CONF.odoo.port,
-                            version=CONF.odoo.version)
+                                 protocol=CONF.odoo.protocol,
+                                 port=CONF.odoo.port,
+                                 version=CONF.odoo.version)
 
         self.odoo.login(CONF.odoo.database, CONF.odoo.user, CONF.odoo.password)
 
@@ -54,20 +55,16 @@ class Odoo(object):
             prices[r] = {}
             for category in PRODUCT_CATEGORY:
                 prices[r][category.lower()] = {}
-                c = self.category.search([
-                                            ('name', '=', category),
-                                            ('display_name', 'ilike', r)
-                                            ])
-                product_ids = self.product.search([
-                                            ('categ_id', '=', c[0]),
-                                            ('sale_ok', '=', True),
-                                            ('active', '=', True)
-                                            ])
+                c = self.category.search([('name', '=', category),
+                                          ('display_name', 'ilike', r)])
+                product_ids = self.product.search([('categ_id', '=', c[0]),
+                                                   ('sale_ok', '=', True),
+                                                   ('active', '=', True)])
                 products = self.odoo.execute('product.product',
                                              'read',
                                              product_ids)
                 for p in products:
-                    name = p['name_template'][len(r)+1:]
+                    name = p['name_template'][len(r) + 1:]
                     price = round(p['lst_price'], 5)
                     # NOTE(flwang): default_code is Internal Reference on Odoo
                     # GUI

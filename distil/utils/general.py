@@ -64,7 +64,7 @@ def log_and_time_it(f):
         start = datetime.utcnow()
         LOG.info('Entering %s at %s' % (f.__name__, start))
         f(*args, **kwargs)
-        LOG.info('Exiting %s at %s, elapsed %s' % (f.__name__, 
+        LOG.info('Exiting %s at %s, elapsed %s' % (f.__name__,
                                                    datetime.utcnow(),
                                                    datetime.utcnow() - start))
     return decorator

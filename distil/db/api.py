@@ -32,22 +32,20 @@ interface.
 
 """
 
-from oslo.config import cfg
-
-from distil.openstack.common.db import api as db_api
-from distil.openstack.common import log as logging
-
+from oslo_config import cfg
+from oslo_db import api as db_api
+from oslo_db import options
+from oslo_log import log as logging
 
 CONF = cfg.CONF
 
-CONF.import_opt('backend', 'distil.openstack.common.db.options',
-                group='database')
+options.set_defaults(CONF)
 
 _BACKEND_MAPPING = {
     'sqlalchemy': 'distil.db.sqlalchemy.api',
 }
 
-IMPL = db_api.DBAPI(CONF.database.backend, backend_mapping=_BACKEND_MAPPING)
+IMPL = db_api.DBAPI.from_config(CONF, backend_mapping=_BACKEND_MAPPING)
 LOG = logging.getLogger(__name__)
 
 
@@ -106,3 +104,7 @@ def resource_add(project_id, resource_id, resource_type, rawdata, metadata):
 
 def project_add(project):
     return IMPL.project_add(project)
+
+
+def project_get_all():
+    return IMPL.project_get_all()
