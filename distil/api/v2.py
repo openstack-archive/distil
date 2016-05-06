@@ -33,3 +33,13 @@ def prices_get():
 @rest.get('/costs')
 def costs_get():
     return api.render(costs=costs.get_costs())
+
+
+@rest.get('/usages')
+def usages_get():
+    return api.render(usages={})
+
+
+@rest.get('/health')
+def health_get():
+    return api.render(health={})

@@ -100,16 +100,9 @@ def upgrade():
 #                     mysql_engine=MYSQL_ENGINE,
 #                     mysql_charset=MYSQL_CHARSET)
 
-    op.create_table('last_run',
-                    sa.Column('id', sa.Integer, primary_key=True,
-                              sa.Sequence("last_run_id_seq")),
-                    sa.Column('last_run', sa.DateTime(), nullable=True),
-                    mysql_engine=MYSQL_ENGINE,
-                    mysql_charset=MYSQL_CHARSET)
 
 
 def downgrade():
     op.drop_table('project')
     op.drop_table('usage')
     op.drop_table('resource')
-    op.drop_table('last_run')

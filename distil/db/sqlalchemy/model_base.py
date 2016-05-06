@@ -13,15 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.utils import timeutils
-from oslo.db.sqlalchemy import models as oslo_models
+from oslo_utils import timeutils
+from oslo_db.sqlalchemy import models as oslo_models
 from sqlalchemy import Column
 from sqlalchemy import DateTime
 from sqlalchemy.ext import declarative
 from sqlalchemy import Text
 from sqlalchemy.types import TypeDecorator
 
-from distil.openstack.common import jsonutils
+from oslo_serialization import jsonutils
 
 
 class JSONEncodedDict(TypeDecorator):

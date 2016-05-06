@@ -14,12 +14,24 @@
 # limitations under the License.
 
 from distil import rater
+from distil.rater import rate_file
 from distil.utils import odoo
 
 class OdooRater(rater.BaseRater):
 
+    def __init__(self, conf):
+        self.prices = odoo.Odoo().get_prices()
+
     def rate(self, name, region=None):
-        erp = odoo.Odoo()
-        import pdb
-        pdb.set_trace()
-        pass
+        if not self.prices:
+            return rate_file.FileRater().rate(name, region)
+
+        for region in self.prices:
+            for category in self.prices[region]:
+                for product in self.prices[region][category]:
+                    if product == name:
+                        return {'rate': self.prices[name]['price'],
+                                'unit': self.prices[name]['unit']
+                                }
+
+        return rate_file.FileRater().rate(name, region)

@@ -23,7 +23,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import pool
 
 from distil.db.sqlalchemy import model_base
-from distil.openstack.common import importutils
+from oslo_utils import importutils
 
 
 importutils.import_module('distil.db.sqlalchemy.models')
