@@ -18,17 +18,20 @@ from oslo_config import cfg
 
 from distil.api import auth
 from distil.api import v2 as api_v2
-from distil.utils import api
 from distil import config
+from distil.service import periodic
+from distil.utils import api
 
 CONF = cfg.CONF
 
 
 def make_app():
     for group, opts in config.config_options():
-            CONF.register_opts(opts, group=group)
+        CONF.register_opts(opts, group=group)
 
     app = flask.Flask(__name__)
+
+    periodic.setup()
 
     @app.route('/', methods=['GET'])
     def version_list():
