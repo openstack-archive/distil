@@ -45,3 +45,5 @@ states = {'active': 1,
           'error': 10,
           'shelved': 11,
           'shelved_offloaded': 12}
+
+COLLECTORS_NAMESPACE = 'distil.collector.backends'
