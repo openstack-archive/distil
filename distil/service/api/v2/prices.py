@@ -15,15 +15,12 @@
 
 from oslo_config import cfg
 from oslo_log import log as logging
-from distil.utils import odoo
+# from distil.utils import odoo
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
 def get_prices(format=None):
-    import pdb
-    pdb.set_trace()
-    erp = odoo.Odoo()
-    erp.get_prices()
-    pdb.set_trace()
+    # erp = odoo.Odoo()
+    # erp.get_prices()
     return {'id': 1}
