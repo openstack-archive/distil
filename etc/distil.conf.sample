@@ -8,6 +8,7 @@ port = 9999
 [collector]
 collector_config = /etc/distil/collector.yaml
 transformer_config = /etc/distil/transformer.yaml
+collect_usage_interval = -1
 
 [rater]
 type = file
