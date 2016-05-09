@@ -15,10 +15,30 @@
 from oslo_config import cfg
 from oslo_log import log
 
+CONF = cfg.CONF
+
 DEFAULT_OPTIONS = (
+    cfg.IntOpt('port',
+               default=9999,
+               help='The port for the Distil API server',
+               ),
+    cfg.StrOpt('host',
+               default='0.0.0.0',
+               help='The listen IP for the Distil API server',
+               ),
+    cfg.ListOpt('public_api_routes',
+                default=['/', '/v2/prices', '/v2/health'],
+                help='The list of public API routes',
+                ),
     cfg.ListOpt('ignore_tenants', default=[],
                 help=(''),),
 )
+
+COLLECTOR_OPTIONS = [
+    cfg.IntOpt('collect_usage_interval', default=-1,
+               help=('Interval of usage collection. -1 means the collection '
+                     'task will be disabled.')),
+]
 
 ODOO_OPTS = [
     cfg.StrOpt('version', default='8.0',
@@ -38,11 +58,11 @@ ODOO_OPTS = [
 ]
 
 ODOO_GROUP = 'odoo'
+COLLECTOR_GROUP = 'collector'
 
-
-def config_options():
-    return [(None, DEFAULT_OPTIONS),
-            (ODOO_GROUP, ODOO_OPTS)]
+CONF.register_opts(DEFAULT_OPTIONS)
+CONF.register_opts(ODOO_OPTS, group=ODOO_GROUP)
+CONF.register_opts(COLLECTOR_OPTIONS, group=COLLECTOR_GROUP)
 
 # This is simply a namespace for global config storage
 main = None

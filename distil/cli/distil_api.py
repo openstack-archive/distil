@@ -41,6 +41,7 @@ class WritableLogger(object):
 
 
 def main():
+    log.register_options(CONF)
     CONF(project='distil', prog='distil-api')
     log.setup(CONF, 'distil')
 
