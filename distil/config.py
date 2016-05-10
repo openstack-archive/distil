@@ -34,7 +34,7 @@ DEFAULT_OPTIONS = (
                 ),
 )
 
-COLLECTOR_OPTIONS = [
+COLLECTOR_OPTS = [
     cfg.IntOpt('periodic_interval', default=3600,
                help=('Interval of usage collection.')),
     cfg.StrOpt('collector_backend', default='ceilometer',
@@ -66,16 +66,30 @@ ODOO_OPTS = [
                help='Name of the Odoo database.'),
     cfg.StrOpt('user',
                help='Name of Odoo account to login.'),
-    cfg.StrOpt('password',
+    cfg.StrOpt('password', secret=True,
                help='Password of Odoo account to login.'),
+    cfg.StrOpt('last_update',
+               help='Last time when the products/prices are updated.')
 ]
 
+RATER_OPTS = [
+    cfg.StrOpt('rater_type', default='odoo',
+               help='Rater type, by default it is odoo.'),
+    cfg.StrOpt('rate_file_path', default='/etc/distil/rates.csv',
+               help='Rate file path, it will be used when the rater_type '
+               'is "file".'),
+]
+
+RATER_GROUP = 'rater'
 ODOO_GROUP = 'odoo'
 COLLECTOR_GROUP = 'collector'
 
+
 CONF.register_opts(DEFAULT_OPTIONS)
 CONF.register_opts(ODOO_OPTS, group=ODOO_GROUP)
-CONF.register_opts(COLLECTOR_OPTIONS, group=COLLECTOR_GROUP)
+CONF.register_opts(COLLECTOR_OPTS, group=COLLECTOR_GROUP)
+CONF.register_opts(RATER_OPTS, group=RATER_GROUP)
+
 
 # This is simply a namespace for global config storage
 main = None
