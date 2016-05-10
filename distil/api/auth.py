@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from keystonemiddleware import auth_token
-from keystonemiddleware import opts
 from oslo_config import cfg
 from oslo_log import log as logging
 import re
@@ -22,22 +21,6 @@ from distil import exceptions
 
 CONF = cfg.CONF
 AUTH_GROUP_NAME = 'keystone_authtoken'
-
-
-def _register_opts():
-    options = []
-    keystone_opts = opts.list_auth_token_opts()
-    for n in keystone_opts:
-        if (n[0] == AUTH_GROUP_NAME):
-            options = n[1]
-            break
-
-        CONF.register_opts(options, group=AUTH_GROUP_NAME)
-        auth_token.CONF = CONF
-
-
-_register_opts()
-
 
 LOG = logging.getLogger(__name__)
 

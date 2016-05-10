@@ -23,18 +23,16 @@ from datetime import datetime
 
 # Most of the time we use date_format
 date_format = "%Y-%m-%dT%H:%M:%S"
-
-
 # Sometimes things also have milliseconds, so we look for that too.
 # Because why not be annoying in all the ways?
-date_format_f = "%Y-%m-%dT%H:%M:%S.%f"
+other_date_format = "%Y-%m-%dT%H:%M:%S.%f"
 
 # Some useful constants
 iso_time = "%Y-%m-%dT%H:%M:%S"
 iso_date = "%Y-%m-%d"
-dawn_of_time = datetime(2016, 5, 10)
+dawn_of_time = datetime(2014, 4, 1)
 
-# VM states:
+# VM states (SOON TO BE REMOVED):
 states = {'active': 1,
           'building': 2,
           'paused': 3,
