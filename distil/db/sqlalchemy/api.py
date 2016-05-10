@@ -176,6 +176,16 @@ def resource_add(project_id, resource_id, resource_type, raw, metadata):
         raise e
 
 
+def resource_get_by_ids(project_id, resource_ids):
+    session = get_session()
+    query = session.query(Resource)
+
+    query = (query.filter(Resource.id.in_(resource_id_list)).
+             filter(Resource.project_id == project_id))
+
+    return query.all()
+
+
 def _merge_resource_metadata(md_dict, entry, md_def):
     """Strips metadata from the entry as defined in the config,
        and merges it with the given metadata dict.

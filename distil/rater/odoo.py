@@ -20,7 +20,7 @@ from distil.utils import odoo
 
 class OdooRater(rater.BaseRater):
 
-    def __init__(self, conf):
+    def __init__(self):
         self.prices = odoo.Odoo().get_prices()
 
     def rate(self, name, region=None):

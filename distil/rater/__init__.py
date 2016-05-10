@@ -16,7 +16,7 @@
 
 class BaseRater(object):
 
-    def __init__(self, conf):
+    def __init__(self, conf=None):
         self.conf = conf
 
     def rate(self, name, region=None):

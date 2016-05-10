@@ -10,8 +10,8 @@ collector_config = /etc/distil/collector.yaml
 transformer_config = /etc/distil/transformer.yaml
 
 [rater]
-type = file
-rates_file = /etc/distil/rates.csv
+rater_type = odoo
+rate_file_path = /etc/distil/rates.csv
 
 [odoo]
 version=8.0

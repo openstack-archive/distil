@@ -13,13 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
+from datetime import datetime as dt
 
 from oslo_config import cfg
 from oslo_log import log as logging
 from distil.utils import odoo
 from distil.db import api as db_api
 from distil.utils import keystone
+from keystoneclient.auth.identity import v2 as v2_auth
+from keystoneclient import session
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -27,13 +29,13 @@ CONF = cfg.CONF
 
 def get_health():
     health = {}
-    ksclient = keystone.KeystoneClient(
+    auth = v2_auth.Password(
         username=CONF.keystone_authtoken.admin_user,
         password=CONF.keystone_authtoken.admin_password,
         tenant_name=CONF.keystone_authtoken.admin_tenant_name,
-        auth_url=CONF.keystone_authtoken.auth_uri,
-        insecure=CONF.keystone_authtoken.insecure)
-
+        auth_url=CONF.keystone_authtoken.auth_uri)
+    valid_session = session.Session(auth=auth)
+    ksclient = keystone.KeystoneClient(session=valid_session)
     projects_keystone = ksclient.tenants.list()
     project_id_list_keystone = [t.id for t in projects_keystone]
     projects = db_api.project_get_all()
@@ -43,7 +45,7 @@ def get_health():
     # tenant is still active in Keystone, we believe it should be investigated.
     failed_collected_count = 0
     for p in projects:
-        delta = (datetime.now() - p.last_collected).total_seconds() // 3600
+        delta = (dt.now() - p.last_collected).total_seconds() // 3600
         if delta >= 24 and p.id in project_id_list_keystone:
             failed_collected_count += 1
 

@@ -39,10 +39,20 @@ ODOO_OPTS = [
 
 ODOO_GROUP = 'odoo'
 
+RATER_OPTS = [
+    cfg.StrOpt('rater_type', default='odoo',
+               help='Rater type, by default it is odoo.'),
+    cfg.StrOpt('rate_file_path', default='/etc/distil/rates.csv',
+               help='Rate file path, it will be used when the rater_type '
+               'is "file".'),
+]
+
+RATER_GROUP = 'rater'
 
 def config_options():
     return [(None, DEFAULT_OPTIONS),
-            (ODOO_GROUP, ODOO_OPTS)]
+            (ODOO_GROUP, ODOO_OPTS),
+            (RATER_GROUP, RATER_OPTS)]
 
 # This is simply a namespace for global config storage
 main = None

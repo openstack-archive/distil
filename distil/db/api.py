@@ -102,6 +102,10 @@ def resource_add(project_id, resource_id, resource_type, rawdata, metadata):
                              rawdata, metadata)
 
 
+def resource_get_by_ids(project_id, resource_ids):
+    return IMPL.resource_get_by_ids(project_id, resource_ids)
+
+
 def project_add(project):
     return IMPL.project_add(project)
 
