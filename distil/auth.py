@@ -47,6 +47,7 @@ class Keystone(KeystoneClient.Client):
                 raise NotFound
 
     def get_ceilometer_endpoint(self):
+        return 'http://127.0.0.1:8777'
         endpoint = self.service_catalog.url_for(
             service_type="metering",
             endpoint_type="adminURL")

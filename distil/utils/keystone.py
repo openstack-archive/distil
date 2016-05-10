@@ -15,8 +15,12 @@
 import requests
 import json
 import urllib
-
+from oslo_config import cfg
+from keystoneclient.auth.identity import v2 as v2_auth
+from keystoneclient import session
 from keystoneclient.v2_0 import client as keystone_client
+
+CONF = cfg.CONF
 
 
 class KeystoneClient(keystone_client.Client):
@@ -43,3 +47,15 @@ class KeystoneClient(keystone_client.Client):
         endpoint = self.service_catalog.url_for(service_type="metering",
                                                 endpoint_type="adminURL")
         return endpoint
+
+
+def get_keystone_client():
+    auth = v2_auth.Password(
+        username=CONF.keystone_authtoken.username,
+        password=CONF.keystone_authtoken.password,
+        tenant_name=CONF.keystone_authtoken.project_name,
+        auth_url=CONF.keystone_authtoken.auth_url)
+    valid_session = session.Session(auth=auth)
+    return KeystoneClient(session=valid_session)
+
+    

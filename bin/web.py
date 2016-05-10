@@ -23,7 +23,7 @@ a = argparse.ArgumentParser("Web service for Distil")
 
 a.add_argument("-c", "--config", dest="config", help="Path to config file", default="/etc/distil/conf.yaml")
 a.add_argument("-i", "--interface", dest="ip", help="IP address to serve on.", default="0.0.0.0")
-a.add_argument("-p", "--port", help="port to serve on", default="8000")
+a.add_argument("-p", "--port", help="port to serve on", default="5555")
 
 args = a.parse_args()
 

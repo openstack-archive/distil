@@ -28,6 +28,7 @@ class Client(object):
                  os_service_type='rating', os_endpoint_type='publicURL'):
 
         self.insecure = insecure
+        distil_url = 'http://127.0.0.1:5555'
 
         if os_auth_token and distil_url:
             self.auth_token = os_auth_token

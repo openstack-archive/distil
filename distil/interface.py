@@ -39,14 +39,16 @@ class Interface(object):
 
         # This is the Keystone client connection, which provides our
         # OpenStack authentication
-        self.auth = auth.Keystone(
+        from keystoneclient.auth.identity import v2 as v2_auth
+        from keystoneclient import session
+        pwd = v2_auth.Password(
             username=config.auth["username"],
             password=config.auth["password"],
             tenant_name=config.auth["default_tenant"],
-            auth_url=config.auth["end_point"],
-            insecure=config.auth["insecure"],
-            region_name=config.main['region']
-        )
+            auth_url=config.auth["end_point"])
+        valid_session = session.Session(auth=pwd)
+        self.auth = auth.Keystone(session=valid_session)
+
 
     @property
     def tenants(self):
@@ -139,7 +141,7 @@ class Tenant(object):
             r = self.conn.session.get(
                 urlparse.urljoin(endpoint, '/v2/meters/%s' % meter_name),
                 headers={
-                    "X-Auth-Token": self.conn.auth.auth_token,
+                    "X-Auth-Token": self.conn.auth.session.auth.auth_ref['token']['id'],
                     "Content-Type": "application/json"
                 },
                 data=json.dumps({'q': fields}))

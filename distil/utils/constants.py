@@ -32,7 +32,7 @@ date_format_f = "%Y-%m-%dT%H:%M:%S.%f"
 # Some useful constants
 iso_time = "%Y-%m-%dT%H:%M:%S"
 iso_date = "%Y-%m-%d"
-dawn_of_time = datetime(2014, 4, 1)
+dawn_of_time = datetime(2016, 5, 10)
 
 # VM states:
 states = {'active': 1,
