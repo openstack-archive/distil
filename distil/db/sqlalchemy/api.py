@@ -16,9 +16,11 @@
 """Implementation of SQLAlchemy backend."""
 
 import sys
+import threading
 
 from oslo_config import cfg
 import sqlalchemy as sa
+from sqlalchemy import func
 from distil.db.sqlalchemy import models as m
 
 from distil import exceptions
@@ -34,18 +36,17 @@ LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
 _FACADE = None
+_LOCK = threading.Lock()
 
 
 def _create_facade_lazily():
-    global _FACADE
+    global _LOCK, _FACADE
 
     if _FACADE is None:
-        params = dict(CONF.database.iteritems())
-        params["sqlite_fk"] = True
-        _FACADE = db_session.EngineFacade(
-            CONF.database.connection,
-            **params
-        )
+        with _LOCK:
+            if _FACADE is None:
+                _FACADE = db_session.EngineFacade.from_config(CONF,
+                                                              sqlite_fk=True)
     return _FACADE
 
 
@@ -123,15 +124,40 @@ def project_get_all():
     return query.all()
 
 
-def usage_get(project_id, start_at, end_at):
+def project_get(project_id):
     session = get_session()
-    query = session.query(UsageEntry)
+    query = session.query(Tenant)
+    query = query.filter(Tenant.id == project_id)
+    try:
+        return query.one()
+    except Exception:
+        exceptions.NotFoundException(project_id)
 
-    query = (query.filter(UsageEntry.start_at >= start_at,
-                          UsageEntry.end_at <= end_at).
-             filter(UsageEntry.project_id == project_id))
 
-    return query.all()
+def usage_get(project_id, start, end):
+    session = get_session()
+    query = session.query(UsageEntry.tenant_id,
+                          UsageEntry.resource_id,
+                          UsageEntry.service,
+                          UsageEntry.unit,
+                          func.sum(UsageEntry.volume).label("volume"))
+
+    query = (query.filter(UsageEntry.start >= start,
+                          UsageEntry.end <= end).
+             filter(UsageEntry.tenant_id == project_id).
+             group_by(UsageEntry.tenant_id, UsageEntry.resource_id,
+                      UsageEntry.service, UsageEntry.unit))
+    result = []
+    for entry in query.all():
+        ue = UsageEntry()
+        ue.tenant_id = entry[0]
+        ue.resource_id = entry[1]
+        ue.service = entry[2]
+        ue.unit = entry[3]
+        ue.volume = entry[4]
+        result.append(ue)
+
+    return result
 
 
 def usage_add(project_id, resource_id, samples, unit,
@@ -174,6 +200,16 @@ def resource_add(project_id, resource_id, resource_type, raw, metadata):
         raise e
     except Exception as e:
         raise e
+
+
+def resource_get_by_ids(project_id, resource_ids):
+    session = get_session()
+    query = session.query(Resource)
+
+    query = (query.filter(Resource.id.in_(resource_ids)).
+             filter(Resource.tenant_id == project_id))
+
+    return query.all()
 
 
 def _merge_resource_metadata(md_dict, entry, md_def):

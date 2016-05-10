@@ -54,7 +54,7 @@ class Odoo(object):
         for r in regions:
             prices[r] = {}
             for category in PRODUCT_CATEGORY:
-                prices[r][category.lower()] = {}
+                prices[r][category.lower()] = []
                 c = self.category.search([('name', '=', category),
                                           ('display_name', 'ilike', r)])
                 product_ids = self.product.search([('categ_id', '=', c[0]),
@@ -65,15 +65,17 @@ class Odoo(object):
                                              product_ids)
                 for p in products:
                     name = p['name_template'][len(r) + 1:]
+                    if 'pre-prod' in name:
+                        continue
                     price = round(p['lst_price'], 5)
                     # NOTE(flwang): default_code is Internal Reference on Odoo
                     # GUI
                     unit = p['default_code']
                     desc = p['description']
-                    prices[r][category.lower()][name] = {'price': price,
-                                                         'unit': unit,
-                                                         'description': desc
-                                                         }
+                    prices[r][category.lower()].append({'resource': name,
+                                                        'price': price,
+                                                        'unit': unit,
+                                                        'description': desc})
 
         return prices
 
