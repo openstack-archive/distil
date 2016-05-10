@@ -123,13 +123,22 @@ def project_get_all():
     return query.all()
 
 
-def usage_get(project_id, start_at, end_at):
+def project_get(project_id):
+    session = get_session()
+    query = session.query(Tenant)
+
+    query = query.filter(Tenant.id == project_id)
+
+    return query.one()
+
+
+def usage_get(project_id, start, end):
     session = get_session()
     query = session.query(UsageEntry)
 
-    query = (query.filter(UsageEntry.start_at >= start_at,
-                          UsageEntry.end_at <= end_at).
-             filter(UsageEntry.project_id == project_id))
+    query = (query.filter(UsageEntry.start >= start,
+                          UsageEntry.end <= end).
+             filter(UsageEntry.tenant_id == project_id))
 
     return query.all()
 
@@ -174,6 +183,16 @@ def resource_add(project_id, resource_id, resource_type, raw, metadata):
         raise e
     except Exception as e:
         raise e
+
+
+def resource_get_by_ids(project_id, resource_ids):
+    session = get_session()
+    query = session.query(Resource)
+
+    query = (query.filter(Resource.id.in_(resource_ids)).
+             filter(Resource.tenant_id == project_id))
+
+    return query.all()
 
 
 def _merge_resource_metadata(md_dict, entry, md_def):

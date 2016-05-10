@@ -34,7 +34,10 @@ def prices_get():
 
 @rest.get('/costs')
 def costs_get():
-    return api.render(costs=costs.get_costs())
+    tenant_id = api.get_request_args().get('tenant_id', None)
+    start = api.get_request_args().get('start', None)
+    end = api.get_request_args().get('end', None)
+    return api.render(costs=costs.get_costs(tenant_id, start, end))
 
 
 @rest.get('/usages')

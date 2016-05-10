@@ -18,15 +18,15 @@ from decimal import Decimal
 import math
 import yaml
 
-from oslo.config import cfg
-from novaclient.v1_1 import client
+from oslo_config import cfg
+from novaclient import client
 
-from distil.openstack.common import log as logging
+from oslo_log import log as logging
 
 COLLECTOR_OPTS = [
     cfg.StrOpt('transformer_config',
-               default='/etc/distil/collector.yaml',
-               help='The configuration file of collector',
+               default='/etc/distil/transformer.yaml',
+               help='The configuration file of transformer.',
                ),
 ]
 
