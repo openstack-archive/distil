@@ -20,19 +20,20 @@ from distil.utils import odoo
 
 class OdooRater(rater.BaseRater):
 
-    def __init__(self, conf):
+    def __init__(self):
         self.prices = odoo.Odoo().get_prices()
 
     def rate(self, name, region=None):
         if not self.prices:
             return rate_file.FileRater().rate(name, region)
+        region_prices = (self.prices[region] if region else
+                         self.prices.values[0])
 
-        for region in self.prices:
-            for category in self.prices[region]:
-                for product in self.prices[region][category]:
-                    if product == name:
-                        return {'rate': self.prices[name]['price'],
-                                'unit': self.prices[name]['unit']
-                                }
+        for category in region_prices:
+            for product in region_prices[category]:
+                if product['resource'] == name:
+                    return {'rate': product['price'],
+                            'unit': product['unit']
+                            }
 
         return rate_file.FileRater().rate(name, region)

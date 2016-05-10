@@ -13,11 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_config import cfg
+
+from stevedore import driver
+
+CONF = cfg.CONF
+RATER = None
 
 class BaseRater(object):
 
-    def __init__(self, conf):
+    def __init__(self, conf=None):
         self.conf = conf
 
     def rate(self, name, region=None):
         raise NotImplementedError("Not implemented in base class")
+
+
+def get_rater():
+    if RATER == None:
+        RATER = driver.DriverManager('distil.rater',
+                                 CONF.rater.rater_type,
+                                 invoke_on_load=True,
+                                 invoke_kwds={}).driver
+    return RATER

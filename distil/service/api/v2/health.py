@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
+from datetime import datetime as dt
 
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -27,14 +27,7 @@ CONF = cfg.CONF
 
 def get_health():
     health = {}
-    ksclient = keystone.KeystoneClient(
-        username=CONF.keystone_authtoken.admin_user,
-        password=CONF.keystone_authtoken.admin_password,
-        tenant_name=CONF.keystone_authtoken.admin_tenant_name,
-        auth_url=CONF.keystone_authtoken.auth_uri,
-        insecure=CONF.keystone_authtoken.insecure)
-
-    projects_keystone = ksclient.tenants.list()
+    projects_keystone = keystone.get_keystone_client().projects.list()
     project_id_list_keystone = [t.id for t in projects_keystone]
     projects = db_api.project_get_all()
 
@@ -43,7 +36,7 @@ def get_health():
     # tenant is still active in Keystone, we believe it should be investigated.
     failed_collected_count = 0
     for p in projects:
-        delta = (datetime.now() - p.last_collected).total_seconds() // 3600
+        delta = (dt.now() - p.last_collected).total_seconds() // 3600
         if delta >= 24 and p.id in project_id_list_keystone:
             failed_collected_count += 1
 
