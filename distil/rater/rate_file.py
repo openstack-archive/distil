@@ -13,20 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_config import cfg
 import csv
 from decimal import Decimal
-
 import logging as log
 
 from distil import rater
 
+CONF = cfg.CONF
+
 
 class FileRater(rater.BaseRater):
-    def __init__(self, conf):
-        super(FileRater, self).__init__(conf)
+    def __init__(self):
 
         try:
-            with open(self.config['file']) as fh:
+            with open(CONF.rater.rate_file_path) as fh:
                 # Makes no opinions on the file structure
                 reader = csv.reader(fh, delimiter="|")
                 self.__rates = {

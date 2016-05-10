@@ -34,7 +34,14 @@ def prices_get():
 
 @rest.get('/costs')
 def costs_get():
-    return api.render(costs=costs.get_costs())
+    # NOTE(flwang): Get 'tenant' first for backward compatibility.
+    tenant_id = api.get_request_args().get('tenant', None)
+    project_id = api.get_request_args().get('project_id', tenant_id)
+    start = api.get_request_args().get('start', None)
+    end = api.get_request_args().get('end', None)
+    # NOTE(flwang): Here using 'usage' instead of 'costs' for backward
+    # compatibility.
+    return api.render(usage=costs.get_costs(project_id, start, end))
 
 
 @rest.get('/usages')
