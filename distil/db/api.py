@@ -97,13 +97,17 @@ def usage_add(project_id, resource_id, samples, unit,
                           start_at, end_at)
 
 
+def usages_add(project_id, resources, usage_entries):
+    return IMPL.usages_add(project_id, resources, usage_entries)
+
+
 def resource_add(project_id, resource_id, resource_type, rawdata, metadata):
     return IMPL.resource_add(project_id, resource_id, resource_type,
                              rawdata, metadata)
 
 
-def project_add(project):
-    return IMPL.project_add(project)
+def project_add(values):
+    return IMPL.project_add(values)
 
 
 def project_get_all():
