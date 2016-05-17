@@ -32,8 +32,6 @@ DEFAULT_OPTIONS = (
                 default=['/', '/v2/prices', '/v2/health'],
                 help='The list of public API routes',
                 ),
-    cfg.ListOpt('ignore_tenants', default=[],
-                help=(''),),
 )
 
 COLLECTOR_OPTIONS = [
@@ -41,6 +39,18 @@ COLLECTOR_OPTIONS = [
                help=('Interval of usage collection.')),
     cfg.StrOpt('collector_backend', default='ceilometer',
                help=('Data collector.')),
+    cfg.IntOpt('max_windows_per_cycle', default=0,
+               help=('The maximum number of windows per collecting cycle.')),
+    cfg.StrOpt('meter_mappings_file', default='/etc/distil/meter_mappings.yml',
+               help=('The meter mappings configuration.')),
+    cfg.ListOpt('include_tenants', default=[],
+                help=('Only collect usages for included tenants.')),
+    cfg.ListOpt('ignore_tenants', default=[],
+                help=('Do not collect usages for ignored tenants.')),
+    cfg.ListOpt('trust_sources', default=[],
+                help=('The list of resources that handled by collector.')),
+    cfg.StrOpt('dawn_of_time', default='2014-04-01 00:00:00',
+               help=('The earlist starting time for new tenant.')),
 ]
 
 ODOO_OPTS = [
