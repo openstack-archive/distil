@@ -12,6 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from datetime import datetime
+
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_service import service
@@ -19,6 +21,8 @@ from oslo_service import threadgroup
 from stevedore import driver
 
 from distil import constants
+from distil.db import api as db_api
+from distil import interface
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -32,7 +36,7 @@ class CollectorService(service.Service):
 
         collector_args = {}
         self.collector = driver.DriverManager(
-            constants.COLLECTORS_NAMESPACE,
+            'distil.collector',
             CONF.collector.collector_backend,
             invoke_on_load=True,
             invoke_kwds=collector_args).driver
@@ -59,5 +63,18 @@ class CollectorService(service.Service):
         super(CollectorService, self).reset()
         logging.setup(CONF, 'distil-collector')
 
+    def _get_projects(self):
+        return [{'id': '35b17138-b364-4e6a-a131-8f3099c5be68', 'name': 'fake',
+                 'description': 'fake_project'}]
+
     def collect_usage(self):
         LOG.info("Begin to collect usage...")
+
+        projects = self._get_projects()
+        end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+
+        for project in projects:
+            db_project = db_api.project_add(project)
+            start = db_project.last_collected
+
+            self.collector.collect_usage(project, start, end)
