@@ -18,10 +18,9 @@ from decimal import Decimal
 import math
 import yaml
 
-from oslo.config import cfg
-from novaclient.v1_1 import client
-
-from distil.openstack.common import log as logging
+from novaclient.v2 import client
+from oslo_config import cfg
+from oslo_log import log as logging
 
 COLLECTOR_OPTS = [
     cfg.StrOpt('transformer_config',
