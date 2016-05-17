@@ -12,6 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from datetime import datetime
+
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_service import service
@@ -19,6 +21,8 @@ from oslo_service import threadgroup
 from stevedore import driver
 
 from distil import constants
+from distil.db import api as db_api
+from distil import interface
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -61,3 +65,12 @@ class CollectorService(service.Service):
 
     def collect_usage(self):
         LOG.info("Begin to collect usage...")
+
+        projects = interface.Interface().tenants
+        end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+
+        for project in projects:
+            db_project = db_api.project_add(project)
+            start = db_project.last_collected
+
+            self.collector.collect_usage(project, start, end)

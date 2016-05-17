@@ -15,19 +15,21 @@
 
 """Implementation of SQLAlchemy backend."""
 
+from datetime import datetime
 import sys
 
 from oslo_config import cfg
-import sqlalchemy as sa
-from distil.db.sqlalchemy import models as m
-
-from distil import exceptions
 from oslo_db import exception as db_exception
 from oslo_db.sqlalchemy import session as db_session
 from oslo_log import log as logging
-from distil.db.sqlalchemy.models import Tenant
+import sqlalchemy as sa
+
+from distil import constants
+from distil.db.sqlalchemy import models as m
 from distil.db.sqlalchemy.models import Resource
+from distil.db.sqlalchemy.models import Tenant
 from distil.db.sqlalchemy.models import UsageEntry
+from distil import exceptions
 
 LOG = logging.getLogger(__name__)
 
@@ -103,18 +105,28 @@ def model_query(model, context, session=None, project_only=True):
     return query
 
 
-def project_add(project):
+def _project_get(project_id):
     session = get_session()
-    project_ref = Tenant(id=project.id, name=project.name, info=project.info)
+    return session.query(Tenant).filter_by(id=project_id).first()
 
-    try:
-        project_ref.save(session=session)
-    except sa.exc.InvalidRequestError as e:
-        # FIXME(flwang): I assume there should be a DBDuplicateEntry error
-        if str(e).rfind("Duplicate entry '\s' for key 'PRIMARY'"):
-            LOG.warning(e)
-            return
-        raise e
+
+def project_add(values):
+    project = _project_get(values.id)
+
+    if not project:
+        session = get_session()
+        project = Tenant(id=values.id, name=values.name,
+                         info=values.description, created=datetime.utcnow(),
+                         last_collected=constants.dawn_of_time)
+
+        try:
+            project.save(session=session)
+        except db_exception.DBDuplicateEntry as e:
+            raise exceptions.DuplicateException(
+                "Duplicate entry for Tenant: %s" % e.columns
+            )
+
+    return project
 
 
 def project_get_all():
@@ -156,6 +168,14 @@ def usage_add(project_id, resource_id, samples, unit,
         raise e
     except Exception as e:
         raise e
+
+
+def usages_add(project_id, resources, usage_entries):
+    """Add resources and usages for a project within one session.
+
+    Update tenant.last_collected as well.
+    """
+    pass
 
 
 def resource_add(project_id, resource_id, resource_type, raw, metadata):

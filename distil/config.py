@@ -41,6 +41,10 @@ COLLECTOR_OPTIONS = [
                help=('Interval of usage collection.')),
     cfg.StrOpt('collector_backend', default='ceilometer',
                help=('Data collector.')),
+    cfg.IntOpt('max_windows_per_cycle', default=0,
+               help=('The maximum number of windows per collecting cycle.')),
+    cfg.ListOpt('meter_mappings', default=[],
+                help=('The meter mappings configuration.')),
 ]
 
 ODOO_OPTS = [

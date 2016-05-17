@@ -15,10 +15,20 @@
 from oslo_config import cfg
 from oslo_log import log as logging
 
+from distil.collector import base
+
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
 
-class CeilometerCollector(object):
+class CeilometerCollector(base.BaseCollector):
     def __init__(self, *arg, **kwargs):
+        super(CeilometerCollector, self).__init__(*arg, **kwargs)
+
+        c_client = self._get_client()
+
+    def _get_client(self):
+        pass
+
+    def get_meter(self, project_id, meter, start, end):
         pass
