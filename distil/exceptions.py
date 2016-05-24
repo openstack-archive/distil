@@ -90,3 +90,7 @@ class MalformedRequestBody(DistilException):
     def __init__(self, reason):
         formatted_message = self.message % {"reason": reason}
         super(MalformedRequestBody, self).__init__(formatted_message)
+
+
+class DateTimeException(DistilException):
+    message = _("An object with the same identifier already exists.")

@@ -16,6 +16,8 @@
 from dateutil import parser
 
 from oslo_log import log
+
+from distil import exceptions
 from distil.service.api.v2 import costs
 from distil.service.api.v2 import health
 from distil.service.api.v2 import prices
@@ -41,12 +43,22 @@ def costs_get():
     end = api.get_request_args().get('end', None)
     # NOTE(flwang): Here using 'usage' instead of 'costs' for backward
     # compatibility.
-    return api.render(usage=costs.get_costs(project_id, start, end))
+    try:
+        return api.render(usage=costs.get_costs(project_id, start, end))
+    except (exceptions.DateTimeException, exceptions.NotFoundException) as e:
+        return api.render(status=400, error=str(e))
 
 
-@rest.get('/usages')
-def usages_get():
-    return api.render(usages={})
+@rest.get('/usage')
+def usage_get():
+    tenant_id = api.get_request_args().get('tenant', None)
+    project_id = api.get_request_args().get('project_id', tenant_id)
+    start = api.get_request_args().get('start', None)
+    end = api.get_request_args().get('end', None)
+    try:
+        return api.render(usage=costs.get_raw(project_id, start, end))
+    except (exceptions.DateTimeException, exceptions.NotFoundException) as e:
+        return api.render(status=400, error=str(e))
 
 
 @rest.get('/health')
