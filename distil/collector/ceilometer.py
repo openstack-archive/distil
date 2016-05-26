@@ -14,12 +14,10 @@
 
 from oslo_config import cfg
 from oslo_log import log as logging
-from ceilometerclient import client
-from keystoneclient.auth.identity import v3
-from keystoneclient import session
 
 from distil.collector import base
 from distil import constants
+from distil.utils import keystone
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -29,21 +27,7 @@ class CeilometerCollector(base.BaseCollector):
     def __init__(self, *arg, **kwargs):
         super(CeilometerCollector, self).__init__(*arg, **kwargs)
 
-        auth = v3.Password(
-            auth_url=CONF.keystone_authtoken.auth_url,
-            username=CONF.keystone_authtoken.username,
-            password=CONF.keystone_authtoken.password,
-            project_name=CONF.keystone_authtoken.project_name,
-            user_domain_name=CONF.keystone_authtoken.user_domain_name,
-            project_domain_name=CONF.keystone_authtoken.project_domain_name
-        )
-        sess = session.Session(auth=auth, verify=False)
-
-        self.cclient = client.get_client(
-            '2',
-            session=sess,
-            region_name=CONF.keystone_authtoken.region_name
-        )
+        self.cclient = keystone.get_ceilometer_client()
 
     def get_meter(self, project_id, meter, start, end):
         """Get samples of a particular meter.

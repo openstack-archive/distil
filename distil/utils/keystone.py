@@ -1,4 +1,4 @@
-# Copyright (C) 2014 Catalyst IT Ltd
+# Copyright 2016 Catalyst IT Ltd
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -12,34 +12,49 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import requests
-import json
-import urllib
+from ceilometerclient import client as c_client
+from keystoneclient.auth.identity import v3
+from keystoneclient import session
+from keystoneclient.v3 import client as ks_client
+from oslo_config import cfg
 
-from keystoneclient.v2_0 import client as keystone_client
+CONF = cfg.CONF
+KS_SESSION = None
 
 
-class KeystoneClient(keystone_client.Client):
+def _get_keystone_session():
+    global KS_SESSION
 
-    def tenant_by_name(self, name):
-        authenticator = self.auth_url
-        url = "%(url)s/tenants?%(query)s" % {
-            "url": authenticator,
-            "query": urllib.urlencode({"name": name})
-        }
-        r = requests.get(url, headers={
-            "X-Auth-Token": self.auth_token,
-            "Content-Type": "application/json"
-        })
-        if r.ok:
-            data = json.loads(r.text)
-            assert data
-            return data
-        else:
-            if r.status_code == 404:
-                raise
+    if not KS_SESSION:
+        auth = v3.Password(
+            auth_url=CONF.keystone_authtoken.auth_url,
+            username=CONF.keystone_authtoken.username,
+            password=CONF.keystone_authtoken.password,
+            project_name=CONF.keystone_authtoken.project_name,
+            user_domain_name=CONF.keystone_authtoken.user_domain_name,
+            project_domain_name=CONF.keystone_authtoken.project_domain_name,
+        )
+        KS_SESSION = session.Session(auth=auth, verify=False)
 
-    def get_ceilometer_endpoint(self):
-        endpoint = self.service_catalog.url_for(service_type="metering",
-                                                endpoint_type="adminURL")
-        return endpoint
+    return KS_SESSION
+
+
+def get_keystone_client():
+    sess = _get_keystone_session()
+    return ks_client.Client(session=sess)
+
+
+def get_ceilometer_client():
+    sess = _get_keystone_session()
+
+    return c_client.get_client(
+        '2',
+        session=sess,
+        region_name=CONF.keystone_authtoken.region_name
+    )
+
+
+def get_projects():
+    keystone = get_keystone_client()
+
+    return [obj.to_dict() for obj in keystone.projects.list()]
