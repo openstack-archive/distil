@@ -1,4 +1,4 @@
-# Copyright (C) 2014 Catalyst IT Ltd
+# Copyright 2016 Catalyst IT Ltd
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -12,34 +12,34 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import requests
-import json
-import urllib
+from keystoneclient.auth.identity import v3
+from keystoneclient import session
+from keystoneclient.v3 import client as ks_client
+from oslo_config import cfg
 
-from keystoneclient.v2_0 import client as keystone_client
+CONF = cfg.CONF
+KS_CLIENT = None
 
 
-class KeystoneClient(keystone_client.Client):
+def get_keystone_client():
+    global KS_CLIENT
 
-    def tenant_by_name(self, name):
-        authenticator = self.auth_url
-        url = "%(url)s/tenants?%(query)s" % {
-            "url": authenticator,
-            "query": urllib.urlencode({"name": name})
-        }
-        r = requests.get(url, headers={
-            "X-Auth-Token": self.auth_token,
-            "Content-Type": "application/json"
-        })
-        if r.ok:
-            data = json.loads(r.text)
-            assert data
-            return data
-        else:
-            if r.status_code == 404:
-                raise
+    if not KS_CLIENT:
+        auth = v3.Password(
+            auth_url=CONF.keystone_authtoken.identity_uri,
+            username=CONF.keystone_authtoken.admin_user,
+            password=CONF.keystone_authtoken.admin_password,
+            project_name=CONF.keystone_authtoken.admin_tenant_name,
+            user_domain_name='default',
+            project_domain_name='default'
+        )
+        sess = session.Session(auth=auth, verify=False)
+        KS_CLIENT = ks_client.Client(session=sess)
 
-    def get_ceilometer_endpoint(self):
-        endpoint = self.service_catalog.url_for(service_type="metering",
-                                                endpoint_type="adminURL")
-        return endpoint
+    return KS_CLIENT
+
+
+def get_projects():
+    keystone = get_keystone_client()
+
+    return [obj.to_dict() for obj in keystone.projects.list()]

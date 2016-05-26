@@ -21,6 +21,7 @@ from oslo_service import threadgroup
 from stevedore import driver
 
 from distil.db import api as db_api
+from distil.utils import keystone
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -61,14 +62,10 @@ class CollectorService(service.Service):
         super(CollectorService, self).reset()
         logging.setup(CONF, 'distil-collector')
 
-    def _get_projects(self):
-        return [{'id': '35b17138-b364-4e6a-a131-8f3099c5be68', 'name': 'fake',
-                 'description': 'fake_project'}]
-
     def collect_usage(self):
         LOG.info("Begin to collect usage...")
 
-        projects = self._get_projects()
+        projects = keystone.get_projects()
         end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
 
         for project in projects:
