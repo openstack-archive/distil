@@ -16,6 +16,8 @@
 """Implementation of SQLAlchemy backend."""
 
 from datetime import datetime
+import json
+import six
 import sys
 
 from oslo_config import cfg
@@ -176,12 +178,53 @@ def usage_add(project_id, resource_id, samples, unit,
         raise e
 
 
-def usages_add(project_id, resources, usage_entries):
+def _get_resource(session, project_id, resource_id):
+    return session.query(Resource).filter_by(
+        id=resource_id, tenant_id=project_id).first()
+
+
+def usages_add(project_id, resources, usage_entries, last_collect):
     """Add resources and usages for a project within one session.
 
     Update tenant.last_collected as well.
     """
-    pass
+    session = get_session()
+    timestamp = datetime.utcnow()
+
+    try:
+        with session.begin(subtransactions=True):
+            for (id, res) in six.iteritems(resources):
+                res_db = _get_resource(session, project_id, id)
+                if res_db:
+                    res_db.info = json.dumps(res['info'])
+                else:
+                    resource_ref = Resource(
+                        id=id,
+                        info=json.dumps(res['info']),
+                        tenant_id=project_id,
+                        created=timestamp
+                    )
+                    session.add(resource_ref)
+
+            for entry in usage_entries:
+                entry_db = UsageEntry(
+                    service=entry.service,
+                    volume=entry.volume,
+                    unit=entry.unit,
+                    resource_id=entry.resource_id,
+                    tenant_id=entry.tenant_id,
+                    start=entry.start,
+                    end=entry.end,
+                    created=timestamp)
+                session.add(entry_db)
+
+            project_db = _project_get(project_id)
+            project_db.last_collected = last_collect
+    except Exception as e:
+        session.rollback()
+        raise exceptions.DBException(
+            "Error occurs when adding usages, reason: %s" % str(e)
+        )
 
 
 def resource_add(project_id, resource_id, resource_type, raw, metadata):
