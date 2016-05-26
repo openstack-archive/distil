@@ -21,9 +21,28 @@ from oslo_service import threadgroup
 from stevedore import driver
 
 from distil.db import api as db_api
+from distil import exceptions
+from distil.utils import keystone
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
+
+
+def filter_projects(projects):
+    p_filtered = list()
+
+    if CONF.collector.include_tenants:
+        p_filtered = [p for p in projects if
+                      p['name'] in CONF.collector.include_tenants]
+    elif CONF.collector.ignore_tenants:
+        p_filtered = [p for p in projects if
+                      p['name'] not in CONF.collector.ignore_tenants]
+    else:
+        p_filtered = projects
+
+    LOG.info("After filtering, %s project(s) left." % len(p_filtered))
+
+    return p_filtered
 
 
 class CollectorService(service.Service):
@@ -32,12 +51,24 @@ class CollectorService(service.Service):
 
         self.thread_grp = None
 
+        self.validate_config()
+
         collector_args = {}
         self.collector = driver.DriverManager(
             'distil.collector',
             CONF.collector.collector_backend,
             invoke_on_load=True,
             invoke_kwds=collector_args).driver
+
+    def validate_config(self):
+        include_tenants = set(CONF.collector.include_tenants)
+        ignore_tenants = set(CONF.collector.ignore_tenants)
+
+        if include_tenants & ignore_tenants:
+            raise exceptions.InvalidConfig(
+                "Duplicate tenants config in include_tenants and "
+                "ignore_tenants."
+            )
 
     def start(self):
         LOG.info("Starting collector service...")
@@ -61,14 +92,10 @@ class CollectorService(service.Service):
         super(CollectorService, self).reset()
         logging.setup(CONF, 'distil-collector')
 
-    def _get_projects(self):
-        return [{'id': '35b17138-b364-4e6a-a131-8f3099c5be68', 'name': 'fake',
-                 'description': 'fake_project'}]
-
     def collect_usage(self):
         LOG.info("Begin to collect usage...")
 
-        projects = self._get_projects()
+        projects = filter_projects(keystone.get_projects())
         end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
 
         for project in projects:
