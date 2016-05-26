@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from keystoneauth1 import loading as ka_loading
 from oslo_config import cfg
 from oslo_log import log
 
@@ -70,12 +71,23 @@ ODOO_OPTS = [
                help='Password of Odoo account to login.'),
 ]
 
+AUTH_GROUP = 'keystone_authtoken'
 ODOO_GROUP = 'odoo'
 COLLECTOR_GROUP = 'collector'
 
 CONF.register_opts(DEFAULT_OPTIONS)
 CONF.register_opts(ODOO_OPTS, group=ODOO_GROUP)
 CONF.register_opts(COLLECTOR_OPTIONS, group=COLLECTOR_GROUP)
+
+
+def _register_keystoneauth_opts(conf):
+    # Register keystone authentication related options.
+    from keystonemiddleware import auth_token  # noqa
+
+    ka_loading.register_auth_conf_options(conf, AUTH_GROUP)
+
+
+_register_keystoneauth_opts(CONF)
 
 # This is simply a namespace for global config storage
 main = None
@@ -116,4 +128,7 @@ def parse_args(args=None, prog=None):
         prog=prog,
         version=version.version_info.version_string(),
     )
+
+    ka_loading.load_auth_from_conf_options(CONF, AUTH_GROUP)
+
     log.setup(CONF, prog)
