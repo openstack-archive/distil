@@ -13,6 +13,7 @@
 #    under the License.
 
 from datetime import datetime
+import warnings
 
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -93,12 +94,24 @@ class CollectorService(service.Service):
         logging.setup(CONF, 'distil-collector')
 
     def collect_usage(self):
-        LOG.info("Begin to collect usage...")
+        LOG.info("Begin to collect usage for all projects...")
 
-        projects = filter_projects(keystone.get_projects())
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message="A true SSLContext object is not available"
+            )
+            warnings.filterwarnings(
+                "ignore",
+                message="Unverified HTTPS request is being made"
+            )
+
+            projects = filter_projects(keystone.get_projects())
+
         end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
 
         for project in projects:
+            # Add a project or get last_collected of existing project.
             db_project = db_api.project_add(project)
             start = db_project.last_collected
 

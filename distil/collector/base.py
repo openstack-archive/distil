@@ -45,13 +45,17 @@ class BaseCollector(object):
         raise NotImplementedError
 
     def collect_usage(self, project, start, end):
-        LOG.info('collect_usage by %s for %s(%s)' %
+        LOG.info('collect_usage by %s for project: %s(%s)' %
                  (self.__class__.__name__, project['id'], project['name']))
 
-        windows = general.generate_windows(start, end)
+        windows = list(general.generate_windows(start, end))
 
         if CONF.collector.max_windows_per_cycle > 0:
-            windows = list(windows)[:CONF.collector.max_windows_per_cycle]
+            windows = windows[:CONF.collector.max_windows_per_cycle]
+
+        if not windows:
+            LOG.info("Skipped project %s(%s), less than 1 hour since last "
+                     "collection time.", project['id'], project['name'])
 
         for window_start, window_end in windows:
             LOG.info("Project %s(%s) slice %s %s", project['id'],
@@ -74,9 +78,12 @@ class BaseCollector(object):
 
                 # Insert resources and usage_entries, and update last collected
                 # time of project within one session.
-                db_api.usages_add(project['id'], resources, usage_entries)
+                db_api.usages_add(project['id'], resources, usage_entries,
+                                  window_end)
+                LOG.info('Finish project %s(%s) slice %s %s', project['id'],
+                         project['name'], window_start, window_end)
             except Exception as e:
-                LOG.warning(
+                LOG.exception(
                     "IntegrityError for %s(%s) in window: %s - %s, reason: %s",
                     project['id'], project['name'],
                     window_start.strftime(constants.iso_time),
