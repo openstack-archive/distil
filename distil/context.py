@@ -20,7 +20,6 @@ from eventlet import greenpool
 from eventlet import semaphore
 from oslo_config import cfg
 
-from distil.api import acl
 from distil import exceptions as ex
 from distil.i18n import _
 from distil.i18n import _LE
@@ -33,67 +32,107 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
+CONF = cfg.CONF
+LOG = logging.getLogger(__name__)
+
+
 class Context(context.RequestContext):
     def __init__(self,
                  user_id=None,
                  tenant_id=None,
-                 token=None,
+                 auth_token=None,
                  service_catalog=None,
                  username=None,
                  tenant_name=None,
                  roles=None,
                  is_admin=None,
                  remote_semaphore=None,
-                 auth_uri=None,
+                 resource_uuid=None,
+                 current_instance_info=None,
+                 request_id=None,
+                 auth_plugin=None,
+                 overwrite=True,
                  **kwargs):
         if kwargs:
-            LOG.warn(_LW('Arguments dropped when creating context: %s'),
-                     kwargs)
-        self.user_id = user_id
-        self.tenant_id = tenant_id
-        self.token = token
+            LOG.warning(_LW('Arguments dropped when creating context: '
+                            '{args}').format(args=kwargs))
+
+        super(Context, self).__init__(auth_token=auth_token,
+                                      user=user_id,
+                                      tenant=tenant_id,
+                                      is_admin=is_admin,
+                                      resource_uuid=resource_uuid,
+                                      request_id=request_id,
+                                      roles=roles)
         self.service_catalog = service_catalog
         self.username = username
         self.tenant_name = tenant_name
-        self.is_admin = is_admin
         self.remote_semaphore = remote_semaphore or semaphore.Semaphore(
             CONF.cluster_remote_threshold)
-        self.roles = roles
-        self.auth_uri = auth_uri
+        self.auth_plugin = auth_plugin
+        if overwrite or not hasattr(context._request_store, 'context'):
+            self.update_store()
+
+        if current_instance_info is not None:
+            self.current_instance_info = current_instance_info
+        else:
+            self.current_instance_info = InstanceInfo()
 
     def clone(self):
         return Context(
             self.user_id,
             self.tenant_id,
-            self.token,
+            self.auth_token,
             self.service_catalog,
             self.username,
             self.tenant_name,
             self.roles,
             self.is_admin,
             self.remote_semaphore,
-            self.auth_uri)
+            self.resource_uuid,
+            self.current_instance_info,
+            self.request_id,
+            self.auth_plugin,
+            overwrite=False)
 
     def to_dict(self):
-        return {
+        d = super(Context, self).to_dict()
+        d.update({
             'user_id': self.user_id,
             'tenant_id': self.tenant_id,
-            'token': self.token,
             'service_catalog': self.service_catalog,
             'username': self.username,
             'tenant_name': self.tenant_name,
-            'is_admin': self.is_admin,
-            'roles': self.roles,
-            'auth_uri': self.auth_uri,
-        }
+            'user_name': self.username,
+            'project_name': self.tenant_name})
+        return d
 
     def is_auth_capable(self):
-        return (self.service_catalog and self.token and self.tenant_id and
+        return (self.service_catalog and self.auth_token and self.tenant and
                 self.user_id)
+
+    # NOTE(adrienverge): The Context class uses the 'user' and 'tenant'
+    # properties internally (inherited from oslo_context), but Sahara code
+    # often uses 'user_id' and 'tenant_id'.
+    @property
+    def user_id(self):
+        return self.user
+
+    @user_id.setter
+    def user_id(self, value):
+        self.user = value
+
+    @property
+    def tenant_id(self):
+        return self.tenant
+
+    @tenant_id.setter
+    def tenant_id(self, value):
+        self.tenant = value
 
 
 def get_admin_context():
-    return Context(is_admin=True)
+    return Context(is_admin=True, overwrite=False)
 
 
 _CTX_STORE = threading.local()
@@ -117,6 +156,97 @@ def current():
 def set_ctx(new_ctx):
     if not new_ctx and has_ctx():
         delattr(_CTX_STORE, _CTX_KEY)
+        if hasattr(context._request_store, 'context'):
+            delattr(context._request_store, 'context')
 
     if new_ctx:
         setattr(_CTX_STORE, _CTX_KEY, new_ctx)
+        setattr(context._request_store, 'context', new_ctx)
+
+
+def _wrapper(ctx, thread_description, thread_group, func, *args, **kwargs):
+    try:
+        set_ctx(ctx)
+        func(*args, **kwargs)
+    except BaseException as e:
+        LOG.debug(
+            "Thread {thread} failed with exception: {exception}".format(
+                thread=thread_description, exception=e))
+        if thread_group and not thread_group.exc:
+            thread_group.exc = e
+            thread_group.exc_stacktrace = traceback.format_exc()
+            thread_group.failed_thread = thread_description
+    finally:
+        if thread_group:
+            thread_group._on_thread_exit()
+
+        set_ctx(None)
+
+
+def spawn(thread_description, func, *args, **kwargs):
+    eventlet.spawn(_wrapper, current().clone(), thread_description,
+                   None, func, *args, **kwargs)
+
+
+class ThreadGroup(object):
+    """ThreadGroup object.
+
+    It is advised to use TreadGroup as a context manager instead
+    of instantiating and calling _wait() manually. The __exit__()
+    guaranties to exit only after all child threads are done, even if
+    spawning code have thrown an exception
+    """
+
+    def __init__(self, thread_pool_size=1000):
+        self.tg = greenpool.GreenPool(size=thread_pool_size)
+        self.exc = None
+        self.exc_stacktrace = None
+        self.failed_thread = None
+        self.threads = 0
+        self.cv = threading.Condition()
+
+    def spawn(self, thread_description, func, *args, **kwargs):
+        self.tg.spawn(_wrapper, current().clone(), thread_description,
+                      self, func, *args, **kwargs)
+
+        with self.cv:
+            self.threads += 1
+
+    def _on_thread_exit(self):
+        with self.cv:
+            self.threads -= 1
+            if self.threads == 0:
+                self.cv.notifyAll()
+
+    # NOTE(dmitryme): A little rationale on why we reimplemented wait():
+    # * Eventlet's GreenPool.wait() can hung
+    # * Oslo's ThreadGroup.wait() can exit before all threads are done
+    #
+    def _wait(self):
+        """Using of _wait() method.
+
+        It is preferred to use the class as a context manager and do not
+        use _wait() directly, see class docstring for an explanation.
+        """
+        with self.cv:
+            while self.threads > 0:
+                self.cv.wait()
+
+        if self.exc:
+            raise ex.ThreadException(self.failed_thread, self.exc,
+                                     self.exc_stacktrace)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *ex):
+        if not any(ex):
+            self._wait()
+        else:
+            # If spawning code thrown an exception, it had higher priority
+            # for us than the one thrown inside child thread (if any)
+            try:
+                self._wait()
+            except Exception:
+                # that will make __exit__ throw original exception
+                pass

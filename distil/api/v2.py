@@ -16,6 +16,7 @@
 from dateutil import parser
 
 from oslo_log import log
+from distil.api import acl
 from distil.service.api.v2 import costs
 from distil.service.api.v2 import health
 from distil.service.api.v2 import prices
@@ -33,7 +34,10 @@ def prices_get():
 
 
 @rest.get('/costs')
+@acl.enforce("rating:costs:get")
 def costs_get():
+    import pdb
+    pdb.set_trace()
     # NOTE(flwang): Get 'tenant' first for backward compatibility.
     tenant_id = api.get_request_args().get('tenant', None)
     project_id = api.get_request_args().get('project_id', tenant_id)

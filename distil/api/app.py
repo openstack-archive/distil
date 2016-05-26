@@ -19,6 +19,7 @@ from oslo_config import cfg
 from distil.api import auth
 from distil.api import v2 as api_v2
 from distil import config
+from distil import context
 from distil.utils import api
 
 CONF = cfg.CONF
@@ -29,10 +30,15 @@ def make_app():
 
     @app.route('/', methods=['GET'])
     def version_list():
+        context.set_ctx(None)
         return api.render({
             "versions": [
                 {"id": "v2.0", "status": "CURRENT"}
             ]})
+
+    @app.teardown_request
+    def teardown_request(_ex=None):
+        context.set_ctx(None)
 
     app.register_blueprint(api_v2.rest, url_prefix="/v2")
     app.wsgi_app = auth.wrap(app.wsgi_app, CONF)
