@@ -22,7 +22,7 @@ from stevedore import driver
 
 from distil.db import api as db_api
 from distil import exceptions
-from distil.utils import keystone
+from distil.utils import openstack
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -93,12 +93,14 @@ class CollectorService(service.Service):
         logging.setup(CONF, 'distil-collector')
 
     def collect_usage(self):
-        LOG.info("Begin to collect usage...")
+        LOG.info("Begin to collect usage for all projects...")
 
-        projects = filter_projects(keystone.get_projects())
+        projects = filter_projects(openstack.get_projects())
+
         end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
 
         for project in projects:
+            # Add a project or get last_collected of existing project.
             db_project = db_api.project_add(project)
             start = db_project.last_collected
 
