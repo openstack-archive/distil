@@ -34,6 +34,23 @@ DEFAULT_OPTIONS = (
                 ),
 )
 
+KEYSTONE_AUTH_OPTIONS = [
+    cfg.StrOpt('auth_url',
+               default=None,
+               help='Complete public Identity API endpoint.'),
+    cfg.BoolOpt('insecure', default=False, help='Verify HTTPS connections.'),
+    cfg.StrOpt('region_name', default=None,
+               help='The region in which the identity server can be found.'),
+    cfg.StrOpt('admin_user',
+               help='Service username.'),
+    cfg.StrOpt('admin_password',
+               secret=True,
+               help='Service user password.'),
+    cfg.StrOpt('admin_tenant_name',
+               default='admin',
+               help='Service tenant name.'),
+]
+
 COLLECTOR_OPTIONS = [
     cfg.IntOpt('periodic_interval', default=3600,
                help=('Interval of usage collection.')),
@@ -72,10 +89,12 @@ ODOO_OPTS = [
 
 ODOO_GROUP = 'odoo'
 COLLECTOR_GROUP = 'collector'
+KEYSTONE_AUTH_GROUP = 'keystone_auth'
 
 CONF.register_opts(DEFAULT_OPTIONS)
 CONF.register_opts(ODOO_OPTS, group=ODOO_GROUP)
 CONF.register_opts(COLLECTOR_OPTIONS, group=COLLECTOR_GROUP)
+CONF.register_opts(KEYSTONE_AUTH_OPTIONS, group=KEYSTONE_AUTH_GROUP)
 
 # This is simply a namespace for global config storage
 main = None

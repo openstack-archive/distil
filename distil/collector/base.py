@@ -107,13 +107,13 @@ class BaseCollector(object):
     def _get_os_distro(self, entry):
         os_distro = 'unknown'
 
-        if 'image.id' in entry['resource_metadata']:
+        if 'image.id' in entry['metadata']:
             # Boot from image
-            image_id = entry['resource_metadata']['image.id']
+            image_id = entry['metadata']['image.id']
             os_distro = getattr(helpers.get_image(image_id), 'os_distro',
                                 'unknown')
 
-        if entry['resource_metadata']['image_ref'] == 'None':
+        if entry['metadata']['image_ref'] == 'None':
             # Boot from volume
             image_meta = getattr(helpers.get_volume(entry['resource_id']),
                                  'volume_image_metadata', {})
@@ -128,7 +128,7 @@ class BaseCollector(object):
         for field, parameters in defined_meta.items():
             for source in parameters['sources']:
                 try:
-                    value = entry['resource_metadata'][source]
+                    value = entry['metadata'][source]
                     resource_info[field] = (
                         parameters['template'] % value
                         if 'template' in parameters else value
