@@ -14,8 +14,10 @@
 
 from oslo_config import cfg
 from oslo_log import log as logging
+from ceilometerclient import client
 
 from distil.collector import base
+from distil import constants
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -25,26 +27,47 @@ class CeilometerCollector(base.BaseCollector):
     def __init__(self, *arg, **kwargs):
         super(CeilometerCollector, self).__init__(*arg, **kwargs)
 
-    def _get_client(self):
-        pass
+        self.cclient = client.get_client(
+            '2',
+            os_username=CONF.keystone_authtoken.username,
+            os_password=CONF.keystone_authtoken.password,
+            os_tenant_name=CONF.keystone_authtoken.project_name,
+            os_auth_url=CONF.keystone_authtoken.auth_url
+        )
 
     def get_meter(self, project_id, meter, start, end):
-        return [
+        """Get samples of a particular meter.
+
+        Sample example:
+        [
             {
-                "id": "9b23b398-6139-11e5-97e9-bc764e045bf6",
-                "resource_metadata": {
-                    "availability_zone": "zone1",
-                    "display_name": "volume_name"
+                "id": "e04ace6e-2229-11e6-ad16-bc764e068568",
+                "metadata": {
+                    "name1": "value1",
+                    "name2": "value2"
                 },
-                "meter": "volume.size",
+                "meter": "instance",
                 "project_id": "35b17138-b364-4e6a-a131-8f3099c5be68",
-                "recorded_at": "2015-09-22T14:52:54.850725",
+                "recorded_at": "2015-01-01T12:00:00",
                 "resource_id": "bd9431c1-8d69-4ad3-803a-8d4a6b89fd36",
                 "source": "openstack",
-                "timestamp": "2015-09-22T14:52:54.850718",
+                "timestamp": "2015-01-01T12:00:00",
                 "type": "gauge",
-                "unit": "GB",
+                "unit": "instance",
                 "user_id": "efd87807-12d2-4b38-9c70-5f5c2ac427ff",
-                "counter_volume": 1
+                "volume": 1.0
             }
         ]
+        """
+        query = [
+            dict(field='project_id', op='eq', value=project_id),
+            dict(field='meter', op='eq', value=meter),
+            dict(field='timestamp', op='ge',
+                 value=start.strftime(constants.date_format)),
+            dict(field='timestamp', op='lt',
+                 value=end.strftime(constants.date_format)),
+        ]
+
+        sample_objs = self.cclient.new_samples.list(q=query)
+
+        return [obj.to_dict() for obj in sample_objs]
