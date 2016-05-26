@@ -74,7 +74,8 @@ class BaseCollector(object):
 
                 # Insert resources and usage_entries, and update last collected
                 # time of project within one session.
-                db_api.usages_add(project['id'], resources, usage_entries)
+                db_api.usages_add(project['id'], resources, usage_entries,
+                                  window_end)
             except Exception as e:
                 LOG.warning(
                     "IntegrityError for %s(%s) in window: %s - %s, reason: %s",
