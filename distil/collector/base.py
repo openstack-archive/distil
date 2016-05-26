@@ -22,9 +22,9 @@ from oslo_log import log as logging
 from distil import constants
 from distil.db import api as db_api
 from distil import exceptions as exc
-from distil import helpers
-from distil.transformers import active_transformers as transformers
+from distil import transformer as d_transformer
 from distil.utils import general
+from distil.utils import openstack
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -45,13 +45,17 @@ class BaseCollector(object):
         raise NotImplementedError
 
     def collect_usage(self, project, start, end):
-        LOG.info('collect_usage by %s for %s(%s)' %
+        LOG.info('collect_usage by %s for project: %s(%s)' %
                  (self.__class__.__name__, project['id'], project['name']))
 
-        windows = general.generate_windows(start, end)
+        windows = list(general.generate_windows(start, end))
 
         if CONF.collector.max_windows_per_cycle > 0:
-            windows = list(windows)[:CONF.collector.max_windows_per_cycle]
+            windows = windows[:CONF.collector.max_windows_per_cycle]
+
+        if not windows:
+            LOG.info("Skipped project %s(%s), less than 1 hour since last "
+                     "collection time.", project['id'], project['name'])
 
         for window_start, window_end in windows:
             LOG.info("Project %s(%s) slice %s %s", project['id'],
@@ -74,9 +78,12 @@ class BaseCollector(object):
 
                 # Insert resources and usage_entries, and update last collected
                 # time of project within one session.
-                db_api.usages_add(project['id'], resources, usage_entries)
+                db_api.usages_add(project['id'], resources, usage_entries,
+                                  window_end)
+                LOG.info('Finish project %s(%s) slice %s %s', project['id'],
+                         project['name'], window_start, window_end)
             except Exception as e:
-                LOG.warning(
+                LOG.exception(
                     "IntegrityError for %s(%s) in window: %s - %s, reason: %s",
                     project['id'], project['name'],
                     window_start.strftime(constants.iso_time),
@@ -107,17 +114,27 @@ class BaseCollector(object):
     def _get_os_distro(self, entry):
         os_distro = 'unknown'
 
-        if 'image.id' in entry['metadata']:
-            # Boot from image
-            image_id = entry['metadata']['image.id']
-            os_distro = getattr(helpers.get_image(image_id), 'os_distro',
-                                'unknown')
+        try:
+            if 'image.id' in entry['metadata']:
+                # Boot from image
+                image_id = entry['metadata']['image.id']
+                os_distro = getattr(
+                    openstack.get_image(image_id),
+                    'os_distro',
+                    'unknown'
+                )
 
-        if entry['metadata']['image_ref'] == 'None':
-            # Boot from volume
-            image_meta = getattr(helpers.get_volume(entry['resource_id']),
-                                 'volume_image_metadata', {})
-            os_distro = image_meta.get('os_distro', 'unknown')
+            if entry['metadata']['image_ref'] == 'None':
+                # Boot from volume
+                image_meta = getattr(
+                    openstack.get_volume(entry['resource_id']),
+                    'volume_image_metadata', {}
+                )
+                os_distro = image_meta.get('os_distro', 'unknown')
+        except Exception as e:
+            LOG.warning(
+                'Error occured when getting os_distro, reason: %s', str(e)
+            )
 
         return os_distro
 
@@ -154,7 +171,7 @@ class BaseCollector(object):
         service = (mapping['service'] if 'service' in mapping
                    else mapping['meter'])
 
-        transformer = transformers[mapping['transformer']]()
+        transformer = d_transformer.get_transformer(mapping['transformer'])
 
         for res_id, entries in usage_by_resource.items():
             transformed = transformer.transform_usage(

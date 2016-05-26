@@ -97,8 +97,8 @@ def usage_add(project_id, resource_id, samples, unit,
                           start_at, end_at)
 
 
-def usages_add(project_id, resources, usage_entries):
-    return IMPL.usages_add(project_id, resources, usage_entries)
+def usages_add(project_id, resources, usage_entries, last_collect):
+    return IMPL.usages_add(project_id, resources, usage_entries, last_collect)
 
 
 def resource_add(project_id, resource_id, resource_type, rawdata, metadata):

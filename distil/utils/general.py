@@ -15,37 +15,30 @@
 from datetime import datetime
 from datetime import timedelta
 from decimal import Decimal
+import functools
 import math
+import warnings
 import yaml
 
-from novaclient.v2 import client
 from oslo_config import cfg
 from oslo_log import log as logging
 
-COLLECTOR_OPTS = [
-    cfg.StrOpt('transformer_config',
-               default='/etc/distil/collector.yaml',
-               help='The configuration file of collector',
-               ),
-]
-
 CONF = cfg.CONF
-CONF.register_opts(COLLECTOR_OPTS, group='collector')
-cache = {}
-
 LOG = logging.getLogger(__name__)
+_TRANS_CONFIG = None
 
 
-def get_collector_config():
-    # FIXME(flwang): The config should be cached or find a better way to load
-    # it dynamically.
-    conf = None
-    try:
-        with open(CONF.collector.transformer_config) as f:
-            conf = yaml.load(f)
-    except IOError as e:
-        raise e
-    return conf
+def get_transformer_config():
+    global _TRANS_CONFIG
+
+    if not _TRANS_CONFIG:
+        try:
+            with open(CONF.collector.transformer_file) as f:
+                _TRANS_CONFIG = yaml.load(f)
+        except IOError as e:
+            raise e
+
+    return _TRANS_CONFIG
 
 
 def generate_windows(start, end):
@@ -69,13 +62,21 @@ def log_and_time_it(f):
     return decorator
 
 
-def flavor_name(flavor_id):
-    """Grabs the correct flavor name from Nova given the correct ID."""
-    # FIXME(flwang): Read the auth info from CONF
-    if flavor_id not in cache:
-        nova = client.Client()
-        cache[flavor_id] = nova.flavors.get(flavor_id).name
-    return cache[flavor_id]
+def disable_ssl_warnings(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message="A true SSLContext object is not available"
+            )
+            warnings.filterwarnings(
+                "ignore",
+                message="Unverified HTTPS request is being made"
+            )
+            return func(*args, **kwargs)
+
+    return wrapper
 
 
 def to_gigabytes_from_bytes(value):
