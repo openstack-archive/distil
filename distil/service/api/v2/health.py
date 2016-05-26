@@ -19,7 +19,7 @@ from oslo_config import cfg
 from oslo_log import log as logging
 from distil.utils import odoo
 from distil.db import api as db_api
-from distil.utils import keystone
+from distil.utils import openstack
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -27,15 +27,8 @@ CONF = cfg.CONF
 
 def get_health():
     health = {}
-    ksclient = keystone.KeystoneClient(
-        username=CONF.keystone_authtoken.admin_user,
-        password=CONF.keystone_authtoken.admin_password,
-        tenant_name=CONF.keystone_authtoken.admin_tenant_name,
-        auth_url=CONF.keystone_authtoken.auth_uri,
-        insecure=CONF.keystone_authtoken.insecure)
-
-    projects_keystone = ksclient.tenants.list()
-    project_id_list_keystone = [t.id for t in projects_keystone]
+    projects_keystone = openstack.get_projects()
+    project_id_list_keystone = [t['id'] for t in projects_keystone]
     projects = db_api.project_get_all()
 
     # NOTE(flwang): Check the last_collected field for each tenant of Distil,

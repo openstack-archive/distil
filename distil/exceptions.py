@@ -84,6 +84,10 @@ class InvalidConfig(DistilException):
     message = _("Invalid configuration file. %(error_msg)s")
 
 
+class DBException(DistilException):
+    message = _("Database exception.")
+
+
 class MalformedRequestBody(DistilException):
     message = _("Malformed message body: %(reason)s")
 
