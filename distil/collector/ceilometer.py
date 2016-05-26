@@ -12,6 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import warnings
+
 from oslo_config import cfg
 from oslo_log import log as logging
 
@@ -62,6 +64,11 @@ class CeilometerCollector(base.BaseCollector):
                  value=end.strftime(constants.date_format)),
         ]
 
-        sample_objs = self.cclient.new_samples.list(q=query)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message="A true SSLContext object is not available"
+            )
+            sample_objs = self.cclient.new_samples.list(q=query)
 
         return [obj.to_dict() for obj in sample_objs]
