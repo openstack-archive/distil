@@ -308,6 +308,8 @@ def do_quote(shell, args):
         tenants = [TENANT(id=args.TENANT_ID, name=tenant_object.name)]
 
     for tenant in tenants:
+        print('Starting quote for tenant: %s with id: %s' %
+              (tenant.name, tenant.id))
         if tenant.id in done and not args.AUDIT:
             print ("Skipping tenant: %s already completed." % tenant.name)
             continue
