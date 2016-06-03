@@ -13,16 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from stevedore import driver
+
 from distil.utils import general
 
 
 class BaseTransformer(object):
 
-    def __init__(self):
-        self.config = general.get_collector_config()['transformers']
+    def __init__(self, *args, **kwargs):
+        self.config = general.get_transformer_config()
 
     def transform_usage(self, meter_name, raw_data, start_at, end_at):
         return self._transform_usage(meter_name, raw_data, start_at, end_at)
 
     def _transform_usage(self, meter_name, raw_data, start_at, end_at):
         raise NotImplementedError
+
+
+def get_transformer(name, **kwargs):
+    return driver.DriverManager(
+        'distil.transformer',
+        name,
+        invoke_on_load=True,
+        invoke_kwds=kwargs
+    ).driver

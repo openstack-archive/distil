@@ -17,7 +17,8 @@ from oslo_log import log as logging
 
 from distil.collector import base
 from distil import constants
-from distil.utils import keystone
+from distil.utils import general
+from distil.utils import openstack
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -27,8 +28,9 @@ class CeilometerCollector(base.BaseCollector):
     def __init__(self, *arg, **kwargs):
         super(CeilometerCollector, self).__init__(*arg, **kwargs)
 
-        self.cclient = keystone.get_ceilometer_client()
+        self.cclient = openstack.get_ceilometer_client()
 
+    @general.disable_ssl_warnings
     def get_meter(self, project_id, meter, start, end):
         """Get samples of a particular meter.
 

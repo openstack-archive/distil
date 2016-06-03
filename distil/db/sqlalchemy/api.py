@@ -16,6 +16,8 @@
 """Implementation of SQLAlchemy backend."""
 
 from datetime import datetime
+import json
+import six
 import sys
 
 from oslo_config import cfg
@@ -104,17 +106,15 @@ def model_query(model, context, session=None, project_only=True):
     return query
 
 
-def _project_get(project_id):
-    session = get_session()
+def _project_get(session, project_id):
     return session.query(Tenant).filter_by(id=project_id).first()
 
 
 def project_add(values):
-    project = _project_get(values['id'])
+    session = get_session()
+    project = _project_get(session, values['id'])
 
     if not project:
-        session = get_session()
-
         # In fact, it should be the project created time.
         start_time = datetime.strptime(
             CONF.collector.dawn_of_time,
@@ -176,12 +176,53 @@ def usage_add(project_id, resource_id, samples, unit,
         raise e
 
 
-def usages_add(project_id, resources, usage_entries):
+def _get_resource(session, project_id, resource_id):
+    return session.query(Resource).filter_by(
+        id=resource_id, tenant_id=project_id).first()
+
+
+def usages_add(project_id, resources, usage_entries, last_collect):
     """Add resources and usages for a project within one session.
 
     Update tenant.last_collected as well.
     """
-    pass
+    session = get_session()
+    timestamp = datetime.utcnow()
+
+    try:
+        with session.begin(subtransactions=True):
+            for (id, res) in six.iteritems(resources):
+                res_db = _get_resource(session, project_id, id)
+                if res_db:
+                    res_db.info = json.dumps(res['info'])
+                else:
+                    resource_ref = Resource(
+                        id=id,
+                        info=json.dumps(res['info']),
+                        tenant_id=project_id,
+                        created=timestamp
+                    )
+                    session.add(resource_ref)
+
+            for entry in usage_entries:
+                entry_db = UsageEntry(
+                    service=entry['service'],
+                    volume=entry['volume'],
+                    unit=entry['unit'],
+                    resource_id=entry['resource_id'],
+                    tenant_id=entry['tenant_id'],
+                    start=entry['start'],
+                    end=entry['end'],
+                    created=timestamp)
+                session.add(entry_db)
+
+            project_db = _project_get(session, project_id)
+            project_db.last_collected = last_collect
+    except Exception as e:
+        session.rollback()
+        raise exceptions.DBException(
+            "Error occurs when adding usages, reason: %s" % str(e)
+        )
 
 
 def resource_add(project_id, resource_id, resource_type, raw, metadata):

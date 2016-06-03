@@ -1,23 +1,22 @@
-# Copyright (c) 2014 Catalyst IT Ltd
+# Copyright 2016 Catalyst IT Ltd
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+#         http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-# implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
 
 import datetime
 
-from distil.utils import general
-from distil.utils import constants
 from distil.transformer import BaseTransformer
+from distil.utils import constants
+from distil.utils import openstack
 
 
 class UpTimeTransformer(BaseTransformer):
@@ -58,7 +57,7 @@ class UpTimeTransformer(BaseTransformer):
             usage_dict[flav] = usage_dict.get(flav, 0) + diff.total_seconds()
 
         for val in state[1:]:
-            if last_state["counter_volume"] in tracked_states:
+            if last_state["volume"] in tracked_states:
                 diff = val["timestamp"] - last_timestamp
                 if val['timestamp'] > last_timestamp:
                     # if diff < 0 then we were looking back before the start
@@ -71,19 +70,19 @@ class UpTimeTransformer(BaseTransformer):
 
         # extend the last state we know about, to the end of the window,
         # if we saw any actual uptime.
-        if (end and last_state['counter_volume'] in tracked_states
+        if (end and last_state['volume'] in tracked_states
                 and seen_sample_in_window):
             diff = end - last_timestamp
             _add_usage(diff)
 
         # map the flavors to names on the way out
-        return {general.flavor_name(f): v for f, v in usage_dict.items()}
+        return {openstack.get_flavor_name(f): v for f, v in usage_dict.items()}
 
     def _clean_entry(self, entry):
         result = {
-            'counter_volume': entry['counter_volume'],
-            'flavor': entry['resource_metadata'].get(
-                'flavor.id', entry['resource_metadata'].get(
+            'volume': entry['volume'],
+            'flavor': entry['metadata'].get(
+                'flavor.id', entry['metadata'].get(
                     'instance_flavor_id', 0
                 )
             )
@@ -115,14 +114,14 @@ class FromImageTransformer(BaseTransformer):
         for entry in data:
             for source in checks:
                 try:
-                    if (entry['resource_metadata'][source] in none_values):
+                    if (entry['metadata'][source] in none_values):
                         return None
                     break
                 except KeyError:
                     pass
             for source in size_sources:
                 try:
-                    root_size = float(entry['resource_metadata'][source])
+                    root_size = float(entry['metadata'][source])
                     if root_size > size:
                         size = root_size
                 except KeyError:
@@ -142,7 +141,7 @@ class NetworkServiceTransformer(BaseTransformer):
         # blob/master/ceilometer/network/services/vpnaas.py#L55), so we have
         # to check the volume to make sure only the active service is
         # charged(0=inactive, 1=active).
-        max_vol = max([v["counter_volume"] for v in data
-                       if v["counter_volume"] < 2]) if len(data) else 0
+        max_vol = max([v["volume"] for v in data
+                       if v["volume"] < 2]) if len(data) else 0
         hours = (end - start).total_seconds() / 3600.0
         return {name: max_vol * hours}
