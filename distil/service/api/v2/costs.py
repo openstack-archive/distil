@@ -20,6 +20,7 @@ from decimal import Decimal
 from oslo_config import cfg
 from oslo_log import log as logging
 
+from distil import exceptions
 from distil import rater
 from distil.common import constants
 from distil.db import api as db_api
@@ -29,7 +30,7 @@ LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
 
-def get_costs(project_id, start, end):
+def _validate_project_and_range(project_id, start, end):
     try:
         if start is not None:
             try:
@@ -37,8 +38,11 @@ def get_costs(project_id, start, end):
             except ValueError:
                 start = datetime.strptime(start, constants.iso_time)
         else:
-            return 400, {"missing parameter": {"start": "start date" +
-                                               " in format: y-m-d"}}
+            raise exceptions.DateTimeException(
+                code=400,
+                message=(
+                    "missing parameter:" +
+                    "'start' in format: y-m-d or y-m-dTH:M:S"))
         if not end:
             end = datetime.utcnow()
         else:
@@ -47,19 +51,51 @@ def get_costs(project_id, start, end):
             except ValueError:
                 end = datetime.strptime(end, constants.iso_time)
     except ValueError:
-            return 400, {
-                "errors": ["'end' date given needs to be in format: " +
-                           "y-m-d, or y-m-dTH:M:S"]}
+            raise exceptions.DateTimeException(
+                code=400,
+                message=(
+                    "missing parameter: " +
+                    "'end' in format: y-m-d or y-m-dTH:M:S"))
 
     if end <= start:
-        return 400, {"errors": ["end date must be greater than start."]}
+        raise exceptions.DateTimeException(
+            code=400, message="End date must be greater than start.")
 
-    project = db_api.project_get(project_id)
+    valid_project = db_api.project_get(project_id)
+
+    return valid_project, start, end
+
+
+def get_usage(project_id, start, end):
+    cleaned = _validate_project_and_range(project_id, start, end)
+    try:
+        valid_project, start, end = cleaned
+    except ValueError:
+        return cleaned
+
+    LOG.debug("Calculating unrated data for %s in range: %s - %s" %
+              (valid_project.id, start, end))
+
+    usage = db_api.usage_get(valid_project.id, start, end)
+
+    project_dict = _build_project_dict(valid_project, usage)
+
+    # add range:
+    project_dict['start'] = str(start)
+    project_dict['end'] = str(end)
+
+    return project_dict
+
+
+def get_costs(project_id, start, end):
+
+    valid_project, start, end = _validate_project_and_range(
+        project_id, start, end)
 
     LOG.debug("Calculating rated data for %s in range: %s - %s" %
-              (project.id, start, end))
+              (valid_project.id, start, end))
 
-    costs = _calculate_cost(project, start, end)
+    costs = _calculate_cost(valid_project, start, end)
 
     return costs
 
