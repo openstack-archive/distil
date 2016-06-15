@@ -94,3 +94,8 @@ class MalformedRequestBody(DistilException):
     def __init__(self, reason):
         formatted_message = self.message % {"reason": reason}
         super(MalformedRequestBody, self).__init__(formatted_message)
+
+
+class DateTimeException(DistilException):
+    # This message should be replaced when thrown to be more specific:
+    message = _("An unexpected date, date format, or date range was given.")
