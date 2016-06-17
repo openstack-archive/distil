@@ -98,6 +98,15 @@ CONF.register_opts(COLLECTOR_OPTS, group=COLLECTOR_GROUP)
 CONF.register_opts(RATER_OPTS, group=RATER_GROUP)
 
 
+def list_opts():
+    return [
+        (ODOO_GROUP, ODOO_OPTS),
+        (COLLECTOR_GROUP, COLLECTOR_OPTS),
+        (RATER_GROUP, RATER_OPTS),
+        (None, DEFAULT_OPTIONS)
+    ]
+
+
 def _register_keystoneauth_opts(conf):
     # Register keystone authentication related options.
     from keystonemiddleware import auth_token  # noqa
