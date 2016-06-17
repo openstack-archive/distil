@@ -13,87 +13,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import eventlet
 from eventlet.green import threading
-from eventlet.green import time
-from eventlet import greenpool
-from eventlet import semaphore
-from oslo_config import cfg
-
-from distil.api import acl
-from distil import exceptions as ex
-from distil.i18n import _
-from distil.i18n import _LE
-from distil.i18n import _LW
 from oslo_context import context
-from oslo_log import log as logging
+
+from distil import exceptions
 
 
-CONF = cfg.CONF
-LOG = logging.getLogger(__name__)
+class RequestContext(context.RequestContext):
+
+    def __init__(self, project_id=None, overwrite=True,
+                 auth_token=None, user=None, tenant=None, domain=None,
+                 user_domain=None, project_domain=None, is_admin=False,
+                 read_only=False, show_deleted=False, request_id=None,
+                 instance_uuid=None, roles=None, **kwargs):
+        super(RequestContext, self).__init__(auth_token=auth_token,
+                                             user=user,
+                                             tenant=tenant,
+                                             domain=domain,
+                                             user_domain=user_domain,
+                                             project_domain=project_domain,
+                                             is_admin=is_admin,
+                                             read_only=read_only,
+                                             show_deleted=False,
+                                             request_id=request_id,
+                                             roles=roles)
+        self.project_id = project_id or self.tenant
+        if overwrite or not hasattr(context._request_store, 'context'):
+            self.update_store()
+
+    def update_store(self):
+        context._request_store.context = self
 
 
-class Context(context.RequestContext):
-    def __init__(self,
-                 user_id=None,
-                 tenant_id=None,
-                 token=None,
-                 service_catalog=None,
-                 username=None,
-                 tenant_name=None,
-                 roles=None,
-                 is_admin=None,
-                 remote_semaphore=None,
-                 auth_uri=None,
-                 **kwargs):
-        if kwargs:
-            LOG.warn(_LW('Arguments dropped when creating context: %s'),
-                     kwargs)
-        self.user_id = user_id
-        self.tenant_id = tenant_id
-        self.token = token
-        self.service_catalog = service_catalog
-        self.username = username
-        self.tenant_name = tenant_name
-        self.is_admin = is_admin
-        self.remote_semaphore = remote_semaphore or semaphore.Semaphore(
-            CONF.cluster_remote_threshold)
-        self.roles = roles
-        self.auth_uri = auth_uri
-
-    def clone(self):
-        return Context(
-            self.user_id,
-            self.tenant_id,
-            self.token,
-            self.service_catalog,
-            self.username,
-            self.tenant_name,
-            self.roles,
-            self.is_admin,
-            self.remote_semaphore,
-            self.auth_uri)
-
-    def to_dict(self):
-        return {
-            'user_id': self.user_id,
-            'tenant_id': self.tenant_id,
-            'token': self.token,
-            'service_catalog': self.service_catalog,
-            'username': self.username,
-            'tenant_name': self.tenant_name,
-            'is_admin': self.is_admin,
-            'roles': self.roles,
-            'auth_uri': self.auth_uri,
-        }
-
-    def is_auth_capable(self):
-        return (self.service_catalog and self.token and self.tenant_id and
-                self.user_id)
+def make_context(*args, **kwargs):
+    return RequestContext(*args, **kwargs)
 
 
-def get_admin_context():
-    return Context(is_admin=True)
+def make_admin_context(show_deleted=False, all_tenants=False):
+    """Create an administrator context.
+
+    :param show_deleted: if True, will show deleted items when query db
+    """
+    context = RequestContext(user_id=None,
+                             project=None,
+                             is_admin=True,
+                             show_deleted=show_deleted,
+                             all_tenants=all_tenants)
+    return context
 
 
 _CTX_STORE = threading.local()
@@ -106,7 +72,7 @@ def has_ctx():
 
 def ctx():
     if not has_ctx():
-        raise ex.IncorrectStateError(_("Context isn't available here"))
+        raise exceptions.IncorrectStateError(_("Context isn't available here"))
     return getattr(_CTX_STORE, _CTX_KEY)
 
 
@@ -117,6 +83,9 @@ def current():
 def set_ctx(new_ctx):
     if not new_ctx and has_ctx():
         delattr(_CTX_STORE, _CTX_KEY)
+        if hasattr(context._request_store, 'context'):
+            delattr(context._request_store, 'context')
 
     if new_ctx:
         setattr(_CTX_STORE, _CTX_KEY, new_ctx)
+        setattr(context._request_store, 'context', new_ctx)

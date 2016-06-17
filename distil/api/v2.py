@@ -1,4 +1,4 @@
-# Copyright (c) 2014 Catalyst IT Ltd
+# Copyright (c) 2016 Catalyst IT Ltd
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ from dateutil import parser
 from oslo_log import log
 
 from distil import exceptions
+from distil.api import acl
 from distil.service.api.v2 import costs
 from distil.service.api.v2 import health
 from distil.service.api.v2 import prices
@@ -26,6 +27,11 @@ from distil.utils import api
 LOG = log.getLogger(__name__)
 
 rest = api.Rest('v2', __name__)
+
+
+@rest.get('/health')
+def health_get():
+    return api.render(health=health.get_health())
 
 
 @rest.get('/prices')
@@ -44,6 +50,7 @@ def _get_usage_args():
 
 
 @rest.get('/costs')
+@acl.enforce("rating:costs:get")
 def costs_get():
     project_id, start, end = _get_usage_args()
     try:
@@ -54,15 +61,11 @@ def costs_get():
         return api.render(status=400, error=str(e))
 
 
-@rest.get('/usage')
+@rest.get('/usages')
+@acl.enforce("rating:usages:get")
 def usage_get():
     project_id, start, end = _get_usage_args()
     try:
         return api.render(usage=costs.get_usage(project_id, start, end))
     except (exceptions.DateTimeException, exceptions.NotFoundException) as e:
         return api.render(status=400, error=str(e))
-
-
-@rest.get('/health')
-def health_get():
-    return api.render(health=health.get_health())
