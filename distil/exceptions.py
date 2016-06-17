@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_utils import uuidutils
 import sys
 
 from distil.i18n import _
@@ -21,41 +22,23 @@ _FATAL_EXCEPTION_FORMAT_ERRORS = False
 
 
 class DistilException(Exception):
-    """Base Distil Exception
+    """Base Exception for the project
 
     To correctly use this class, inherit from it and define
-    a 'message' property. That message will get printf'd
-    with the keyword arguments provided to the constructor.
+    a 'message' and 'code' properties.
     """
+    message = _("An unknown exception occurred")
+    code = "UNKNOWN_EXCEPTION"
 
-    msg_fmt = _("An unknown exception occurred.")
+    def __str__(self):
+        return self.message
 
-    def __init__(self, message=None, **kwargs):
-        self.kwargs = kwargs
-
-        if 'code' not in self.kwargs:
-            try:
-                self.kwargs['code'] = self.code
-            except AttributeError:
-                pass
-
-        if not message:
-            try:
-                message = self.msg_fmt % kwargs
-            except KeyError:
-                exc_info = sys.exc_info()
-                if _FATAL_EXCEPTION_FORMAT_ERRORS:
-                    raise exc_info[0], exc_info[1], exc_info[2]
-                else:
-                    message = self.msg_fmt
-
-        super(DistilException, self).__init__(message)
-
-    def format_message(self):
-        if self.__class__.__name__.endswith('_Remote'):
-            return self.args[0]
-        else:
-            return unicode(self)
+    def __init__(self):
+        super(DistilException, self).__init__(
+            '%s: %s' % (self.code, self.message))
+        self.uuid = uuidutils.generate_uuid()
+        self.message = (_('%(message)s\nError ID: %(id)s')
+                        % {'message': self.message, 'id': self.uuid})
 
 
 class IncorrectStateError(DistilException):
@@ -99,3 +82,8 @@ class MalformedRequestBody(DistilException):
 class DateTimeException(DistilException):
     # This message should be replaced when thrown to be more specific:
     message = _("An unexpected date, date format, or date range was given.")
+
+
+class Forbidden(DistilException):
+    code = "FORBIDDEN"
+    message = _("You are not authorized to complete this action")
