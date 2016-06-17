@@ -21,6 +21,7 @@ from werkzeug import datastructures
 from distil import exceptions as ex
 from distil.i18n import _
 from distil.i18n import _LE
+from distil import context
 from oslo_log import log as logging
 from distil.utils import wsgi
 
@@ -60,11 +61,23 @@ class Rest(flask.Blueprint):
                 if status:
                     flask.request.status_code = status
 
+                req_id = flask.request.headers.get('X-Openstack-Request-ID')
+                ctx = context.RequestContext(
+                    user=flask.request.headers.get('X-User-Id'),
+                    tenant=flask.request.headers.get('X-Tenant-Id'),
+                    auth_token=flask.request.headers.get('X-Auth-Token'),
+                    request_id=req_id,
+                    roles=flask.request.headers.get('X-Roles', '').split(','))
+
+                context.set_ctx(ctx)
+
                 if flask.request.method in ['POST', 'PUT']:
                     kwargs['data'] = request_data()
 
                 try:
                     return func(**kwargs)
+                except ex.Forbidden as e:
+                    return access_denied(e)
                 except ex.DistilException as e:
                     return bad_request(e)
                 except Exception as e:
@@ -73,7 +86,7 @@ class Rest(flask.Blueprint):
             f_rule = rule
             self.add_url_rule(f_rule, endpoint, handler, **options)
             self.add_url_rule(f_rule + '.json', endpoint, handler, **options)
-            self.add_url_rule(f_rule + '.xml', endpoint, handler, **options)
+
             return func
 
         return decorator
@@ -216,6 +229,18 @@ def bad_request(error):
     LOG.debug("Validation Error occurred: "
               "error_code=%s, error_message=%s, error_name=%s",
               error_code, error.message, error.code)
+
+    return render_error_message(error_code, error.message, error.code)
+
+
+def access_denied(error):
+    error_code = 403
+
+    LOG.error(_LE("Access Denied: "
+                  "error_code={code}, error_message={message}, "
+                  "error_name={name}").format(code=error_code,
+                                              message=error.message,
+                                              name=error.code))
 
     return render_error_message(error_code, error.message, error.code)
 
