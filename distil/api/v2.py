@@ -1,4 +1,4 @@
-# Copyright (c) 2014 Catalyst IT Ltd
+# Copyright (c) 2016 Catalyst IT Ltd
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 from dateutil import parser
 
 from oslo_log import log
+from distil.api import acl
 from distil.service.api.v2 import costs
 from distil.service.api.v2 import health
 from distil.service.api.v2 import prices
@@ -26,6 +27,11 @@ LOG = log.getLogger(__name__)
 rest = api.Rest('v2', __name__)
 
 
+@rest.get('/health')
+def health_get():
+    return api.render(health=health.get_health())
+
+
 @rest.get('/prices')
 def prices_get():
     format = api.get_request_args().get('format', None)
@@ -33,6 +39,7 @@ def prices_get():
 
 
 @rest.get('/costs')
+@acl.enforce("rating:costs:get")
 def costs_get():
     # NOTE(flwang): Get 'tenant' first for backward compatibility.
     tenant_id = api.get_request_args().get('tenant', None)
@@ -45,10 +52,6 @@ def costs_get():
 
 
 @rest.get('/usages')
+@acl.enforce("rating:usages:get")
 def usages_get():
     return api.render(usages={})
-
-
-@rest.get('/health')
-def health_get():
-    return api.render(health=health.get_health())

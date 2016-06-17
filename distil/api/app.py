@@ -17,6 +17,7 @@ import flask
 from oslo_config import cfg
 
 from distil.api import auth
+from distil.api import acl
 from distil.api import v2 as api_v2
 from distil import config
 from distil.utils import api
@@ -36,4 +37,5 @@ def make_app():
 
     app.register_blueprint(api_v2.rest, url_prefix="/v2")
     app.wsgi_app = auth.wrap(app.wsgi_app, CONF)
+    acl.setup_policy()
     return app
