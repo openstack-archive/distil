@@ -80,11 +80,6 @@ class Database(object):
             self.session.flush()           # can't assume deferred constraints.
         else:
             md_dict = json.loads(query[0].info)
-            # NOTE(flwang): The os_distro property maybe set on the image
-            # after some instances created. Do we really care about this case?
-            # This may impact the performance a bit.
-            if resource_type == 'Virtual Machine':
-                md_dict['os_distro'] = self._get_os_distro(entry)
             md_dict = self.merge_resource_metadata(md_dict, entry,
                                                    md_def)
             query[0].info = json.dumps(md_dict)
