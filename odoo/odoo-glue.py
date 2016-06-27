@@ -603,6 +603,8 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
             if not args.DRY_RUN:
                 shell.Orderline.create(usage_dict)
 
+        use_voucher(shell, order_id, partner, tenant_name, tenant_id)
+
         print_list(
             usage_dict_list,
             ['product_id', 'product_uom', 'product_uom_qty', 'name',
@@ -628,6 +630,31 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
                                   limit=2, file=sys.stdout)
         print(e)
         raise e
+
+
+def use_voucher(shell, order_id, partner, tenant_name, tenant_id):
+    # 1. Get details of the tennat's voucher
+    voucher = get_voucher(shell, partner)
+    # 2. Get the amount of current quotation based on the given order_id
+    sales_order = shell.Order.read(order_id)
+    amount = sales_order['amount']
+    # 3. Update the voucher based on the quotation amount
+    balance = amount - voucher['balance']
+    balance = balance if balance > 0 else 0
+    # 4. Add a new order line to sub the discount
+    set_voucher(shell, partner, voucher)
+    # 5. Add voucher info to the note of current quotation
+
+    # 6. Rollback the voucher amount if add the discount line failed
+    pass
+
+
+def get_voucher(shell, partner):
+    pass
+
+
+def set_voucher(shell, partner, voucher):
+    pass
 
 
 def dump_all(shell, model, fields):
