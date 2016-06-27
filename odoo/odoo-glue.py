@@ -603,6 +603,10 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
             if not args.DRY_RUN:
                 shell.Orderline.create(usage_dict)
 
+        # NOTE(flwang): We got the original credits so that we can rollback
+        # if there is an error
+        original_credits = use_credit(shell, args, order, partner, tenant_name)
+
         print_list(
             usage_dict_list,
             ['product_id', 'product_uom', 'product_uom_qty', 'name',
@@ -610,7 +614,7 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
         )
 
         shell.order_id = None
-    except odoorpc.error.RPCError as e:
+    except Exception as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
                                   limit=2, file=sys.stdout)
@@ -621,13 +625,79 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
             print('Cancel order: %s' % shell.order_id)
             update_order_status(shell, shell.order_id)
 
+        # Rollback credits
+        rollback_credit(shell, args, tenant_name, original_credits)
+
         raise e
-    except Exception as e:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_exception(exc_type, exc_value, exc_traceback,
-                                  limit=2, file=sys.stdout)
-        print(e)
-        raise e
+
+
+def use_credit(shell, args, order_id, partner, tenant_name):
+    # Get details of the tennat's voucher
+    credits = get_credit(shell, tenant_name)
+    original_credits = {}
+    # Define a credit order line template with the credit product info
+    credit_dict_template = {
+        'order_id': order_id,
+        'product_id': 'TBD',
+        'product_uom': 'TBD',
+        'product_uom_qty': 0,
+        'name': '',
+        'price_unit': 1
+    }
+
+    # Update the voucher based on the quotation amount, depending on the
+    # voucher type, we need different logic to apply the voucher
+    for credit in credits:
+        original_credits[credit.id] = credit.current_balance
+        # Verify if the credit has expired. For a case like the voucher
+        # expires on 10 of June, we still give the credit for customer's
+        # sales order of June.
+        if args.START >=credit.expiry_date:
+            continue
+
+        if credit.credit_type_id.name == 'Cloud Trial Credit':
+            # Get the amount of current quotation based on the given order_id
+            sales_order = shell.Order.read(order_id)
+            amount = sales_order.amount_untaxed
+            credit_dict = credit_dict_template.copy()
+            credit_dict['name'] = credit.credit_type_id.name
+            # Calculate the new balance
+            balance = credit.current_balance - amount
+            if balance >= 0:
+                credit.current_balance = balance
+            else:
+                credit.current_balance = 0
+            # Calculate the credit product quantity
+            credit_dict['product_uom_qty'] = -min(credit.current_balance,
+                                                  amount)
+            # Add credit info to the note of current order
+            if not args.DRY_RUN:
+                credit_note = ('%s current balance: %d' %
+                               (credit.credit_type_id.name, balance))
+                sales_order.note = sales_order.note + "\n" + credit_note
+                shell.Orderline.create(credit_dict)
+        if credit.credit_type_id.name == 'SLA Credit':
+            pass
+        if credit.credit_type_id.name == 'Development Grant':
+            pass
+        if credit.credit_type_id.name == 'Education Grant':
+            pass
+
+    # Return original credits for rollback later
+    return original_credits
+
+
+def get_credit(shell, tenant_name):
+    credit_ids = shell.Credit.search([('cloud_tenant', '=', tenant_name)])
+    for id in credit_ids:
+        yield shell.Credit.browse(id)
+
+
+def rollback_credit(shell, args, tenant_name, original_credits):
+    credit_ids = shell.Credit.search([('cloud_tenant', '=', tenant_name)])
+    for id in credit_ids:
+        credit = shell.Credit.browse(id)
+        credit.current_balance = original_credits[id]
 
 
 def dump_all(shell, model, fields):
@@ -687,6 +757,7 @@ def login_odoo(shell):
     shell.Product = shell.oerp.env['product.product']
     shell.PurchaseOrder = shell.oerp.env['purchase.order']
     shell.PurchaseOrderline = shell.oerp.env['purchase.order.line']
+    shell.Credit = shell.oerp.env['cloud.credit']
 
 
 def check_duplicate(order):
