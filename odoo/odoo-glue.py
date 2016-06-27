@@ -39,6 +39,11 @@ from distilclient.client import Client as DistilClient
 
 TENANT = collections.namedtuple('Tenant', ['id', 'name'])
 REGION_MAPPING = {'nz_wlg_2': 'NZ-WLG-2', 'nz-por-1': 'NZ-POR-1'}
+CREDIT_MAPPING = {'Cloud Trial Credit': 'cloud-trial',
+                  'Development Grant': '',
+                  'Education Grant': '',
+                  'SLA Credit': 'sla-discount'
+                  }
 OERP_PRODUCTS = {}
 
 TRAFFIC_MAPPING = {'n1.international-in': 'Inbound International Traffic',
@@ -392,7 +397,10 @@ def find_root_partner(shell, partner):
 
 
 def find_oerp_product(shell, region, name):
-    product_name = '%s.%s' % (REGION_MAPPING[region], name)
+    if region:
+        product_name = '%s.%s' % (REGION_MAPPING[region], name)
+    else:
+        product_name = name
     if product_name not in OERP_PRODUCTS:
         log(shell.debug, 'Looking up product in oerp: %s' % product_name)
 
@@ -603,6 +611,10 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
             if not args.DRY_RUN:
                 shell.Orderline.create(usage_dict)
 
+        # NOTE(flwang): We got the original credits so that we can rollback
+        # if there is an error
+        original_credits = use_credit(shell, args, order, partner, tenant_name)
+
         print_list(
             usage_dict_list,
             ['product_id', 'product_uom', 'product_uom_qty', 'name',
@@ -610,7 +622,7 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
         )
 
         shell.order_id = None
-    except odoorpc.error.RPCError as e:
+    except Exception as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
                                   limit=2, file=sys.stdout)
@@ -621,13 +633,96 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
             print('Cancel order: %s' % shell.order_id)
             update_order_status(shell, shell.order_id)
 
+        # Rollback credits
+        rollback_credit(shell, args, tenant_name, original_credits)
+
         raise e
-    except Exception as e:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_exception(exc_type, exc_value, exc_traceback,
-                                  limit=2, file=sys.stdout)
-        print(e)
-        raise e
+
+
+def use_credit(shell, args, order_id, partner, tenant_name):
+    # Get details of the tennat's voucher
+    credits = get_credit(shell, tenant_name)
+    original_credits = {}
+
+    # Update the voucher based on the quotation amount, depending on the
+    # voucher type, we need different logic to apply the voucher
+    for credit in credits:
+        if credit.current_balance <= 0.0001:
+            continue
+
+        original_credits[credit.id] = credit.current_balance
+        # Verify if the credit has expired. For a case like the voucher
+        # expires on 10 of June, we still give the credit for customer's
+        # sales order of June.
+        if datetime.datetime.strptime(args.START, "%Y-%m-%dT%H:%M:%S").date() >=credit.expiry_date:
+            continue
+
+        if credit.credit_type_id.name in ('Cloud Trial Credit',
+                                          'Development Grant',
+                                          'Education Grant'):
+            process_credit(shell, order_id, credit)
+
+        if credit.credit_type_id.name == 'SLA Credit':
+            process_credit(shell, order_id, credit)
+
+    # Return original credits for rollback later
+    return original_credits
+
+
+def process_credit(shell, order_id, credit):
+    # Define a credit order line template with the credit product info
+    credit_dict = {
+        'order_id': order_id,
+        'product_id': 'TBD',
+        'product_uom': 'TBD',
+        'product_uom_qty': 0,
+        'name': '',
+        'price_unit': -1  # Hardcode it
+    }
+    # Get the amount of current quotation based on the given order_id
+    sales_order = shell.Order.browse(order_id)
+    amount_untaxed = sales_order.amount_untaxed
+    if amount_untaxed <= 0:
+        return
+
+    # NOTE(flwang): For SLA Credit, we need to handle the region, so when
+    # create a SLA credit, need to make sure put the region name as the code
+    region_mapping = {'NZ-WLG-2': 'nz_wlg_2', 'NZ-POR-1': 'nz-por-1'}
+    region = 'nz-por-1' if credit.credit_type_id.name in ('SLA Credit') else ''
+    trail_product = find_oerp_product(shell, region, CREDIT_MAPPING[credit.credit_type_id.name])
+    credit_dict['product_id'] = trail_product['id']
+    credit_dict['product_uom'] = trail_product['uom_id'][0]
+    credit_dict['name'] = credit.credit_type_id.name
+
+    # Calculate the new balance and the credit's product quantity
+    credit_dict['product_uom_qty'] = min(credit.current_balance, amount_untaxed)
+
+    current_balance = credit.current_balance - amount_untaxed
+    if current_balance >= 0:
+        credit.current_balance = current_balance
+    else:
+        # FIXME(flwang): It's a bug of odoo, we can't set 0 to the current
+        # balance.
+        credit.current_balance = 0.0001
+
+    # Add credit info to the note of current order
+    credit_note = ('Current balance of %s: %.2f' %
+                  (credit.credit_type_id.name, credit.current_balance))
+    sales_order.note = sales_order.note + ", " + credit_note
+    shell.Orderline.create(credit_dict)
+
+
+def get_credit(shell, tenant_name):
+    credit_ids = shell.Credit.search([('cloud_tenant', '=', tenant_name)])
+    for id in credit_ids:
+        yield shell.Credit.browse(id)
+
+
+def rollback_credit(shell, args, tenant_name, original_credits):
+    credit_ids = shell.Credit.search([('cloud_tenant', '=', tenant_name)])
+    for id in credit_ids:
+        credit = shell.Credit.browse(id)
+        credit.current_balance = original_credits[id]
 
 
 def dump_all(shell, model, fields):
@@ -687,6 +782,7 @@ def login_odoo(shell):
     shell.Product = shell.oerp.env['product.product']
     shell.PurchaseOrder = shell.oerp.env['purchase.order']
     shell.PurchaseOrderline = shell.oerp.env['purchase.order.line']
+    shell.Credit = shell.oerp.env['cloud.credit']
 
 
 def check_duplicate(order):
@@ -744,7 +840,7 @@ def do_update_quote(shell, args):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback,
                                       limit=2, file=sys.stdout)
-            print(e.info)
+            print(e)
             print('Failed to update order: %s' % id)
         except Exception as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
