@@ -669,6 +669,7 @@ def print_list(objs, fields, formatters={}):
 def login_odoo(shell):
     conf = ConfigParser.ConfigParser()
     conf.read(['glue.ini'])
+    shell.PurchaseOrderPartnerRef = conf.get('windows', 'partner_ref')
 
     shell.oerp = odoorpc.ODOO(conf.get('odoo', 'hostname'),
                               protocol=conf.get('odoo', 'protocol'),
@@ -800,7 +801,7 @@ def do_windows(shell, args):
             # TODO(flwang): Using regex to match 'c1.c%dr%d-windows'
             if u['product'].endswith('-windows'):
                 windows_usage.append(u)
-                if u['host'] not in windows_hosts:
+                if u['host'] != 'None' and u['host'] not in windows_hosts:
                     windows_hosts.add(u['host'])
                     print(u['host'])
 
@@ -822,6 +823,7 @@ def generate_purchase_order(shell, args, usage, billing_date, pricelist):
             'pricelist_id': pricelist,
             'partner_invoice_id': partner_id,
             'partner_shipping_id': partner_id,
+            'partner_ref': shell.PurchaseOrderPartnerRef,
             'date_order': billing_date,
             'location_id': localtion_id,
         }
