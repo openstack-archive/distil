@@ -822,6 +822,7 @@ def generate_purchase_order(shell, args, usage, billing_date, pricelist):
             'pricelist_id': pricelist,
             'partner_invoice_id': partner_id,
             'partner_shipping_id': partner_id,
+            'partner_ref': 'Catalyst Cloud Partnership (John Robson)',
             'date_order': billing_date,
             'location_id': localtion_id,
         }
