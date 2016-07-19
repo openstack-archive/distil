@@ -6,3 +6,6 @@ protocol=jsonrpc+ssl
 database=test
 user=admin
 password=admin
+
+[windows]
+partner_ref = Catalyst Cloud Partnership (Somebody)

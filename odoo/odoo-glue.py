@@ -669,6 +669,7 @@ def print_list(objs, fields, formatters={}):
 def login_odoo(shell):
     conf = ConfigParser.ConfigParser()
     conf.read(['glue.ini'])
+    shell.PurchaseOrderPartnerRef = conf.get('windows', 'partner_ref')
 
     shell.oerp = odoorpc.ODOO(conf.get('odoo', 'hostname'),
                               protocol=conf.get('odoo', 'protocol'),
@@ -822,6 +823,7 @@ def generate_purchase_order(shell, args, usage, billing_date, pricelist):
             'pricelist_id': pricelist,
             'partner_invoice_id': partner_id,
             'partner_shipping_id': partner_id,
+            'partner_ref': shell.PurchaseOrderPartnerRef,
             'date_order': billing_date,
             'location_id': localtion_id,
         }
