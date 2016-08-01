@@ -957,6 +957,72 @@ def generate_purchase_order(shell, args, usage, billing_date, pricelist):
         raise e
 
 
+@arg('--order-name', type=str, metavar='ORDER_NAME',
+     dest='ORDER_NAME', required=True,
+     help='The sales order name which the new order line will add to, e.g. SO3377.')
+@arg('--tenant-id', type=str, metavar='TENANT_ID',
+     dest='TENANT_ID', required=True,
+     help='Tenant of quotations to filter with.')
+@arg('--product', type=str, metavar='PRODUCT',
+     dest='PRODUCT', required=True,
+     help='The product name for charging.')
+@arg('--volume', type=float, metavar='VOLUME',
+     dest='VOLUME', required=True,
+     help='The volume of usage for the given product.')
+def do_add_order_line(shell, args):
+    """Manually add new order line to an existing sales order and handle the
+    credit as well.    
+    """
+    tenant_object = shell.keystone.tenants.get(args.TENANT_ID)
+    tenant_name =  tenant_object.name
+    partner = find_oerp_partner_for_tenant(shell, t)
+    root_partner = find_root_partner(shell, partner)
+    pricelist, _ = root_partner['property_product_pricelist']
+    regioned_product = args.PRODUCT.split('.')
+    product = find_oerp_product(shell, regioned_product[0], regioned_product[1])
+    usage_dict = {
+        'order_id': args.ORDER_ID,
+        'product_id': product['id'],
+        'product_uom':  product['uom_id'][0],
+        'product_uom_qty': args.VOLUME,
+        'name': args.PRODUCT,
+        'price_unit': get_price(shell, pricelist, prod, m['volume'])
+    }
+
+    sales_order = shell.Order.search([('name', '=', order_name),]) 
+    shell.order_id = sales_order.id
+
+    try:
+        # 1. Rollback the credits
+        original_credits = {}
+        # 1.1 Remove the credit line from current order
+        credits = list(get_credit(shell, tenant_name))
+        # 1.2 Build the original_credits dict
+        import pdb
+        pdb.set_trace()
+        # 1.3 Rollback
+        rollback_credit(shell, args, tenant_name, original_credits)
+        # 2. Add new order line
+        shell.Orderline.create(usage_dict)
+        # 3. Apply credits
+        original_credits = use_credit(shell, args, sales_order.id, partner, tenant_name)
+    except Exception as e:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                  limit=2, file=sys.stdout)
+        print(e.info)
+
+        # Cancel the quotation.
+        if shell.order_id:
+            print('Cancel order: %s' % shell.order_id)
+            update_order_status(shell, shell.order_id)
+
+        # Rollback credits
+        rollback_credit(shell, args, tenant_name, original_credits)
+
+        raise e
+
+
 def print_dict(d, max_column_width=80):
     pt = prettytable.PrettyTable(['Property', 'Value'], caching=False)
     pt.align = 'l'
