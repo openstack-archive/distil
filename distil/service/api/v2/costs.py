@@ -22,7 +22,7 @@ from oslo_log import log as logging
 
 from distil import exceptions
 from distil import rater
-from distil.common import constants
+from distil.utils import constants
 from distil.db import api as db_api
 from distil.utils import general
 

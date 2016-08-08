@@ -16,7 +16,7 @@ from oslo_config import cfg
 from oslo_log import log as logging
 
 from distil.collector import base
-from distil import constants
+from distil.utils import constants
 from distil.utils import general
 from distil.utils import openstack
 
