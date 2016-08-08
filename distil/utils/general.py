@@ -43,8 +43,7 @@ def get_transformer_config():
 
 def generate_windows(start, end):
     """Generator for configured hour windows in a given range."""
-    # FIXME(flwang): CONF.collector.period
-    window_size = timedelta(hours=1)
+    window_size = timedelta(hours=CONF.collector.collect_window)
     while start + window_size <= end:
         window_end = start + window_size
         yield start, window_end
