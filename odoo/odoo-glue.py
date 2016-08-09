@@ -51,6 +51,8 @@ TRAFFIC_MAPPING = {'n1.international-in': 'Inbound International Traffic',
     'n1.national-in': 'Inbound National Traffic',
     'n1.national-out': 'Outbound National Traffic'}
 
+CREDIT_NAME_DIMMER = '@'
+
 def arg(*args, **kwargs):
     def _decorator(func):
         func.__dict__.setdefault('arguments', []).insert(0, (args, kwargs))
@@ -626,7 +628,6 @@ def build_sales_order(shell, args, pricelist, usage, partner, tenant_name,
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
                                   limit=2, file=sys.stdout)
-        print(e.info)
 
         # Cancel the quotation.
         if shell.order_id:
@@ -692,7 +693,7 @@ def process_credit(shell, order_id, credit):
     trail_product = find_oerp_product(shell, region, CREDIT_MAPPING[credit.credit_type_id.name])
     credit_dict['product_id'] = trail_product['id']
     credit_dict['product_uom'] = trail_product['uom_id'][0]
-    credit_dict['name'] = credit.credit_type_id.name
+    credit_dict['name'] = '%s%s%s' % (credit.credit_type_id.name, CREDIT_NAME_DIMMER, credit.code)
 
     # Calculate the new balance and the credit's product quantity
     credit_dict['product_uom_qty'] = min(credit.current_balance, amount_untaxed)
@@ -716,6 +717,12 @@ def get_credit(shell, tenant_name):
     credit_ids = shell.Credit.search([('cloud_tenant', '=', tenant_name)])
     for id in credit_ids:
         yield shell.Credit.browse(id)
+
+
+def get_credit_by_code(shell, tenant_name, code):
+    credit_ids = shell.Credit.search([('cloud_tenant', '=', tenant_name),
+                                      ('code', '=', code)])
+    return credit_ids[0]
 
 
 def rollback_credit(shell, args, tenant_name, original_credits):
@@ -954,6 +961,86 @@ def generate_purchase_order(shell, args, usage, billing_date, pricelist):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
                                   limit=2, file=sys.stdout)
+        raise e
+
+
+@arg('--order-name', type=str, metavar='ORDER_NAME',
+     dest='ORDER_NAME', required=True,
+     help='The sales order name which the new order line will add to, e.g. SO3377.')
+@arg('--tenant-id', type=str, metavar='TENANT_ID',
+     dest='TENANT_ID', required=True,
+     help='Tenant of quotations to filter with.')
+@arg('--product', type=str, metavar='PRODUCT',
+     dest='PRODUCT', required=True,
+     help='The product name for charging.')
+@arg('--volume', type=float, metavar='VOLUME',
+     dest='VOLUME', required=True,
+     help='The volume of usage for the given product.')
+def do_add_order_line(shell, args):
+    """Manually add new order line to an existing sales order and handle the
+    credit as well.
+    """
+    login_odoo(shell)
+    tenant_object = shell.keystone.tenants.get(args.TENANT_ID)
+    tenant_name =  tenant_object.name
+    partner = find_oerp_partner_for_tenant(shell, tenant_object)
+    root_partner = find_root_partner(shell, partner)
+    pricelist, _ = root_partner['property_product_pricelist']
+    product = find_oerp_product(shell, None, args.PRODUCT)
+    usage_dict = {
+        'order_id': None,
+        'product_id': product['id'],
+        'product_uom':  product['uom_id'][0],
+        'product_uom_qty': args.VOLUME,
+        'name': args.PRODUCT,
+        'price_unit': get_price(shell, pricelist, product, args.VOLUME)
+    }
+
+    sales_order_ids = shell.Order.search([('name', '=', args.ORDER_NAME),])
+    usage_dict['order_id'] = sales_order_ids[0]
+    shell.order_id = sales_order_ids[0]
+    credit_types = ('Cloud Trial Credit', 'Development Grant',
+                    'Education Grant', 'SLA Credit')
+
+    # 1. Get the credits from sales order
+    original_credits = {}
+    sale_order = shell.Order.browse(sales_order_ids[0])
+    for order_line in sale_order.order_line:
+        if any([credit_type in order_line.name for credit_type in credit_types]):
+            # 1.1 Build the original_credits dict
+            credet_name_code = order_line.name.split(CREDIT_NAME_DIMMER)
+            credit_id = get_credit_by_code(shell, tenant_name, credet_name_code[1])
+            original_credits[credit_id] = order_line.product_uom_qty
+            # 1.2 Remove the credit line from current order
+            order_line.unlink()
+
+    try:
+        if original_credits:
+            # 2. Get credit balance
+            credits = get_credit(shell, tenant_name)
+            for credit in credits:
+                if credit.id in original_credits:
+                    original_credits[credit.id] += credit.current_balance
+            # 3 Rollback
+            rollback_credit(shell, args, tenant_name, original_credits)
+
+        # 4. Add new order line
+        shell.Orderline.create(usage_dict)
+
+        # 5. Re apply credits
+        end_date = (sale_order.date_order + datetime.timedelta(days=1)).date()
+        args.END = end_date.strftime('%Y-%m-%dT%H:%M:%S')
+        args.START = (datetime.datetime(end_date.year, end_date.month - 1, 1)).date().strftime('%Y-%m-%dT%H:%M:%S')
+        original_credits = use_credit(shell, args, sales_order_ids[0], partner, tenant_name)
+    except Exception as e:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                  limit=2, file=sys.stdout)
+        # Cancel the quotation.
+        if shell.order_id:
+            print('Cancel order: %s' % shell.order_id)
+            update_order_status(shell, shell.order_id)
+
         raise e
 
 
