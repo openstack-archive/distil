@@ -965,6 +965,54 @@ def print_dict(d, max_column_width=80):
     print(strutils.encodeutils.safe_encode(pt.get_string(sortby='Property')))
 
 
+ORDER_NOTE_PATTERN = re.compile(r'Tenant:\s.+?\s\((?P<tenant_id>\w+)\)')
+
+
+@arg('month', type=str, help='The month of orders to check. Example: 2016-02')
+def do_check_duplicate(shell, args):
+    """
+    Double check if there are order duplications in Odoo, regardless of the
+    order status. It is highly recommended running this command every time
+    after the orders are generated.
+    """
+    billing_month = datetime.datetime.strptime(args.month, '%Y-%m')
+    next_first_day = datetime.datetime(
+        billing_month.year,
+        billing_month.month + 1,
+        1
+    )
+    billing_date = str((next_first_day - datetime.timedelta(days=1)).date())
+
+    print 'Begin to check, billing date: %s...' % billing_date
+
+    login_odoo(shell)
+
+    orders = shell.Order.search(
+        [
+            ('date_order', '=', billing_date)
+        ]
+    )
+
+    orig_tenant_ids = []
+    tenant_ids = []
+    for o_id in orders:
+        order = shell.Order.browse(o_id)
+        match = ORDER_NOTE_PATTERN.match(order.note)
+        orig_tenant_ids.append(match.group('tenant_id'))
+
+    tenant_ids = list(set(orig_tenant_ids))
+
+    if len(orig_tenant_ids) != len(tenant_ids):
+        duplicate_tenants = [id for id in orig_tenant_ids if
+                             id not in tenant_ids]
+        print(
+            'WARNING! There are order duplications for tenants: %s' %
+            duplicate_tenants
+        )
+    else:
+        print('Congratulations! No duplication.')
+
+
 if __name__ == '__main__':
     try:
         OdooShell().main(sys.argv[1:])
