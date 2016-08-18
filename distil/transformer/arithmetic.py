@@ -70,11 +70,18 @@ class StorageMaxTransformer(BaseTransformer):
 class SumTransformer(BaseTransformer):
     """Transformer for sum-integration of a gauge value for given period.
     """
+
     def _transform_usage(self, meter_name, raw_data, start_at, end_at):
         sum_vol = 0
         for sample in raw_data:
-            t = datetime.datetime.strptime(sample['timestamp'],
-                                           '%Y-%m-%dT%H:%M:%S.%f')
+            try:
+                t = datetime.datetime.strptime(sample['timestamp'],
+                                               '%Y-%m-%dT%H:%M:%S.%f')
+            except ValueError:
+                # In case of u'timestamp': u'2016-08-04T11:35:00',
+                t = datetime.datetime.strptime(sample['timestamp'],
+                                               '%Y-%m-%dT%H:%M:%S')
+
             if t >= start_at and t < end_at:
                 sum_vol += sample["volume"]
         return {meter_name: sum_vol}
