@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import logging
-import sys
 
 import eventlet
 from eventlet import wsgi
@@ -41,8 +40,6 @@ class WritableLogger(object):
 
 
 def main():
-    config.parse_args(sys.argv[1:], 'distil-api')
-
     application = app.make_app()
     CONF.log_opt_values(LOG, logging.INFO)
     try:
