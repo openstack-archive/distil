@@ -41,9 +41,7 @@ class WritableLogger(object):
 
 
 def main():
-    config.parse_args(sys.argv[1:], 'distil-api')
-
-    application = app.make_app()
+    application = app.make_app(sys.argv[1:])
     CONF.log_opt_values(LOG, logging.INFO)
     try:
         wsgi.server(eventlet.listen((CONF.host, CONF.port), backlog=500),

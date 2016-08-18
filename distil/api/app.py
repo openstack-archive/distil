@@ -12,7 +12,6 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import flask
 from oslo_config import cfg
 
@@ -24,7 +23,9 @@ from distil.utils import api
 CONF = cfg.CONF
 
 
-def make_app():
+def make_app(args=None):
+    config.parse_args(args, 'distil-api')
+
     app = flask.Flask(__name__)
 
     @app.route('/', methods=['GET'])
