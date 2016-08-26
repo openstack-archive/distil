@@ -201,9 +201,9 @@ def usage_add(project_id, resource_id, samples, unit,
         if str(e).rfind("Duplicate entry '\s' for key 'PRIMARY'"):
             LOG.warning(e)
             return
-        raise e
-    except Exception as e:
-        raise e
+        raise
+    except Exception:
+        raise
 
 
 def _get_resource(session, project_id, resource_id):
@@ -268,9 +268,9 @@ def resource_add(project_id, resource_id, resource_type, raw, metadata):
         if str(e).rfind("Duplicate entry '\s' for key 'PRIMARY'"):
             LOG.warning(e)
             return
-        raise e
-    except Exception as e:
-        raise e
+        raise
+    except Exception:
+        raise
 
 
 def resource_get_by_ids(project_id, resource_ids):

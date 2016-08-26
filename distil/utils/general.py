@@ -35,8 +35,8 @@ def get_transformer_config():
         try:
             with open(CONF.collector.transformer_file) as f:
                 _TRANS_CONFIG = yaml.load(f)
-        except IOError as e:
-            raise e
+        except IOError:
+            raise
 
     return _TRANS_CONFIG
 
