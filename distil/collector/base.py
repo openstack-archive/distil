@@ -138,7 +138,7 @@ class BaseCollector(object):
 
         return os_distro
 
-    def _get_resource_info(self, resource_id, resource_type, entry,
+    def _get_resource_info(self, project_id, resource_id, resource_type, entry,
                            defined_meta):
         resource_info = {'type': resource_type}
 
@@ -156,13 +156,15 @@ class BaseCollector(object):
                     # Or value isn't present.
                     pass
 
-        if resource_type == 'Virtual Machine':
-            resource_info['os_distro'] = self._get_os_distro(entry)
-        if resource_type == 'Object Storage Container':
-            # NOTE(flwang): It's safe to get container name by /, since
-            # Swift doesn't allow container name with /.
-            idx = resource_id.index('/') + 1
-            resource_info['name'] = resource_id[idx:]
+        # If the resource is already created, don't update properties below.
+        if not db_api.resource_get_by_ids(project_id, [resource_id]):
+            if resource_type == 'Virtual Machine':
+                resource_info['os_distro'] = self._get_os_distro(entry)
+            if resource_type == 'Object Storage Container':
+                # NOTE(flwang): It's safe to get container name by /, since
+                # Swift doesn't allow container name with /.
+                idx = resource_id.index('/') + 1
+                resource_info['name'] = resource_id[idx:]
 
         return resource_info
 
@@ -181,19 +183,16 @@ class BaseCollector(object):
             if transformed:
                 res_id = mapping.get('res_id_template', '%s') % res_id
                 res_info = self._get_resource_info(
+                    project_id,
                     res_id,
                     mapping['type'],
                     entries[-1],
                     mapping['metadata']
                 )
-                new_res = {
-                    'tenant_id': project_id,
-                    'info': res_info
-                }
 
-                res = resources.setdefault(res_id, new_res)
-                res.update({'info': res_info})
-                LOG.debug('resource: %s', res)
+                res = resources.setdefault(res_id, res_info)
+                res.update(res_info)
+                LOG.debug('resource info: %s', res)
 
                 for service, volume in transformed.items():
                     entry = {

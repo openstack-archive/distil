@@ -221,14 +221,15 @@ def usages_add(project_id, resources, usage_entries, last_collect):
 
     try:
         with session.begin(subtransactions=True):
-            for (id, res) in six.iteritems(resources):
+            for (id, res_info) in six.iteritems(resources):
                 res_db = _get_resource(session, project_id, id)
                 if res_db:
-                    res_db.info = json.dumps(res['info'])
+                    orig_info = json.loads(res_db.info)
+                    res_db.info = json.dumps(orig_info.update(res_info))
                 else:
                     resource_ref = Resource(
                         id=id,
-                        info=json.dumps(res['info']),
+                        info=json.dumps(res_info),
                         tenant_id=project_id,
                         created=timestamp
                     )
