@@ -39,9 +39,8 @@ def _validate_project_and_range(project_id, start, end):
                 start = datetime.strptime(start, constants.iso_time)
         else:
             raise exceptions.DateTimeException(
-                code=400,
                 message=(
-                    "missing parameter:" +
+                    "Missing parameter:" +
                     "'start' in format: y-m-d or y-m-dTH:M:S"))
         if not end:
             end = datetime.utcnow()
@@ -52,15 +51,17 @@ def _validate_project_and_range(project_id, start, end):
                 end = datetime.strptime(end, constants.iso_time)
     except ValueError:
             raise exceptions.DateTimeException(
-                code=400,
                 message=(
-                    "missing parameter: " +
+                    "Missing parameter: " +
                     "'end' in format: y-m-d or y-m-dTH:M:S"))
 
     if end <= start:
         raise exceptions.DateTimeException(
-            code=400, message="End date must be greater than start.")
+            message="End date must be greater than start.")
 
+    if not project_id:
+        raise exceptions.NotFoundException(value='project_id',
+                                           message="Missing parameter: %s")
     valid_project = db_api.project_get(project_id)
 
     return valid_project, start, end
