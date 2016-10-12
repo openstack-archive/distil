@@ -28,7 +28,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, create_session
 from sqlalchemy.pool import NullPool
 from sqlalchemy.exc import IntegrityError, OperationalError
-# Fix the the multithread issue when using strptime, based on this link:
+# Fix the multithread issue when using strptime, based on this link:
 # stackoverflow.com/questions/2427240/thread-safe-equivalent-to-pythons-time-strptime   # noqa
 import _strptime
 from datetime import datetime, timedelta
