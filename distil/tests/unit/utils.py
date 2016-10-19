@@ -103,7 +103,7 @@ def create_usage_entries(num_resources, num_services, volume):
     entries = []
     for i in range(num_resources):
         for ii in range(num_services):
-            entry = mock.MagicMock()
+            entry = mock.Mock()
             entry.volume = volume
             entry.service = "service" + str(ii)
             entry.resource_id = "resource_id_" + str(i)
