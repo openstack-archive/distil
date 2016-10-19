@@ -173,11 +173,11 @@ class TestAPI(test_interface.TestInterface):
         entries = utils.create_usage_entries(num_resources,
                                              num_services, volume)
 
-        tenant = mock.MagicMock()
+        tenant = mock.Mock()
         tenant.name = "tenant_1"
         tenant.id = "tenant_id_1"
 
-        db = mock.MagicMock()
+        db = mock.Mock()
         db.get_resources.return_value = {
                 'resource_id_0': {},
                 'resource_id_1': {},
@@ -199,11 +199,11 @@ class TestAPI(test_interface.TestInterface):
            empty list of entries correctly."""
         entries = []
 
-        tenant = mock.MagicMock()
+        tenant = mock.Mock()
         tenant.name = "tenant_1"
         tenant.id = "tenant_id_1"
 
-        db = mock.MagicMock()
+        db = mock.Mock()
 
         tenant_dict = web.build_tenant_dict(tenant, entries, db)
 
@@ -242,7 +242,7 @@ class TestAPI(test_interface.TestInterface):
             convert_to(volume, 'second', rate['unit']) * rate['rate'], 2)
         total_cost = service_cost * 4
 
-        ratesManager = mock.MagicMock()
+        ratesManager = mock.Mock()
         ratesManager.rate.return_value = rate
 
         tenant_dict = web.add_costs_for_tenant(test_tenant, ratesManager)
@@ -263,7 +263,7 @@ class TestAPI(test_interface.TestInterface):
 
         empty_tenant = {'resources': {}}
 
-        ratesManager = mock.MagicMock()
+        ratesManager = mock.Mock()
 
         tenant_dict = web.add_costs_for_tenant(empty_tenant, ratesManager)
 
