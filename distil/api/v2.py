@@ -21,8 +21,9 @@ from distil import exceptions
 from distil.api import acl
 from distil.service.api.v2 import costs
 from distil.service.api.v2 import health
-from distil.service.api.v2 import prices
+from distil.service.api.v2 import products
 from distil.utils import api
+from distil.utils import constants
 
 LOG = log.getLogger(__name__)
 
@@ -34,10 +35,11 @@ def health_get():
     return api.render(health=health.get_health())
 
 
-@rest.get('/prices')
-def prices_get():
-    format = api.get_request_args().get('format', None)
-    return api.render(prices=prices.get_prices(format=format))
+@rest.get('/products')
+def products_get():
+    os_regions = api.get_request_args().get('regions', None)
+    regions = os_regions.split(',') if os_regions else None
+    return api.render(products=products.get_products(regions))
 
 
 def _get_usage_args():

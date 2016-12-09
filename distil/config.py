@@ -13,6 +13,7 @@
 #    under the License.
 
 from keystoneauth1 import loading as ka_loading
+from oslo_cache import core as cache
 from oslo_config import cfg
 from oslo_log import log
 
@@ -30,7 +31,7 @@ DEFAULT_OPTIONS = (
                help='The listen IP for the Distil API server',
                ),
     cfg.ListOpt('public_api_routes',
-                default=['/', '/v2/prices', '/v2/health'],
+                default=['/', '/v2/products', '/v2/health'],
                 help='The list of public API routes',
                 ),
     cfg.ListOpt('ignore_tenants',
@@ -77,8 +78,9 @@ ODOO_OPTS = [
                help='Name of Odoo account to login.'),
     cfg.StrOpt('password', secret=True,
                help='Password of Odoo account to login.'),
-    cfg.StrOpt('last_update',
-               help='Last time when the products/prices are updated.')
+    cfg.StrOpt('region_mapping',
+               help='Region name mappings between Keystone and Odoo. For '
+               'example, region1=RegionOne,region2=RegionTwo')
 ]
 
 RATER_OPTS = [
@@ -93,6 +95,7 @@ AUTH_GROUP = 'keystone_authtoken'
 ODOO_GROUP = 'odoo'
 COLLECTOR_GROUP = 'collector'
 RATER_GROUP = 'rater'
+
 
 CONF.register_opts(DEFAULT_OPTIONS)
 CONF.register_opts(ODOO_OPTS, group=ODOO_GROUP)

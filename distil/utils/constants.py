@@ -47,3 +47,5 @@ states = {'active': 1,
           'error': 10,
           'shelved': 11,
           'shelved_offloaded': 12}
+
+REGION_MAPPING = {'nz-por-1': 'NZ-POR-1', 'nz_wlg_2': 'NZ-WLG-2'}

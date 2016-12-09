@@ -17,11 +17,11 @@ import odoorpc
 
 from oslo_config import cfg
 from oslo_log import log
+from distil.utils import openstack
 
 CONF = cfg.CONF
 
 PRODUCT_CATEGORY = ('Compute', 'Network', 'Block Storage', 'Object Storage')
-REGION_MAPPING = {'nz-por-1': 'NZ-POR-1', 'nz_wlg_2': 'NZ-WLG-2'}
 
 
 class Odoo(object):
@@ -34,6 +34,14 @@ class Odoo(object):
 
         self.odoo.login(CONF.odoo.database, CONF.odoo.user, CONF.odoo.password)
 
+        # NOTE(flwang): This is not necessary for most of cases, but just in
+        # case some cloud providers are using different region name formats in
+        # Keystone and Odoo.
+        if CONF.odoo.region_mapping:
+            regions = CONF.odoo.region_mapping.split(',')
+            self.region_mapping = dict([(r.split("=")[0],
+                                         r.split("=")[1]) for r in regions])
+
         self.order = self.odoo.env['sale.order']
         self.orderline = self.odoo.env['sale.order.line']
         self.tenant = self.odoo.env['cloud.tenant']
@@ -42,16 +50,20 @@ class Odoo(object):
         self.product = self.odoo.env['product.product']
         self.category = self.odoo.env['product.category']
 
-    def get_prices(self, region=None):
-        # TODO(flwang): Need to cache the prices, now generally this method
-        # will take 30+ seconds to get the two regions prices.
-        if region:
-            regions = [REGION_MAPPING[region.lower()]]
+    def get_products(self, regions):
+        if not regions:
+            regions = [r.id for r in openstack.get_regions()]
+            if hasattr(self, 'region_mapping'):
+                regions = self.region_mapping.values()
+
         else:
-            regions = REGION_MAPPING.values()
+            if hasattr(self, 'region_mapping'):
+                regions = [self.region_mapping.get(r) for r in regions]
 
         prices = {}
         for r in regions:
+            if not r:
+                continue
             prices[r] = {}
             for category in PRODUCT_CATEGORY:
                 prices[r][category.lower()] = []
@@ -78,6 +90,3 @@ class Odoo(object):
                                                         'description': desc})
 
         return prices
-
-    def get_customers(self):
-        pass
