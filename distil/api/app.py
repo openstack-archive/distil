@@ -20,6 +20,7 @@ from distil.api import acl
 from distil.api import v2 as api_v2
 from distil import config
 from distil.utils import api
+from distil.common import cache
 
 CONF = cfg.CONF
 
@@ -33,10 +34,11 @@ def make_app(args=None):
     def version_list():
         return api.render({
             "versions": [
-                {"id": "v2.0", "status": "CURRENT"}
+                {"id": "v2", "status": "CURRENT"}
             ]})
 
     app.register_blueprint(api_v2.rest, url_prefix="/v2")
     app.wsgi_app = auth.wrap(app.wsgi_app, CONF)
     acl.setup_policy()
+    cache.setup_cache(CONF)
     return app

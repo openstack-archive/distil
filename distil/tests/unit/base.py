@@ -37,6 +37,7 @@ class DistilTestCase(base.BaseTestCase):
             auth_token=auth_token, service_catalog=service_catalog or {},
             tenant_name=tenant_name, **kwargs))
 
+
 class DistilWithDbTestCase(DistilTestCase):
     def setUp(self):
         super(DistilWithDbTestCase, self).setUp()
