@@ -17,11 +17,11 @@ import odoorpc
 
 from oslo_config import cfg
 from oslo_log import log
+from distil.utils import constants
 
 CONF = cfg.CONF
 
 PRODUCT_CATEGORY = ('Compute', 'Network', 'Block Storage', 'Object Storage')
-REGION_MAPPING = {'nz-por-1': 'NZ-POR-1', 'nz_wlg_2': 'NZ-WLG-2'}
 
 
 class Odoo(object):
@@ -42,13 +42,11 @@ class Odoo(object):
         self.product = self.odoo.env['product.product']
         self.category = self.odoo.env['product.category']
 
-    def get_prices(self, region=None):
+    def get_products(self, regions):
         # TODO(flwang): Need to cache the prices, now generally this method
         # will take 30+ seconds to get the two regions prices.
-        if region:
-            regions = [REGION_MAPPING[region.lower()]]
-        else:
-            regions = REGION_MAPPING.values()
+        if not regions:
+            regions = constants.REGION_MAPPING.values()
 
         prices = {}
         for r in regions:

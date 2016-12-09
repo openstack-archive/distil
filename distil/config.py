@@ -13,6 +13,7 @@
 #    under the License.
 
 from keystoneauth1 import loading as ka_loading
+from oslo_cache import core as cache
 from oslo_config import cfg
 from oslo_log import log
 
@@ -89,15 +90,22 @@ RATER_OPTS = [
                'is "file".'),
 ]
 
+ODOO_CACHE_OPTS = [
+    cfg.BoolOpt('caching', default=True),
+    cfg.IntOpt('cache_time', default=3600)
+]
+
 AUTH_GROUP = 'keystone_authtoken'
 ODOO_GROUP = 'odoo'
 COLLECTOR_GROUP = 'collector'
 RATER_GROUP = 'rater'
+ODOO_CACHE_GROUP = 'odoo_cache'
 
 CONF.register_opts(DEFAULT_OPTIONS)
 CONF.register_opts(ODOO_OPTS, group=ODOO_GROUP)
 CONF.register_opts(COLLECTOR_OPTS, group=COLLECTOR_GROUP)
 CONF.register_opts(RATER_OPTS, group=RATER_GROUP)
+CONF.register_opts(ODOO_CACHE_OPTS, ODOO_CACHE_GROUP)
 
 
 def list_opts():
