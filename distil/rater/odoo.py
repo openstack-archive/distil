@@ -21,7 +21,7 @@ from distil.utils import odoo
 class OdooRater(rater.BaseRater):
 
     def __init__(self):
-        self.prices = odoo.Odoo().get_prices()
+        self.prices = odoo.Odoo().get_products()
 
     def rate(self, name, region=None):
         if not self.prices:

@@ -17,10 +17,12 @@ from oslo_config import cfg
 from oslo_log import log as logging
 from distil.utils import odoo
 
+from distil.common import cache
+
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
 
-def get_prices(format=None):
-    prices = odoo.Odoo().get_prices()
-    return prices
+@cache.memoize
+def get_products(regions):
+    return odoo.Odoo().get_products(regions)
