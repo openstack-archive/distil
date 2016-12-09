@@ -97,6 +97,13 @@ def get_projects():
 
 
 @general.disable_ssl_warnings
+def get_regions():
+    keystone = get_keystone_client()
+
+    return keystone.regions.list()
+
+
+@general.disable_ssl_warnings
 def get_image(image_id):
     glance = get_glance_client()
     return glance.images.get(image_id)
