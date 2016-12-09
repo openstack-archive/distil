@@ -89,7 +89,6 @@ def get_usage(project_id, start, end):
 
 
 def get_costs(project_id, start, end):
-
     valid_project, start, end = _validate_project_and_range(
         project_id, start, end)
 
