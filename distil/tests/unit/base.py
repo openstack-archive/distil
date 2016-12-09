@@ -15,16 +15,28 @@
 
 import flask
 import mock
+import os
 from oslotest import base
+from oslo_config import cfg
+from oslo_log import log
 
 from distil import context
-
+from distil import config
 
 class DistilTestCase(base.BaseTestCase):
+
+    config_file = None
 
     def setUp(self):
         super(DistilTestCase, self).setUp()
         self.setup_context()
+
+        if self.config_file:
+            self.conf = self.load_conf(self.config_file)
+        else:
+            self.conf = cfg.ConfigOpts()
+
+        self.conf.register_opts(config.DEFAULT_OPTIONS)
 
     def setup_context(self, username="test_user", tenant_id="tenant_1",
                       auth_token="test_auth_token", tenant_name='test_tenant',
@@ -36,6 +48,52 @@ class DistilTestCase(base.BaseTestCase):
             username=username, tenant_id=tenant_id,
             auth_token=auth_token, service_catalog=service_catalog or {},
             tenant_name=tenant_name, **kwargs))
+
+    @classmethod
+    def conf_path(cls, filename):
+        """Returns the full path to the specified Distil conf file.
+
+        :param filename: Name of the conf file to find (e.g.,
+                         'distil_odoo.conf')
+        """
+
+        if os.path.exists(filename):
+            return filename
+
+        return os.path.join(os.environ["DISTIL_TESTS_CONFIGS_DIR"], filename)
+
+    @classmethod
+    def load_conf(cls, filename):
+        """Loads `filename` configuration file.
+
+        :param filename: Name of the conf file to find (e.g.,
+                         'distil_odoo.conf')
+
+        :returns: Project's config object.
+        """
+        conf = cfg.ConfigOpts()
+        log.register_options(conf)
+        conf(args=[], default_config_files=[cls.conf_path(filename)])
+        return conf
+
+    def config(self, group=None, **kw):
+        """Override some configuration values.
+
+        The keyword arguments are the names of configuration options to
+        override and their values.
+
+        If a group argument is supplied, the overrides are applied to
+        the specified configuration option group.
+
+        All overrides are automatically cleared at the end of the current
+        test by the tearDown() method.
+        """
+        for k, v in kw.items():
+            self.conf.set_override(k, v, group, enforce_type=True)
+
+    def _my_dir(self):
+        return os.path.abspath(os.path.dirname(__file__))
+
 
 class DistilWithDbTestCase(DistilTestCase):
     def setUp(self):
