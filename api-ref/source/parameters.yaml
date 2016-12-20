@@ -1,0 +1,7 @@
+# variables in path
+regions:
+  description: |
+    The regions list to request products.
+  in: path
+  required: false
+  type: string
