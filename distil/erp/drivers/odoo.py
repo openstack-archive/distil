@@ -15,32 +15,30 @@
 
 import odoorpc
 
-from oslo_config import cfg
-from oslo_log import log
 from distil.utils import openstack
-
-CONF = cfg.CONF
 
 PRODUCT_CATEGORY = ('Compute', 'Network', 'Block Storage', 'Object Storage')
 
 
-class Odoo(object):
+class OdooDriver(object):
 
-    def __init__(self):
-        self.odoo = odoorpc.ODOO(CONF.odoo.hostname,
-                                 protocol=CONF.odoo.protocol,
-                                 port=CONF.odoo.port,
-                                 version=CONF.odoo.version)
+    def __init__(self, conf):
+        self.odoo = odoorpc.ODOO(conf.odoo.hostname,
+                                 protocol=conf.odoo.protocol,
+                                 port=conf.odoo.port,
+                                 version=conf.odoo.version)
 
-        self.odoo.login(CONF.odoo.database, CONF.odoo.user, CONF.odoo.password)
+        import pdb
+        pdb.set_trace()
+        self.odoo.login(conf.odoo.database, conf.odoo.user, conf.odoo.password)
 
         # NOTE(flwang): This is not necessary for most of cases, but just in
         # case some cloud providers are using different region name formats in
         # Keystone and Odoo.
-        if CONF.odoo.region_mapping:
-            regions = CONF.odoo.region_mapping.split(',')
-            self.region_mapping = dict([(r.split("=")[0],
-                                         r.split("=")[1]) for r in regions])
+        if conf.odoo.region_mapping:
+            regions = conf.odoo.region_mapping.split(',')
+            self.region_mapping = dict([(r.split(":")[0],
+                                         r.split(":")[1]) for r in regions])
 
         self.order = self.odoo.env['sale.order']
         self.orderline = self.odoo.env['sale.order.line']

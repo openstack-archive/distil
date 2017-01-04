@@ -16,12 +16,13 @@
 from distil import rater
 from distil.rater import rate_file
 from distil.utils import odoo
+from distil.service.api.v2 import products
 
 
 class OdooRater(rater.BaseRater):
 
     def __init__(self):
-        self.prices = odoo.Odoo().get_products()
+        self.prices = products.get_products(None)
 
     def rate(self, name, region=None):
         if not self.prices:
