@@ -150,7 +150,9 @@ def project_get(project_id):
     try:
         return query.one()
     except Exception:
-        raise exceptions.NotFoundException(project_id)
+        raise exceptions.NotFoundException(
+            "Project %s not found." % project_id
+        )
 
 
 def usage_get(project_id, start, end):

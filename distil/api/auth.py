@@ -42,7 +42,7 @@ class AuthTokenMiddleware(auth_token.AuthProtocol):
             msg = _('Cannot compile public API routes: %s') % e
 
             LOG.error(msg)
-            raise exceptions.InvalidConfig(error_msg=msg)
+            raise exceptions.InvalidConfig(msg)
 
         super(AuthTokenMiddleware, self).__init__(app, conf)
 
