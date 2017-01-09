@@ -81,8 +81,9 @@ class JSONDeserializer(TextDeserializer):
         try:
             return jsonutils.loads(datastring)
         except ValueError:
-            msg = _("cannot understand JSON")
-            raise exceptions.MalformedRequestBody(reason=msg)
+            raise exceptions.MalformedRequestBody(
+                "Malformed message body: cannot understand JSON"
+            )
 
     def default(self, datastring):
         return {'body': self._from_json(datastring)}

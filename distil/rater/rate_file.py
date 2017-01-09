@@ -40,8 +40,9 @@ class FileRater(rater.BaseRater):
                     } for row in reader
                 }
         except Exception as e:
-            log.critical('Failed to load rates file: `%s`' % e)
-            exceptions.InvalidConfig(e)
+            msg = 'Failed to load rates file: `%s`' % e
+            log.critical(msg)
+            exceptions.InvalidConfig(msg)
 
     def rate(self, name, region=None):
         return {
