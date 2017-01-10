@@ -12,7 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import datetime
+from datetime import datetime
 
 from distil.transformer import BaseTransformer
 from distil.utils import constants
@@ -29,14 +29,12 @@ class UpTimeTransformer(BaseTransformer):
         # get tracked states from config
         tracked = self.config['uptime']['tracked_states']
 
-        tracked_states = {constants.states[i] for i in tracked}
-
         usage_dict = {}
 
         def sort_and_clip_end(usage):
             cleaned = (self._clean_entry(s) for s in usage)
-            clipped = (s for s in cleaned if s['timestamp'] < end)
-            return sorted(clipped, key=lambda x: x['timestamp'])
+            clipped = [s for s in cleaned if s['timestamp'] < end]
+            return clipped
 
         state = sort_and_clip_end(data)
 
@@ -57,7 +55,7 @@ class UpTimeTransformer(BaseTransformer):
             usage_dict[flav] = usage_dict.get(flav, 0) + diff.total_seconds()
 
         for val in state[1:]:
-            if last_state["volume"] in tracked_states:
+            if last_state["status"] in tracked:
                 diff = val["timestamp"] - last_timestamp
                 if val['timestamp'] > last_timestamp:
                     # if diff < 0 then we were looking back before the start
@@ -70,29 +68,25 @@ class UpTimeTransformer(BaseTransformer):
 
         # extend the last state we know about, to the end of the window,
         # if we saw any actual uptime.
-        if (end and last_state['volume'] in tracked_states
-                and seen_sample_in_window):
+        if (end and last_state['status'] in tracked and seen_sample_in_window):
             diff = end - last_timestamp
             _add_usage(diff)
 
-        # map the flavors to names on the way out
-        return {openstack.get_flavor_name(f): v for f, v in usage_dict.items()}
+        return usage_dict
 
     def _clean_entry(self, entry):
         result = {
-            'volume': entry['volume'],
-            'flavor': entry['metadata'].get(
-                'flavor.id', entry['metadata'].get(
-                    'instance_flavor_id', 0
+            'status': entry['metadata'].get(
+                'status', entry['metadata'].get(
+                    'state', ""
                 )
+            ),
+            'flavor': entry['metadata'].get('instance_type'),
+            'timestamp': datetime.strptime(
+                entry['timestamp'],
+                "%Y-%m-%dT%H:%M:%S"
             )
         }
-        try:
-            result['timestamp'] = datetime.datetime.strptime(
-                entry['timestamp'], constants.date_format)
-        except ValueError:
-            result['timestamp'] = datetime.datetime.strptime(
-                entry['timestamp'], constants.date_format_f)
         return result
 
 
@@ -141,7 +135,8 @@ class NetworkServiceTransformer(BaseTransformer):
         # blob/master/ceilometer/network/services/vpnaas.py#L55), so we have
         # to check the volume to make sure only the active service is
         # charged(0=inactive, 1=active).
-        max_vol = max([v["volume"] for v in data
-                       if v["volume"] < 2]) if len(data) else 0
+        volumes = [v["volume"] for v in data if
+                   v["volume"] < 2]
+        max_vol = max(volumes) if len(volumes) else 0
         hours = (end - start).total_seconds() / 3600.0
         return {name: max_vol * hours}
