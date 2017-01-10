@@ -47,13 +47,7 @@ class StorageMaxTransformer(BaseTransformer):
         if not data:
             return None
 
-        max_vol = max([v["volume"] for v in data])
-
-        if max_vol is None:
-            max_vol = 0
-            LOG.warning("None max_vol value for %s in window: %s - %s " %
-                        (name, start.strftime(constants.iso_time),
-                         end.strftime(constants.iso_time)))
+        max_vol = max([v["volume"] for v in data]) or 0
 
         if "volume_type" in data[-1]['metadata']:
             vtype = data[-1]['metadata']['volume_type']
@@ -84,4 +78,5 @@ class SumTransformer(BaseTransformer):
 
             if t >= start_at and t < end_at:
                 sum_vol += sample["volume"]
+
         return {meter_name: sum_vol}
