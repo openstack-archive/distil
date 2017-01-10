@@ -66,4 +66,8 @@ class CeilometerCollector(base.BaseCollector):
 
         sample_objs = self.cclient.new_samples.list(q=query)
 
+        # The samples are in descending order by default, should change it to
+        # be ascending, making the logic consistent with deprecated code.
+        sample_objs.reverse()
+
         return [obj.to_dict() for obj in sample_objs]
