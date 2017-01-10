@@ -1,0 +1,26 @@
+uptime:
+  # states marked as "billable" for VMs.
+  tracked_states:
+    - active
+    - paused
+    - rescue
+    - rescued
+    - resize
+    - resized
+    - verify_resize
+    - suspended
+  # uncomment these when we want to bill shutdown:
+  #  - shutoff
+  #  - stopped
+from_image:
+  service: b1.standard
+  # What metadata values to check
+  md_keys:
+    - image_ref
+    - image_meta.base_image_ref
+  none_values:
+    - None
+    - ""
+  # where to get volume size from
+  size_keys:
+    - root_gb

@@ -147,12 +147,3 @@ def get_volume_type(volume_type):
             return vtype['name']
 
     return None
-
-
-@general.disable_ssl_warnings
-def get_flavor_name(flavor_id):
-    """Grabs the correct flavor name from Nova given the correct ID."""
-    if flavor_id not in cache:
-        nova = get_nova_client()
-        cache[flavor_id] = nova.flavors.get(flavor_id).name
-    return cache[flavor_id]
