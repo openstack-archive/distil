@@ -50,7 +50,7 @@ class Odoo(object):
         self.product = self.odoo.env['product.product']
         self.category = self.odoo.env['product.category']
 
-    def get_prices(self, regions):
+    def get_products(self, regions):
         if not regions:
             regions = [r.id for r in openstack.get_regions()]
             if hasattr(self, 'region_mapping'):
