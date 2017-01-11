@@ -22,6 +22,7 @@ from stevedore import driver
 
 from distil.db import api as db_api
 from distil import exceptions
+from distil.common import general
 from distil.common import openstack
 
 LOG = logging.getLogger(__name__)
@@ -52,6 +53,8 @@ class CollectorService(service.Service):
         self.thread_grp = None
 
         self.validate_config()
+
+        self.identifier = general.get_process_identifier()
 
         collector_args = {}
         self.collector = driver.DriverManager(
@@ -100,8 +103,24 @@ class CollectorService(service.Service):
         end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
 
         for project in projects:
-            # Add a project or get last_collected of existing project.
-            db_project = db_api.project_add(project)
-            start = db_project.last_collected
+            # Check if the project is being processed by other collector
+            # instance. If no, will get a lock and continue processing,
+            # otherwise just skip it.
+            locks = db_api.get_project_locks(project['id'])
 
-            self.collector.collect_usage(project, start, end)
+            if locks and locks[0].owner != self.identifier:
+                LOG.debug("Project %s is being processed by other collector." %
+                          project['id'])
+                continue
+
+            try:
+                with db_api.project_lock(project['id'], self.identifier):
+                    # Add a project or get last_collected of existing project.
+                    db_project = db_api.project_add(project)
+                    start = db_project.last_collected
+
+                    self.collector.collect_usage(project, start, end)
+            except Exception:
+                LOG.warning('Get lock failed. Process: %s' % self.identifier)
+
+        LOG.info("Finish collecting usage for all projects.")
