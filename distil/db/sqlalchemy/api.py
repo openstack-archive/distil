@@ -15,21 +15,23 @@
 
 """Implementation of SQLAlchemy backend."""
 
+import contextlib
 from datetime import datetime
 import json
-import six
 import sys
-
-import sqlalchemy as sa
-from sqlalchemy import func
 import threading
 
 from oslo_config import cfg
 from oslo_db import exception as db_exception
 from oslo_db.sqlalchemy import session as db_session
 from oslo_log import log as logging
+from retrying import retry
+import six
+import sqlalchemy as sa
+from sqlalchemy import func
 
 from distil.db.sqlalchemy import models as m
+from distil.db.sqlalchemy.models import ProjectLock
 from distil.db.sqlalchemy.models import Resource
 from distil.db.sqlalchemy.models import Tenant
 from distil.db.sqlalchemy.models import UsageEntry
@@ -226,8 +228,9 @@ def usages_add(project_id, resources, usage_entries, last_collect):
             for (id, res_info) in six.iteritems(resources):
                 res_db = _get_resource(session, project_id, id)
                 if res_db:
-                    orig_info = json.loads(res_db.info)
-                    res_db.info = json.dumps(orig_info.update(res_info))
+                    orig_info = json.loads(res_db.info) or {}
+                    orig_info.update(res_info)
+                    res_db.info = json.dumps(orig_info)
                 else:
                     resource_ref = Resource(
                         id=id,
@@ -306,3 +309,82 @@ def _merge_resource_metadata(md_dict, entry, md_def):
                 pass
 
     return md_dict
+
+
+def get_project_locks(project_id):
+    session = get_session()
+
+    query = session.query(ProjectLock)
+    query = query.filter(ProjectLock.project_id == project_id)
+
+    try:
+        return query.all()
+    except Exception as e:
+        raise exceptions.DBException(
+            "Failed when querying database, error type: %s, "
+            "error message: %s" % (e.__class__.__name__, str(e))
+        )
+
+
+@retry(stop_max_attempt_number=3, wait_fixed=5000)
+def create_project_lock(project_id, owner):
+    """Creates project lock record.
+
+    This method has to work without SQLAlchemy session because session may not
+    immediately issue an SQL query to a database and instead just schedule it
+    whereas we need to make sure to issue a operation immediately.
+
+    If there are more than 2 transactions trying to get same project lock
+    (although with little chance), after the first one's commit, only one of
+    the others will succeed to continue, all others will fail with exception.
+    Using retry mechanism here to avoid that happen.
+    """
+    session = get_session()
+    session.flush()
+
+    insert = ProjectLock.__table__.insert()
+    session.execute(insert.values(project_id=project_id, owner=owner,
+                                  created=datetime.utcnow()))
+
+    session.flush()
+
+
+def ensure_project_lock(project_id, owner):
+    """Make sure project lock record exists."""
+    session = get_session()
+
+    query = session.query(ProjectLock)
+    query = query.filter(ProjectLock.project_id == project_id,
+                         ProjectLock.owner == owner)
+
+    # If there is already lock existing for the process, do not recreate. This
+    # helps the process continue with the project it was handling before it was
+    # killed.
+    if not query.all():
+        create_project_lock(project_id, owner)
+
+
+def delete_project_lock(project_id):
+    """Deletes project lock record.
+
+    This method has to work without SQLAlchemy session because session may not
+    immediately issue an SQL query to a database and instead just schedule it
+    whereas we need to make sure to issue a operation immediately.
+    """
+    session = get_session()
+    session.flush()
+
+    table = ProjectLock.__table__
+    delete = table.delete()
+    session.execute(delete.where(table.c.project_id == project_id))
+
+    session.flush()
+
+
+@contextlib.contextmanager
+def project_lock(project_id, owner):
+    try:
+        ensure_project_lock(project_id, owner)
+        yield
+    finally:
+        delete_project_lock(project_id)
