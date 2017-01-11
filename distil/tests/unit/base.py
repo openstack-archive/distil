@@ -76,7 +76,7 @@ class DistilTestCase(base.BaseTestCase):
         conf(args=[], default_config_files=[cls.conf_path(filename)])
         return conf
 
-    def config(self, group=None, **kw):
+    def override_config(self, group=None, **kw):
         """Override some configuration values.
 
         The keyword arguments are the names of configuration options to
@@ -99,6 +99,6 @@ class DistilWithDbTestCase(DistilTestCase):
     def setUp(self):
         super(DistilWithDbTestCase, self).setUp()
 
-        self.override_config('connection', "sqlite://", group='database')
+        self.override_config(group='database', connection="sqlite://")
         db_api.setup_db()
         self.addCleanup(db_api.drop_db)
