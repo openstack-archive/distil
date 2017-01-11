@@ -15,6 +15,7 @@
 
 """Implementation of SQLAlchemy backend."""
 
+import contextlib
 from datetime import datetime
 import json
 import six
@@ -30,6 +31,7 @@ from oslo_db.sqlalchemy import session as db_session
 from oslo_log import log as logging
 
 from distil.db.sqlalchemy import models as m
+from distil.db.sqlalchemy.models import ProjectLock
 from distil.db.sqlalchemy.models import Resource
 from distil.db.sqlalchemy.models import Tenant
 from distil.db.sqlalchemy.models import UsageEntry
@@ -306,3 +308,49 @@ def _merge_resource_metadata(md_dict, entry, md_def):
                 pass
 
     return md_dict
+
+
+def get_project_locks(project_id):
+    session = get_session()
+
+    query = session.query(ProjectLock)
+    query = query.filter(ProjectLock.project_id == project_id)
+
+    try:
+        return query.all()
+    except Exception as e:
+        raise exceptions.DBException(
+            "Failed when querying database, error type: %s, "
+            "error message: %s" % (e.__class__.__name__, str(e))
+        )
+
+
+def create_project_lock(project_id, owner):
+    session = get_session()
+    session.flush()
+
+    insert = ProjectLock.__table__.insert()
+    session.execute(insert.values(project_id=project_id, owner=owner,
+                                  created=datetime.utcnow()))
+
+    session.flush()
+
+
+def delete_project_lock(project_id):
+    session = get_session()
+    session.flush()
+
+    table = ProjectLock.__table__
+    delete = table.delete()
+    session.execute(delete.where(table.c.project_id == project_id))
+
+    session.flush()
+
+
+@contextlib.contextmanager
+def project_lock(project_id, owner):
+    try:
+        create_project_lock(project_id, owner)
+        yield
+    finally:
+        delete_project_lock(project_id)
