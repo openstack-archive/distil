@@ -17,6 +17,7 @@ from datetime import timedelta
 from decimal import Decimal
 import functools
 import math
+import socket
 import warnings
 import yaml
 
@@ -101,3 +102,8 @@ def convert_to(value, from_unit, to_unit):
     if from_unit == to_unit:
         return value
     return conversions[from_unit][to_unit](value)
+
+
+def get_process_identifier():
+    """Gets current running process identifier."""
+    return "%s_%s" % (socket.gethostname(), CONF.collector.partitioning_suffix)

@@ -125,7 +125,9 @@ class BaseCollector(object):
                 os_distro = image_meta.get('os_distro', 'unknown')
             else:
                 # Boot from image
-                image_id = entry['metadata']['image.id']
+                image_id = entry['metadata'].get('image.id', None)
+                image_id = image_id or entry['metadata'].get('image_ref', None)
+
                 os_distro = getattr(
                     openstack.get_image(image_id),
                     'os_distro',
