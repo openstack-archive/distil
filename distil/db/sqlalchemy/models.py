@@ -119,3 +119,11 @@ class SalesOrder(DistilBase):
     @hybrid_method
     def intersects(self, other):
         return (self.start <= other.end and other.start <= self.end)
+
+
+class ProjectLock(DistilBase):
+    __tablename__ = 'project_locks'
+
+    project_id = Column(String(100), primary_key=True, nullable=False)
+    owner = Column(String(100), nullable=False)
+    created = Column(DateTime, nullable=False)

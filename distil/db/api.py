@@ -31,6 +31,7 @@ interface.
                   `sqlite:///var/lib/distil/distil.sqlite`.
 
 """
+import contextlib
 
 from oslo_config import cfg
 from oslo_db import api as db_api
@@ -119,3 +120,27 @@ def project_get(project_id):
 
 def project_get_all():
     return IMPL.project_get_all()
+
+
+# Project Locks.
+
+def create_project_lock(project_id, owner):
+    return IMPL.create_project_lock(project_id, owner)
+
+
+def get_project_locks(project_id):
+    return IMPL.get_project_locks(project_id)
+
+
+def ensure_project_lock(project_id, owner):
+    return IMPL.ensure_project_lock(project_id, owner)
+
+
+def delete_project_lock(project_id):
+    return IMPL.delete_project_lock(project_id)
+
+
+@contextlib.contextmanager
+def project_lock(project_id, owner):
+    with IMPL.project_lock(project_id, owner):
+        yield
