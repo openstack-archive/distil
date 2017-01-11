@@ -11,6 +11,7 @@ dawn_of_time = 2017-01-01 00:00:00
 meter_mappings_file = /etc/distil/meter_mappings.yml
 transformer_file = /etc/distil/transformer.yml
 trust_sources = openstack, .{32}:TrafficAccounting
+partitioning_suffix=collector_1
 
 [rater]
 rater_type = odoo

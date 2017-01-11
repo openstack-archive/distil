@@ -15,6 +15,7 @@
 from keystoneauth1 import loading as ka_loading
 from oslo_config import cfg
 from oslo_log import log
+from oslo_utils import uuidutils
 
 from distil import version
 
@@ -60,6 +61,9 @@ COLLECTOR_OPTS = [
                 help=('The list of resources that handled by collector.')),
     cfg.StrOpt('dawn_of_time', default='2014-04-01 00:00:00',
                help=('The earlist starting time for new tenant.')),
+    cfg.StrOpt('partitioning_suffix',
+               help=('Collector partitioning group suffix. It is used when '
+                     'running multiple collectors in favor of lock.'))
 ]
 
 ODOO_OPTS = [
