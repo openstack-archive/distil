@@ -22,6 +22,7 @@ from oslo_log import log
 
 from distil import context
 from distil import config
+from distil.db import api as db_api
 
 class DistilTestCase(base.BaseTestCase):
 
@@ -34,7 +35,7 @@ class DistilTestCase(base.BaseTestCase):
         if self.config_file:
             self.conf = self.load_conf(self.config_file)
         else:
-            self.conf = cfg.ConfigOpts()
+            self.conf = cfg.CONF
 
         self.conf.register_opts(config.DEFAULT_OPTIONS)
 
@@ -71,12 +72,12 @@ class DistilTestCase(base.BaseTestCase):
 
         :returns: Project's config object.
         """
-        conf = cfg.ConfigOpts()
+        conf = cfg.CONF
         log.register_options(conf)
         conf(args=[], default_config_files=[cls.conf_path(filename)])
         return conf
 
-    def config(self, group=None, **kw):
+    def override_config(self, group=None, **kw):
         """Override some configuration values.
 
         The keyword arguments are the names of configuration options to
@@ -99,6 +100,6 @@ class DistilWithDbTestCase(DistilTestCase):
     def setUp(self):
         super(DistilWithDbTestCase, self).setUp()
 
-        self.override_config('connection', "sqlite://", group='database')
+        self.conf.set_default('connection', 'sqlite://', group='database')
         db_api.setup_db()
         self.addCleanup(db_api.drop_db)
