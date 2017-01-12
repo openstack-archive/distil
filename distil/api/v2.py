@@ -22,8 +22,8 @@ from distil.api import acl
 from distil.service.api.v2 import costs
 from distil.service.api.v2 import health
 from distil.service.api.v2 import prices
-from distil.utils import api
-from distil.utils import constants
+from distil.common import api
+from distil.common import constants
 
 LOG = log.getLogger(__name__)
 

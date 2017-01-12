@@ -15,9 +15,9 @@
 
 from oslo_config import cfg
 from oslo_log import log as logging
-from distil.utils import odoo
+from distil.common import odoo
 
-from distil.utils import cache
+from distil.common import cache
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF

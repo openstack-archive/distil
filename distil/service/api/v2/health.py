@@ -17,9 +17,8 @@ from datetime import datetime as dt
 
 from oslo_config import cfg
 from oslo_log import log as logging
-from distil.utils import odoo
 from distil.db import api as db_api
-from distil.utils import openstack
+from distil.common import openstack
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF

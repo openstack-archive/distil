@@ -19,8 +19,8 @@ from distil.api import auth
 from distil.api import acl
 from distil.api import v2 as api_v2
 from distil import config
-from distil.utils import api
-from distil.utils import cache
+from distil.common import api
+from distil.common import cache
 
 CONF = cfg.CONF
 

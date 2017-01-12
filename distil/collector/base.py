@@ -22,9 +22,9 @@ from oslo_log import log as logging
 from distil.db import api as db_api
 from distil import exceptions as exc
 from distil import transformer as d_transformer
-from distil.utils import constants
-from distil.utils import general
-from distil.utils import openstack
+from distil.common import constants
+from distil.common import general
+from distil.common import openstack
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
