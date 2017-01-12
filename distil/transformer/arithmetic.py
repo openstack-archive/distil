@@ -17,8 +17,8 @@ import datetime
 from oslo_log import log as logging
 
 from distil.transformer import BaseTransformer
-from distil.utils import constants
-from distil.utils import openstack
+from distil.common import constants
+from distil.common import openstack
 
 LOG = logging.getLogger(__name__)
 

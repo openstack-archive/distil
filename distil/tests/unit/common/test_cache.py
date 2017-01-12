@@ -19,7 +19,7 @@ from oslo_cache import core
 from oslo_config import cfg
 
 from distil import exceptions as ex
-from distil.utils import cache
+from distil.common import cache
 from distil.tests.unit import base
 
 

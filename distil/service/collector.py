@@ -22,7 +22,7 @@ from stevedore import driver
 
 from distil.db import api as db_api
 from distil import exceptions
-from distil.utils import openstack
+from distil.common import openstack
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF

@@ -23,7 +23,7 @@ from distil.i18n import _
 from distil.i18n import _LE
 from distil import context
 from oslo_log import log as logging
-from distil.utils import wsgi
+from distil.common import wsgi
 
 
 LOG = logging.getLogger(__name__)

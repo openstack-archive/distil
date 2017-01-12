@@ -15,7 +15,7 @@
 
 from stevedore import driver
 
-from distil.utils import general
+from distil.common import general
 
 
 class BaseTransformer(object):
