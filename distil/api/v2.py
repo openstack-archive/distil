@@ -24,6 +24,7 @@ from distil.service.api.v2 import health
 from distil.service.api.v2 import products
 from distil.utils import api
 from distil.utils import constants
+from distil.i18n import _LE
 
 LOG = log.getLogger(__name__)
 
@@ -32,14 +33,21 @@ rest = api.Rest('v2', __name__)
 
 @rest.get('/health')
 def health_get():
-    return api.render(health=health.get_health())
+    try:
+        return api.render(health=health.get_health())
+    except Exception:
+        msg = _LE("Failed to get health status, please try again later.")
+        return api.render(status=400, error=msg)
 
 
 @rest.get('/products')
 def products_get():
     os_regions = api.get_request_args().get('regions', None)
     regions = os_regions.split(',') if os_regions else None
-    return api.render(products=products.get_products(regions))
+    try:
+        return api.render(products=products.get_products(regions))
+    except Exception as e:
+        return api.render(status=400, error=str(e))
 
 
 def _get_usage_args():
