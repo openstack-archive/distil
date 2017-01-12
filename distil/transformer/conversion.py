@@ -15,8 +15,8 @@
 import datetime
 
 from distil.transformer import BaseTransformer
-from distil.utils import constants
-from distil.utils import openstack
+from distil.common import constants
+from distil.common import openstack
 
 
 class UpTimeTransformer(BaseTransformer):

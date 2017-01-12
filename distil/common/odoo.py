@@ -17,7 +17,7 @@ import odoorpc
 
 from oslo_config import cfg
 from oslo_log import log
-from distil.utils import openstack
+from distil.common import openstack
 
 CONF = cfg.CONF
 

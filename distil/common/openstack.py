@@ -23,7 +23,7 @@ from keystoneclient.v3 import client as ks_client
 from novaclient import client as novaclient
 from oslo_config import cfg
 
-from distil.utils import general
+from distil.common import general
 
 CONF = cfg.CONF
 KS_SESSION = None
