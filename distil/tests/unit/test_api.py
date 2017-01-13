@@ -72,7 +72,7 @@ class TestAPI(test_interface.TestInterface):
                 flavor_name.side_effect = lambda x: x
 
                 resp = self.app.post("/collect_usage")
-                self.assertEquals(resp.status_int, 200)
+                self.assertEqual(resp.status_int, 200)
 
                 tenants = self.session.query(models.Tenant)
                 self.assertTrue(tenants.count() > 0)
@@ -81,7 +81,7 @@ class TestAPI(test_interface.TestInterface):
                 self.assertTrue(usages.count() > 0)
                 resources = self.session.query(models.Resource)
 
-                self.assertEquals(resources.count(), len(usage.values()))
+                self.assertEqual(resources.count(), len(usage.values()))
 
     @testtools.skip("skip test.")
     def test_memcache_raw_usage(self):
@@ -112,7 +112,7 @@ class TestAPI(test_interface.TestInterface):
                                 params={"tenant": "tenant_id_0",
                                         "start": "2014-07-01T00:00:00",
                                         "end": "2014-08-01T00:00:00"})
-            self.assertEquals(resp.body, values[0])
+            self.assertEqual(resp.body, values[0])
 
             test_string = "this is not a valid computation"
             fake_memcache[keys[0]] = test_string
@@ -120,8 +120,8 @@ class TestAPI(test_interface.TestInterface):
                                  params={"tenant": "tenant_id_0",
                                          "start": "2014-07-01T00:00:00",
                                          "end": "2014-08-01T00:00:00"})
-            self.assertEquals(1, len(values))
-            self.assertEquals(resp2.body, test_string)
+            self.assertEqual(1, len(values))
+            self.assertEqual(resp2.body, test_string)
 
     @testtools.skip("skip test.")
     def test_memcache_rated_usage(self):
@@ -152,7 +152,7 @@ class TestAPI(test_interface.TestInterface):
                                 params={"tenant": "tenant_id_0",
                                         "start": "2014-07-01T00:00:00",
                                         "end": "2014-08-01T00:00:00"})
-            self.assertEquals(resp.body, values[0])
+            self.assertEqual(resp.body, values[0])
 
             test_string = "this is not a valid computation"
             fake_memcache[keys[0]] = test_string
@@ -160,8 +160,8 @@ class TestAPI(test_interface.TestInterface):
                                  params={"tenant": "tenant_id_0",
                                          "start": "2014-07-01T00:00:00",
                                          "end": "2014-08-01T00:00:00"})
-            self.assertEquals(1, len(values))
-            self.assertEquals(resp2.body, test_string)
+            self.assertEqual(1, len(values))
+            self.assertEqual(resp2.body, test_string)
 
     def test_tenant_dict(self):
         """Checking that the tenant dictionary is built correctly
@@ -186,13 +186,13 @@ class TestAPI(test_interface.TestInterface):
 
         tenant_dict = web.build_tenant_dict(tenant, entries, db)
 
-        self.assertEquals(len(tenant_dict['resources']), num_resources)
-        self.assertEquals(tenant_dict['tenant_id'], "tenant_id_1")
-        self.assertEquals(tenant_dict['name'], "tenant_1")
+        self.assertEqual(len(tenant_dict['resources']), num_resources)
+        self.assertEqual(tenant_dict['tenant_id'], "tenant_id_1")
+        self.assertEqual(tenant_dict['name'], "tenant_1")
 
         for resource in tenant_dict['resources'].values():
             for service in resource['services']:
-                self.assertEquals(service['volume'], volume)
+                self.assertEqual(service['volume'], volume)
 
     def test_tenant_dict_no_entries(self):
         """Test to ensure that the function handles an
@@ -207,9 +207,9 @@ class TestAPI(test_interface.TestInterface):
 
         tenant_dict = web.build_tenant_dict(tenant, entries, db)
 
-        self.assertEquals(len(tenant_dict['resources']), 0)
-        self.assertEquals(tenant_dict['tenant_id'], "tenant_id_1")
-        self.assertEquals(tenant_dict['name'], "tenant_1")
+        self.assertEqual(len(tenant_dict['resources']), 0)
+        self.assertEqual(tenant_dict['tenant_id'], "tenant_id_1")
+        self.assertEqual(tenant_dict['name'], "tenant_1")
 
     def test_add_cost_to_tenant(self):
         """Checking that the rates are applied correctly,
@@ -247,15 +247,15 @@ class TestAPI(test_interface.TestInterface):
 
         tenant_dict = web.add_costs_for_tenant(test_tenant, ratesManager)
 
-        self.assertEquals(tenant_dict['total_cost'], str(total_cost))
+        self.assertEqual(tenant_dict['total_cost'], str(total_cost))
         for resource in tenant_dict['resources'].values():
-            self.assertEquals(resource['total_cost'], str(service_cost * 2))
+            self.assertEqual(resource['total_cost'], str(service_cost * 2))
             for service in resource['services']:
-                self.assertEquals(service['volume'],
-                                  str(convert_to(volume, 'second',
-                                                 rate['unit'])))
-                self.assertEquals(service['unit'], rate['unit'])
-                self.assertEquals(service['cost'], str(service_cost))
+                self.assertEqual(service['volume'],
+                                 str(convert_to(volume, 'second',
+                                                rate['unit'])))
+                self.assertEqual(service['unit'], rate['unit'])
+                self.assertEqual(service['cost'], str(service_cost))
 
     def test_add_cost_to_empty_tenant(self):
         """An empty tenant should not be charged anything,
@@ -267,7 +267,7 @@ class TestAPI(test_interface.TestInterface):
 
         tenant_dict = web.add_costs_for_tenant(empty_tenant, ratesManager)
 
-        self.assertEquals(tenant_dict['total_cost'], str(0))
+        self.assertEqual(tenant_dict['total_cost'], str(0))
 
     @testtools.skip("skip test.")
     def test_get_last_collected(self):
@@ -277,14 +277,14 @@ class TestAPI(test_interface.TestInterface):
         self.session.commit()
         resp = self.app.get("/last_collected")
         resp_json = json.loads(resp.body)
-        self.assertEquals(resp_json['last_collected'], str(now))
+        self.assertEqual(resp_json['last_collected'], str(now))
 
     @testtools.skip("skip test.")
     def test_get_last_collected_default(self):
         """test to ensure last collected returns correct default value"""
         resp = self.app.get("/last_collected")
         resp_json = json.loads(resp.body)
-        self.assertEquals(resp_json['last_collected'], str(dawn_of_time))
+        self.assertEqual(resp_json['last_collected'], str(dawn_of_time))
 
     def test_filter_and_group(self):
         usage = [{'source': 'openstack', 'resource_id': 1},
@@ -299,4 +299,4 @@ class TestAPI(test_interface.TestInterface):
                     2: [{'source':
                          '22c4f150358e4ed287fa51e050d7f024:TrafficAccounting',
                          'resource_id': 2}]}
-        self.assertEquals(usage_by_resource, expected)
+        self.assertEqual(usage_by_resource, expected)
