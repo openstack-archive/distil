@@ -12,6 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import re
+
 from ceilometerclient import client as ceilometerclient
 from cinderclient.v2 import client as cinderclient
 from glanceclient import client as glanceclient
@@ -26,6 +28,7 @@ from distil.utils import general
 CONF = cfg.CONF
 KS_SESSION = None
 cache = {}
+ROOT_DEVICE_PATTERN = re.compile('^/dev/(x?v|s|h)da1?$')
 
 
 def _get_keystone_session():
@@ -110,18 +113,23 @@ def get_image(image_id):
 
 
 @general.disable_ssl_warnings
-def get_volume(instance_id):
+def get_root_volume(instance_id):
     nova = get_nova_client()
-    instance = nova.servers.get(instance_id)
+    volumes = nova.volumes.get_server_volumes(instance_id)
 
-    # Assume first volume is the root disk
-    volume_id = getattr(
-        instance, 'os-extended-volumes:volumes_attached')[0]['id']
-    if not volume_id:
-        return None
+    vol_id = None
+    volume = None
 
-    cinder = get_cinder_client()
-    return cinder.volumes.get(volume_id)
+    for vol in volumes:
+        if ROOT_DEVICE_PATTERN.search(vol.device):
+            vol_id = vol.volumeId
+            break
+
+    if vol_id:
+        cinder = get_cinder_client()
+        volume = cinder.volumes.get(vol_id)
+
+    return volume
 
 
 @general.disable_ssl_warnings

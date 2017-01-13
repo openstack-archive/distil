@@ -115,7 +115,15 @@ class BaseCollector(object):
         os_distro = 'unknown'
 
         try:
-            if 'image.id' in entry['metadata']:
+            # Check if the VM is booted from volume first. When VM is booted
+            # from a windows image and do a rebuild using a linux image, the
+            # 'image_ref' property will be set inappropriately.
+            root_vol = openstack.get_root_volume(entry['resource_id'])
+
+            if root_vol:
+                image_meta = getattr(root_vol, 'volume_image_metadata', {})
+                os_distro = image_meta.get('os_distro', 'unknown')
+            else:
                 # Boot from image
                 image_id = entry['metadata']['image.id']
                 os_distro = getattr(
@@ -123,14 +131,6 @@ class BaseCollector(object):
                     'os_distro',
                     'unknown'
                 )
-
-            if entry['metadata']['image_ref'] == 'None':
-                # Boot from volume
-                image_meta = getattr(
-                    openstack.get_volume(entry['resource_id']),
-                    'volume_image_metadata', {}
-                )
-                os_distro = image_meta.get('os_distro', 'unknown')
         except Exception as e:
             LOG.warning(
                 'Error occured when getting os_distro, reason: %s', str(e)
