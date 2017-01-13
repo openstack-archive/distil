@@ -19,6 +19,7 @@ from decimal import Decimal
 
 from oslo_config import cfg
 from oslo_log import log as logging
+from oslo_log import helpers as log_helpers
 
 from distil import exceptions
 from distil import rater
@@ -30,6 +31,7 @@ LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
 
+@log_helpers.log_method_call
 def _validate_project_and_range(project_id, start, end):
     try:
         if start is not None:
@@ -66,6 +68,7 @@ def _validate_project_and_range(project_id, start, end):
     return valid_project, start, end
 
 
+@log_helpers.log_method_call
 def get_usage(project_id, start, end):
     cleaned = _validate_project_and_range(project_id, start, end)
     try:
@@ -87,6 +90,7 @@ def get_usage(project_id, start, end):
     return project_dict
 
 
+@log_helpers.log_method_call
 def get_costs(project_id, start, end):
 
     valid_project, start, end = _validate_project_and_range(
@@ -100,6 +104,7 @@ def get_costs(project_id, start, end):
     return costs
 
 
+@log_helpers.log_method_call
 def _calculate_cost(project, start, end):
     """Calculate a rated data dict from the given range."""
 
@@ -116,6 +121,7 @@ def _calculate_cost(project, start, end):
     return project_dict
 
 
+@log_helpers.log_method_call
 def _build_project_dict(project, usage):
     """Builds a dict structure for a given project."""
 
@@ -138,6 +144,7 @@ def _build_project_dict(project, usage):
     return project_dict
 
 
+@log_helpers.log_method_call
 def _add_costs_for_project(project):
     """Adds cost values to services using the given rates manager."""
 

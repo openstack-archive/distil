@@ -14,16 +14,19 @@
 # limitations under the License.
 
 from oslo_config import cfg
+from oslo_log import helpers as log_helpers
 from oslo_log import log as logging
 
 from distil.common import cache
 from distil.erp import utils as erp_utils
+from distil.utils import odoo
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
 
 @cache.memoize
+@log_helpers.log_method_call
 def get_products(regions):
     erp_driver = erp_utils.load_erp_driver(CONF)
     products = erp_driver.get_products(regions)

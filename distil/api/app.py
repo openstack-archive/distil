@@ -14,6 +14,7 @@
 # limitations under the License.
 import flask
 from oslo_config import cfg
+from oslo_log import log
 
 from distil.api import auth
 from distil.api import acl
@@ -23,6 +24,7 @@ from distil.common import api
 from distil.common import cache
 
 CONF = cfg.CONF
+LOG = log.getLogger('__main__')
 
 
 def make_app(args=None):
@@ -39,6 +41,10 @@ def make_app(args=None):
 
     app.register_blueprint(api_v2.rest, url_prefix="/v2")
     app.wsgi_app = auth.wrap(app.wsgi_app, CONF)
+
     acl.setup_policy()
     cache.setup_cache(CONF)
+
+    if CONF.debug:
+        CONF.log_opt_values(LOG, log.DEBUG)
     return app
