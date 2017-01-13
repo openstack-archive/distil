@@ -16,6 +16,7 @@
 from dateutil import parser
 
 from oslo_log import log
+from oslo_log import helpers as log_helpers
 
 from distil import exceptions
 from distil.api import acl
@@ -31,11 +32,13 @@ rest = api.Rest('v2', __name__)
 
 
 @rest.get('/health')
+@log_helpers.log_method_call
 def health_get():
     return api.render(health=health.get_health())
 
 
 @rest.get('/products')
+@log_helpers.log_method_call
 def products_get():
     os_regions = api.get_request_args().get('regions', None)
     regions = os_regions.split(',') if os_regions else None
@@ -53,6 +56,7 @@ def _get_usage_args():
 
 @rest.get('/costs')
 @acl.enforce("rating:costs:get")
+@log_helpers.log_method_call
 def costs_get():
     project_id, start, end = _get_usage_args()
     try:
@@ -65,6 +69,7 @@ def costs_get():
 
 @rest.get('/usages')
 @acl.enforce("rating:usages:get")
+@log_helpers.log_method_call
 def usage_get():
     project_id, start, end = _get_usage_args()
     try:

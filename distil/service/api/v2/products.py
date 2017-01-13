@@ -15,8 +15,9 @@
 
 from oslo_config import cfg
 from oslo_log import log as logging
-from distil.utils import odoo
+from oslo_log import helpers as log_helpers
 
+from distil.utils import odoo
 from distil.utils import cache
 
 LOG = logging.getLogger(__name__)
@@ -24,5 +25,6 @@ CONF = cfg.CONF
 
 
 @cache.memoize
+@log_helpers.log_method_call
 def get_products(regions):
     return odoo.Odoo().get_products(regions)

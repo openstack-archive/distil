@@ -17,6 +17,8 @@ from datetime import datetime as dt
 
 from oslo_config import cfg
 from oslo_log import log as logging
+from oslo_log import helpers as log_helpers
+
 from distil.utils import odoo
 from distil.db import api as db_api
 from distil.utils import openstack
@@ -25,6 +27,7 @@ LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
 
+@log_helpers.log_method_call
 def get_health():
     health = {}
     projects_keystone = openstack.get_projects()
@@ -38,10 +41,13 @@ def get_health():
     for p in projects:
         delta = (dt.now() - p.last_collected).total_seconds() // 3600
         if delta >= 24 and p.id in project_id_list_keystone:
+            LOG.warning("Project %s failed to be updated." % p.name)
             failed_collected_count += 1
 
     # TODO(flwang): The format of health output need to be discussed so that
     # we can get a stable format before it's used in monitor.
+    LOG.debug("Number of failed collected projects is %d" %
+              failed_collected_count)
     if failed_collected_count == 0:
         health['metrics_collecting'] = {'status': 'OK',
                                         'note': 'All tenants are synced.'}
