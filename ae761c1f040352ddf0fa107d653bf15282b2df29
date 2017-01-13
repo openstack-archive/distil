@@ -1,0 +1,12 @@
+Code-Review+1: gecong <ge.cong@zte.com.cn>
+Code-Review+2: Lingxian Kong <anlin.kong@gmail.com>
+Code-Review+1: gengchc2 <geng.changcai2@zte.com.cn>
+Code-Review+1: Adrian Turjak <adriant@catalyst.net.nz>
+Code-Review+2: Fei Long Wang <flwang@catalyst.net.nz>
+Workflow+1: Fei Long Wang <flwang@catalyst.net.nz>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Fri, 13 Jan 2017 01:22:57 +0000
+Reviewed-on: https://review.openstack.org/374646
+Project: openstack/distil
+Branch: refs/heads/master
