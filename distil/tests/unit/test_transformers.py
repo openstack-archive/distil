@@ -585,8 +585,8 @@ class TestFromImageTransformer(unittest.TestCase):
         usage2 = xform.transform_usage('instance', data2, FAKE_DATA.t0,
                                        FAKE_DATA.t1)
 
-        self.assertEqual(None, usage)
-        self.assertEqual(None, usage2)
+        self.assertIsNone(usage)
+        self.assertIsNone(usage2)
 
     def test_default_to_from_volume_case(self):
         """
@@ -606,7 +606,7 @@ class TestFromImageTransformer(unittest.TestCase):
         usage = xform.transform_usage('instance', data, FAKE_DATA.t0,
                                       FAKE_DATA.t1)
 
-        self.assertEqual(None, usage)
+        self.assertIsNone(usage)
 
     def test_from_image_case(self):
         """
