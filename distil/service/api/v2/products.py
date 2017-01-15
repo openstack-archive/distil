@@ -24,5 +24,5 @@ CONF = cfg.CONF
 
 
 @cache.memoize
-def get_prices(regions):
-    return odoo.Odoo().get_prices(regions)
+def get_products(regions):
+    return odoo.Odoo().get_products(regions)
