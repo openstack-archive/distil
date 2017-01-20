@@ -34,7 +34,7 @@ import _strptime
 from datetime import datetime, timedelta
 from decimal import Decimal
 import json
-import logging as log
+import logging
 from keystonemiddleware import auth_token
 
 from .helpers import returns_json, json_must, validate_tenant_id, require_admin
@@ -53,6 +53,8 @@ app = Blueprint("main", __name__)
 DEFAULT_TIMEZONE = "Pacific/Auckland"
 
 RATES = None
+
+log = None
 
 # Double confirm by:
 # http://blog.namis.me/2012/02/14/python-strptime-is-not-thread-safe/
@@ -75,9 +77,15 @@ def get_app(conf):
         global DEFAULT_TIMEZONE
         DEFAULT_TIMEZONE = config.main["timezone"]
 
-    log.basicConfig(filename=config.main["log_file"],
-                    level=log.INFO,
-                    format='%(asctime)s %(message)s')
+    log = logging.getLogger("Distil_Log")
+    log.propagate = False
+    file_hdlr = logging.FileHandler(config.main["log_file"])
+    formatter = logging.Formatter(
+        '(%(asctime)s) - %(levelname)s - %(message)s')
+    file_hdlr.setFormatter(formatter)
+    log.addHandler(file_hdlr)
+    log.setLevel(logging.INFO)
+
     log.info("Billing API started.")
 
     setup_memcache()
