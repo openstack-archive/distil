@@ -25,7 +25,7 @@ from distil.tests.unit import base
 
 class TestCache(base.DistilTestCase):
 
-    config_file = 'distil_cache.conf'
+    config_file = 'distil.conf'
 
     def setUp(self):
         super(TestCache, self).setUp()

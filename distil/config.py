@@ -38,6 +38,10 @@ DEFAULT_OPTIONS = (
                 default=[],
                 help=('The tenant name list which will be ignored when '
                       'collecting metrics from Ceilometer.')),
+    cfg.StrOpt('erp_driver',
+               default='odoo',
+               help='The ERP driver used for Distil',
+               ),
 )
 
 COLLECTOR_OPTS = [

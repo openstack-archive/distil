@@ -75,3 +75,8 @@ class DateTimeException(DistilException):
 class Forbidden(DistilException):
     code = 403
     message = _("You are not authorized to complete this action")
+
+
+class InvalidDriver(DistilException):
+    """A driver was not found or loaded."""
+    message = _("Failed to load driver")

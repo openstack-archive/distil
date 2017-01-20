@@ -37,6 +37,7 @@ class DistilTestCase(base.BaseTestCase):
             self.conf = cfg.ConfigOpts()
 
         self.conf.register_opts(config.DEFAULT_OPTIONS)
+        self.conf.register_opts(config.ODOO_OPTS, group=config.ODOO_GROUP)
 
     def setup_context(self, username="test_user", tenant_id="tenant_1",
                       auth_token="test_auth_token", tenant_name='test_tenant',
