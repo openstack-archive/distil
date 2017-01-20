@@ -1,2 +1,0 @@
-bin/distil usr/bin
-client/*.py /usr/lib/python2.7/dist-packages/distilclient

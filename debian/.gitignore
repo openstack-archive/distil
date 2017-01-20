@@ -1,7 +1,0 @@
-files
-*.debhelper.log
-*.postinst.debhelper
-*.prerm.debhelper
-*.substvars
-python-distil/
-python-distilclient

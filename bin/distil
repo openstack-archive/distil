@@ -1,5 +1,0 @@
-#!/bin/bash
-
-DISTILPATH=/usr/lib/python2.7/dist-packages/distilclient
-
-python ${DISTILPATH}/shell.py "$@"
