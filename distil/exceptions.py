@@ -12,7 +12,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from oslo_utils import uuidutils
 import sys
 
 from distil.i18n import _
@@ -28,43 +27,35 @@ class DistilException(Exception):
     a 'message' and 'code' properties.
     """
     message = _("An unknown exception occurred")
-    code = "UNKNOWN_EXCEPTION"
+    code = 500
 
     def __str__(self):
         return self.message
 
-    def __init__(self):
+    def __init__(self, message=None):
+        if message is not None:
+            self.message = message
+
         super(DistilException, self).__init__(
             '%s: %s' % (self.code, self.message))
-        self.uuid = uuidutils.generate_uuid()
-        self.message = (_('%(message)s\nError ID: %(id)s')
-                        % {'message': self.message, 'id': self.uuid})
 
 
 class IncorrectStateError(DistilException):
-    code = "INCORRECT_STATE_ERROR"
-
-    def __init__(self, message):
-        self.message = message
+    message = _("Incorrect state.")
 
 
 class NotFoundException(DistilException):
-    message = _("Object '%s' is not found")
-    value = None
-
-    def __init__(self, value, message=None):
-        self.code = "NOT_FOUND"
-        self.value = value
-        if message:
-            self.message = message % value
+    code = 404
+    message = _("Object not found.")
 
 
 class DuplicateException(DistilException):
+    code = 409
     message = _("An object with the same identifier already exists.")
 
 
 class InvalidConfig(DistilException):
-    message = _("Invalid configuration file. %(error_msg)s")
+    message = _("Invalid configuration.")
 
 
 class DBException(DistilException):
@@ -72,21 +63,15 @@ class DBException(DistilException):
 
 
 class MalformedRequestBody(DistilException):
-    message = _("Malformed message body: %(reason)s")
-
-    def __init__(self, reason):
-        formatted_message = self.message % {"reason": reason}
-        super(MalformedRequestBody, self).__init__(formatted_message)
+    code = 400
+    message = _("Malformed message body.")
 
 
 class DateTimeException(DistilException):
+    code = 400
     message = _("An unexpected date, date format, or date range was given.")
-
-    def __init__(self, message=None):
-        self.code = 400
-        self.message = message
 
 
 class Forbidden(DistilException):
-    code = "FORBIDDEN"
+    code = 403
     message = _("You are not authorized to complete this action")

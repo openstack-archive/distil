@@ -60,8 +60,7 @@ def _validate_project_and_range(project_id, start, end):
             message="End date must be greater than start.")
 
     if not project_id:
-        raise exceptions.NotFoundException(value='project_id',
-                                           message="Missing parameter: %s")
+        raise exceptions.NotFoundException("Missing parameter: project_id")
     valid_project = db_api.project_get(project_id)
 
     return valid_project, start, end

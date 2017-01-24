@@ -76,12 +76,9 @@ class Rest(flask.Blueprint):
 
                 try:
                     return func(**kwargs)
-                except ex.Forbidden as e:
-                    return access_denied(e)
                 except ex.DistilException as e:
-                    return bad_request(e)
-                except Exception as e:
-                    return internal_error(500, 'Internal Server Error', e)
+                    LOG.error('Error during API call: %s' % str(e))
+                    return render_error_message(e.code, e.message)
 
             f_rule = rule
             self.add_url_rule(f_rule, endpoint, handler, **options)
@@ -195,61 +192,13 @@ def abort_and_log(status_code, descr, exc=None):
     flask.abort(status_code, description=descr)
 
 
-def render_error_message(error_code, error_message, error_name):
+def render_error_message(error_code, error_message):
     message = {
         "error_code": error_code,
         "error_message": error_message,
-        "error_name": error_name
     }
 
     resp = render(message)
     resp.status_code = error_code
 
     return resp
-
-
-def internal_error(status_code, descr, exc=None):
-    LOG.error(_LE("Request aborted with status code %(code)s and "
-                  "message '%(message)s'"),
-              {'code': status_code, 'message': descr})
-
-    if exc is not None:
-        LOG.error(traceback.format_exc())
-
-    error_code = "INTERNAL_SERVER_ERROR"
-    if status_code == 501:
-        error_code = "NOT_IMPLEMENTED_ERROR"
-
-    return render_error_message(status_code, descr, error_code)
-
-
-def bad_request(error):
-    error_code = 400
-
-    LOG.debug("Validation Error occurred: "
-              "error_code=%s, error_message=%s, error_name=%s",
-              error_code, error.message, error.code)
-
-    return render_error_message(error_code, error.message, error.code)
-
-
-def access_denied(error):
-    error_code = 403
-
-    LOG.error(_LE("Access Denied: "
-                  "error_code={code}, error_message={message}, "
-                  "error_name={name}").format(code=error_code,
-                                              message=error.message,
-                                              name=error.code))
-
-    return render_error_message(error_code, error.message, error.code)
-
-
-def not_found(error):
-    error_code = 404
-
-    LOG.debug("Not Found exception occurred: "
-              "error_code=%s, error_message=%s, error_name=%s",
-              error_code, error.message, error.code)
-
-    return render_error_message(error_code, error.message, error.code)
