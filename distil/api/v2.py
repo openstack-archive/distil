@@ -55,19 +55,15 @@ def _get_usage_args():
 @acl.enforce("rating:costs:get")
 def costs_get():
     project_id, start, end = _get_usage_args()
-    try:
-        # NOTE(flwang): Here using 'usage' instead of 'costs' for backward
-        # compatibility.
-        return api.render(usage=costs.get_costs(project_id, start, end))
-    except (exceptions.DateTimeException, exceptions.NotFoundException) as e:
-        return api.render(status=400, error=str(e))
+
+    # NOTE(flwang): Here using 'usage' instead of 'costs' for backward
+    # compatibility.
+    return api.render(usage=costs.get_costs(project_id, start, end))
 
 
 @rest.get('/usages')
 @acl.enforce("rating:usages:get")
 def usage_get():
     project_id, start, end = _get_usage_args()
-    try:
-        return api.render(usage=costs.get_usage(project_id, start, end))
-    except (exceptions.DateTimeException, exceptions.NotFoundException) as e:
-        return api.render(status=400, error=str(e))
+
+    return api.render(usage=costs.get_usage(project_id, start, end))
