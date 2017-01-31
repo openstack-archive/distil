@@ -54,7 +54,7 @@ collection:
             - OS-EXT-AZ:availability_zone
         host:
           sources:
-            - instance_host
+            - OS-EXT-SRV-ATTR:host
     -
       meter: ip.floating
       service: n1.ipv4
