@@ -2,9 +2,9 @@
 main:
   region: nz_wlg_2
   # timezone is unused at this time
-  timezone: Pacific/Auckland 
+  timezone: Pacific/Auckland
   database_uri: postgres://admin:password@localhost:5432/billing
-  trust_sources: 
+  trust_sources:
     - openstack
     - .{32}:TrafficAccounting
   log_file: logs/billing.log
@@ -41,7 +41,7 @@ collection:
       # which transformer to use
       transformer: InstanceUptime
       # what unit type is coming in via the meter
-      unit: second 
+      unit: second
       metadata:
         name:
           sources:
@@ -54,7 +54,7 @@ collection:
             - OS-EXT-AZ:availability_zone
         host:
           sources:
-            - instance_host
+            - host
     -
       meter: ip.floating
       service: n1.ipv4
@@ -164,7 +164,7 @@ collection:
 # transformer configs
 transformers:
   uptime:
-    # states marked as "billable" for VMs. 
+    # states marked as "billable" for VMs.
     tracked_states:
       - active
       - paused
