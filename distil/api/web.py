@@ -34,13 +34,22 @@ import _strptime
 from datetime import datetime, timedelta
 from decimal import Decimal
 import json
-import logging as log
 from keystonemiddleware import auth_token
 
 from .helpers import returns_json, json_must, validate_tenant_id, require_admin
 from .helpers import require_admin_or_owner
 from urlparse import urlparse
 
+from oslo_log import log
+from oslo_config import cfg
+
+CONF = cfg.CONF
+CONF.debug = True
+DOMAIN = "distil"
+
+LOG = log.getLogger(__name__, project='distil', version='1')
+log.register_options(CONF)
+log.setup(CONF, DOMAIN)
 
 engine = None
 
@@ -75,10 +84,7 @@ def get_app(conf):
         global DEFAULT_TIMEZONE
         DEFAULT_TIMEZONE = config.main["timezone"]
 
-    log.basicConfig(filename=config.main["log_file"],
-                    level=log.INFO,
-                    format='%(asctime)s %(message)s')
-    log.info("Billing API started.")
+    LOG.info("Billing API started.")
 
     setup_memcache()
 
@@ -101,13 +107,13 @@ def get_app(conf):
 
 def setup_memcache():
     if config.memcache['enabled']:
-        log.info("Memcache enabled.")
+        LOG.info("Memcache enabled.")
         import memcache as memcached
         global memcache
         memcache = memcached.Client(config.memcache['addresses'],
                                     pickler=NoPickle, unpickler=NoPickle)
     else:
-        log.info("Memcache disabled.")
+        LOG.info("Memcache disabled.")
 
 
 @app.route("last_collected", methods=["GET"])
@@ -150,7 +156,7 @@ def filter_and_group(usage, usage_by_resource):
             if (trust_sources and
                 all([not re.match(source, u['source'])
                      for source in trust_sources]) == True):
-                log.warning('Ignoring untrusted usage sample ' +
+                LOG.warn('Ignoring untrusted usage sample ' +
                             'from source `%s`' % u['source'])
                 continue
 
@@ -173,8 +179,10 @@ def transform_and_insert(tenant, usage_by_resource, transformer, service,
 
                 md_def = mapping['metadata']
 
+                LOG.debug("Start to insert resource %s", res)
                 db.insert_resource(tenant.id, res, mapping['type'],
                                    timestamp, entries[-1], md_def)
+                LOG.debug("Start to insert usage %s", transformed)
                 db.insert_usage(tenant.id, res, transformed,
                                 mapping['unit'], window_start,
                                 window_end, timestamp)
@@ -187,7 +195,7 @@ def collect_usage(tenant, db, session, resp, end):
     timestamp = datetime.utcnow()
     session.begin(subtransactions=True)
 
-    log.info('collect_usage for %s %s' % (tenant.id, tenant.name))
+    LOG.info('collect_usage for %s %s' % (tenant.id, tenant.name))
 
     db_tenant = db.insert_tenant(tenant.id, tenant.name,
                                  tenant.description, timestamp)
@@ -203,7 +211,7 @@ def collect_usage(tenant, db, session, resp, end):
     for window_start, window_end in windows:
         try:
             with session.begin(subtransactions=True):
-                log.info("%s %s slice %s %s" % (tenant.id, tenant.name,
+                LOG.info("%s %s slice %s %s" % (tenant.id, tenant.name,
                                                 window_start, window_end))
 
                 mappings = config.collection['meter_mappings']
@@ -249,7 +257,7 @@ def collect_usage(tenant, db, session, resp, end):
                  }
             )
             resp["errors"] += 1
-            log.warning("IntegrityError for %s %s in window: %s - %s " %
+            LOG.warn("IntegrityError for %s %s in window: %s - %s " %
                         (tenant.name, tenant.id,
                          window_start.strftime(iso_time),
                          window_end.strftime(iso_time)))
@@ -262,7 +270,7 @@ def collect_usage(tenant, db, session, resp, end):
 def run_usage_collection():
     """Run usage collection on all tenants present in Keystone."""
     try:
-        log.info("Usage collection run started.")
+        LOG.info("Usage collection run started.")
 
         session = Session()
 
@@ -296,13 +304,13 @@ def run_usage_collection():
                 session.commit()
 
         session.close()
-        log.info("Usage collection run complete.")
+        LOG.info("Usage collection run complete.")
         return json.dumps(resp)
 
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
-        log.critical('Exception escaped! %s \nTrace: \n%s' % (e, trace))
+        LOG.critical('Exception escaped! %s \nTrace: \n%s' % (e, trace))
 
 
 def make_serializable(obj):
@@ -331,7 +339,7 @@ def get_usage():
     start = flask.request.args.get('start')
     end = flask.request.args.get('end')
 
-    log.info("get_usage for %s %s %s" % (tenant_id, start, end))
+    LOG.info("get_usage for %s %s %s" % (tenant_id, start, end))
 
     try:
         start_dt = datetime.strptime(end, iso_time)
@@ -353,18 +361,18 @@ def get_usage():
     if isinstance(valid_tenant, tuple):
         return valid_tenant
 
-    log.info("parameter validation ok")
+    LOG.info("parameter validation ok")
 
     if memcache is not None:
         key = make_key("raw_usage", tenant_id, start, end)
 
         data = memcache.get(key)
         if data is not None:
-            log.info("Returning memcache raw data for %s in range: %s - %s" %
+            LOG.info("Returning memcache raw data for %s in range: %s - %s" %
                      (tenant_id, start, end))
             return 200, data
 
-    log.info("Calculating raw data for %s in range: %s - %s" %
+    LOG.info("Calculating raw data for %s in range: %s - %s" %
              (tenant_id, start, end))
 
     # aggregate usage
@@ -429,11 +437,11 @@ def get_rated():
 
         data = memcache.get(key)
         if data is not None:
-            log.info("Returning memcache rated data for %s in range: %s - %s" %
+            LOG.info("Returning memcache rated data for %s in range: %s - %s" %
                      (valid_tenant.id, start, end))
             return 200, data
 
-    log.info("Calculating rated data for %s in range: %s - %s" %
+    LOG.info("Calculating rated data for %s in range: %s - %s" %
              (valid_tenant.id, start, end))
 
     tenant_dict = calculate_rated_data(valid_tenant, start, end, session)
