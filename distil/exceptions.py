@@ -80,3 +80,8 @@ class Forbidden(DistilException):
 class InvalidDriver(DistilException):
     """A driver was not found or loaded."""
     message = _("Failed to load driver")
+
+
+class InvalidRequest(DistilException):
+    code = 400
+    message = _("Invalid request.")

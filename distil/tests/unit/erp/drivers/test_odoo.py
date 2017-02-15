@@ -13,34 +13,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
-
+import calendar
 from collections import namedtuple
+from datetime import date
+from datetime import datetime
+
+import mock
 
 from distil.erp.drivers import odoo
 from distil.tests.unit import base
 
 REGION = namedtuple('Region', ['id'])
 
-PRODUCTS = {'11': {'name_template': 'nz-1.c1.c1r1',
-                 'lst_price': 0.00015,
-                 'default_code': 'hour',
-                 'description': '1 CPU, 1GB RAM'},
-            '22': {'name_template': 'nz-1.n1.router',
-                 'lst_price': 0.00025,
-                 'default_code': 'hour',
-                 'description': 'Router'},
-            '33': {'name_template': 'nz-1.b1.volume',
-                 'lst_price': 0.00035,
-                 'default_code': 'hour',
-                 'description': 'Block storage'},
-            '44': {'name_template': 'nz-1.o1.object',
-                 'lst_price': 0.00045,
-                 'default_code': 'hour',
-                 'description': 'Object storage'}}
+PRODUCTS = [
+    {'categ_id': [1, 'All products (.NET) / nz_1 / Compute'],
+     'name_template': 'nz-1.c1.c1r1',
+     'lst_price': 0.00015,
+     'default_code': 'hour',
+     'description': '1 CPU, 1GB RAM'},
+    {'categ_id': [2, 'All products (.NET) / nz_1 / Network'],
+     'name_template': 'nz-1.n1.router',
+     'lst_price': 0.00025,
+     'default_code': 'hour',
+     'description': 'Router'},
+    {'categ_id': [1, 'All products (.NET) / nz_1 / Block Storage'],
+     'name_template': 'nz-1.b1.volume',
+     'lst_price': 0.00035,
+     'default_code': 'hour',
+     'description': 'Block storage'}
+]
+
 
 class TestOdooDriver(base.DistilTestCase):
-
     config_file = 'distil.conf'
 
     @mock.patch('odoorpc.ODOO')
@@ -50,60 +54,96 @@ class TestOdooDriver(base.DistilTestCase):
                                          REGION(id='nz-2')]
 
         odoodriver = odoo.OdooDriver(self.conf)
-
-        def _category_search(filters):
-            for filter in filters:
-                if filter[0] == 'name' and filter[2] == 'Compute':
-                    return ['1']
-                if filter[0] == 'name' and filter[2] == 'Network':
-                    return ['2']
-                if filter[0] == 'name' and filter[2] == 'Block Storage':
-                    return ['3']
-                if filter[0] == 'name' and filter[2] == 'Object Storage':
-                    return ['4']
-
-        def _product_search(filters):
-            for filter in filters:
-                if filter[0] == 'categ_id' and filter[2] == '1':
-                    return ['11']
-                if filter[0] == 'categ_id' and filter[2] == '2':
-                    return ['22']
-                if filter[0] == 'categ_id' and filter[2] == '3':
-                    return ['33']
-                if filter[0] == 'categ_id' and filter[2] == '4':
-                    return ['44']
-
-        def _odoo_execute(model, method, *args):
-            products = []
-            for id in args[0]:
-                products.append(PRODUCTS[id])
-            return products
-      
-
-        odoodriver.odoo.execute = _odoo_execute
-        odoodriver.category = mock.Mock()
-        odoodriver.category.search = _category_search
-        odoodriver.product = mock.Mock()
-        odoodriver.product.search = _product_search
+        odoodriver.odoo.execute.return_value = PRODUCTS
+        odoodriver.product.search.return_value = []
 
         products = odoodriver.get_products(regions=['nz_1'])
-        self.assertEqual({'nz-1': {'block storage': [{'description':
-                                                      'Block storage',
-                                                      'price': 0.00035,
-                                                      'resource': 'b1.volume',
-                                                      'unit': 'hour'}],
-                                   'compute': [{'description':
-                                                '1 CPU, 1GB RAM',
-                                                'price': 0.00015,
-                                                'resource': 'c1.c1r1',
-                                                'unit': 'hour'}],
-                                   'network': [{'description': 'Router',
-                                                'price': 0.00025,
-                                                'resource': 'n1.router',
-                                                'unit': 'hour'}],
-                                   'object storage': [{'description':
-                                                       'Object storage',
-                                                       'price': 0.00045,
-                                                       'resource': 'o1.object',
-                                                       'unit': 'hour'}]}},
-                         products)
+        self.assertEqual(
+            {
+                'nz-1':
+                    {'block storage': [{'description': 'Block storage',
+                                        'price': 0.00035,
+                                        'resource': 'b1.volume',
+                                        'unit': 'hour'}],
+                     'compute': [{'description': '1 CPU, 1GB RAM',
+                                  'price': 0.00015,
+                                  'resource': 'c1.c1r1',
+                                  'unit': 'hour'}],
+                     'network': [{'description': 'Router',
+                                  'price': 0.00025,
+                                  'resource': 'n1.router',
+                                  'unit': 'hour'}]
+                     }
+            },
+            products
+        )
+
+    @mock.patch('odoorpc.ODOO')
+    def test_get_costs(self, mock_odoo):
+        end = datetime.today()
+        year = end.year
+        month = end.month - 3
+
+        # Get current day of 3 months before.
+        if month <= 0:
+            year = end.year - 1
+            month = end.month + 9
+
+        start = datetime(year, month, end.day)
+        billing_dates = []
+
+        def get_billing_dates(start, end):
+            last_day = calendar.monthrange(start.year, start.month)[1]
+            bill_date = date(start.year, start.month, last_day)
+
+            while bill_date < end.date():
+                billing_dates.append(str(bill_date))
+
+                year = (bill_date.year + 1 if bill_date.month + 1 > 12 else
+                        bill_date.year)
+                month = (bill_date.month + 1) % 12 or 12
+                last_day = calendar.monthrange(year, month)[1]
+
+                bill_date = date(year, month, last_day)
+
+        get_billing_dates(start, end)
+
+        odoodriver = odoo.OdooDriver(self.conf)
+        odoodriver.invoice.search.return_value = ['1', '2', '3']
+        odoodriver.odoo.execute.return_value = [
+            {
+                'date_invoice': billing_dates[0],
+                'id': 1,
+                'amount_total': 10
+            },
+            {
+                'date_invoice': billing_dates[1],
+                'id': 2,
+                'amount_total': 20
+            },
+            {
+                'date_invoice': billing_dates[2],
+                'id': 3,
+                'amount_total': 30
+            }
+        ]
+
+        costs = odoodriver.get_costs(start, end, 'fake_project_id')
+
+        actual_search_param = odoodriver.invoice.search.call_args[0][0]
+
+        self.assertEqual(
+            [
+                ('date_invoice', 'in', billing_dates),
+                ('comment', 'like', 'fake_project_id')
+            ],
+            actual_search_param
+        )
+
+        expected = [
+            {'billing_date': billing_dates[0], 'total_cost': 10},
+            {'billing_date': billing_dates[1], 'total_cost': 20},
+            {'billing_date': billing_dates[2], 'total_cost': 30}
+        ]
+
+        self.assertEqual(expected, costs)
