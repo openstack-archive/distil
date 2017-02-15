@@ -15,17 +15,21 @@
 
 from dateutil import parser
 
+from oslo_config import cfg
 from oslo_log import log
 
 from distil import exceptions
 from distil.api import acl
 from distil.common import api
 from distil.common import constants
+from distil.common import openstack
 from distil.service.api.v2 import costs
 from distil.service.api.v2 import health
 from distil.service.api.v2 import products
 
 LOG = log.getLogger(__name__)
+
+CONF = cfg.CONF
 
 rest = api.Rest('v2', __name__)
 
@@ -58,7 +62,9 @@ def costs_get():
 
     # NOTE(flwang): Here using 'usage' instead of 'costs' for backward
     # compatibility.
-    return api.render(usage=costs.get_costs(project_id, start, end))
+    return api.render(
+        usage=costs.get_costs(project_id, start, end)
+    )
 
 
 @rest.get('/usages')
