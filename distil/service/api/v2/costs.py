@@ -13,21 +13,76 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-from datetime import datetime
+import collections
 from decimal import Decimal
+from datetime import datetime
+from datetime import date
+import json
+import math
 
 from oslo_config import cfg
 from oslo_log import log as logging
 
-from distil import exceptions
-from distil import rater
 from distil.common import constants
-from distil.db import api as db_api
 from distil.common import general
+from distil.db import api as db_api
+from distil.erp import utils as erp_utils
+from distil import exceptions
+from distil.service.api.v2 import products
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
+
+BILLITEM = collections.namedtuple(
+    'BillItem',
+    ['id', 'resource', 'count', 'cost']
+)
+
+SRV_RES_MAPPING = {
+    'm1.tiny': 'Compute',
+    'm1.small': 'Compute',
+    'm1.mini': 'Compute',
+    'm1.medium': 'Compute',
+    'c1.small': 'Compute',
+    'm1.large': 'Compute',
+    'm1.xlarge': 'Compute',
+    'c1.large': 'Compute',
+    'c1.xlarge': 'Compute',
+    'c1.xxlarge': 'Compute',
+    'm1.2xlarge': 'Compute',
+    'c1.c1r1': 'Compute',
+    'c1.c1r2': 'Compute',
+    'c1.c1r4': 'Compute',
+    'c1.c2r1': 'Compute',
+    'c1.c2r2': 'Compute',
+    'c1.c2r4': 'Compute',
+    'c1.c2r8': 'Compute',
+    'c1.c2r16': 'Compute',
+    'c1.c4r2': 'Compute',
+    'c1.c4r4': 'Compute',
+    'c1.c4r8': 'Compute',
+    'c1.c4r16': 'Compute',
+    'c1.c4r32': 'Compute',
+    'c1.c8r4': 'Compute',
+    'c1.c8r8': 'Compute',
+    'c1.c8r16': 'Compute',
+    'c1.c8r32': 'Compute',
+    'c1.c8r64': 'Compute',
+    'c1.c16r8': 'Compute',
+    'c1.c16r16': 'Compute',
+    'c1.c16r32': 'Compute',
+    'c1.c16r64': 'Compute',
+    'b1.standard': 'Block Storage',
+    'o1.standard': 'Object Storage',
+    'n1.ipv4': 'Floating IP',
+    'n1.network': 'Network',
+    'n1.router': 'Router',
+    'n1.vpn': 'VPN',
+    'n1.international-in': 'Inbound International Traffic',
+    'n1.international-out': 'Outbound International Traffic',
+    'n1.national-in': 'Inbound National Traffic',
+    'n1.national-out': 'Outbound National Traffic'
+}
 
 
 def _validate_project_and_range(project_id, start, end):
@@ -55,65 +110,15 @@ def _validate_project_and_range(project_id, start, end):
                     "Missing parameter: " +
                     "'end' in format: y-m-d or y-m-dTH:M:S"))
 
-    if end <= start:
+    if end < start:
         raise exceptions.DateTimeException(
-            message="End date must be greater than start.")
+            message="End date must be greater than or equal to start.")
 
     if not project_id:
         raise exceptions.NotFoundException("Missing parameter: project_id")
     valid_project = db_api.project_get(project_id)
 
     return valid_project, start, end
-
-
-def get_usage(project_id, start, end):
-    cleaned = _validate_project_and_range(project_id, start, end)
-    try:
-        valid_project, start, end = cleaned
-    except ValueError:
-        return cleaned
-
-    LOG.debug("Calculating unrated data for %s in range: %s - %s" %
-              (valid_project.id, start, end))
-
-    usage = db_api.usage_get(valid_project.id, start, end)
-
-    project_dict = _build_project_dict(valid_project, usage)
-
-    # add range:
-    project_dict['start'] = str(start)
-    project_dict['end'] = str(end)
-
-    return project_dict
-
-
-def get_costs(project_id, start, end):
-
-    valid_project, start, end = _validate_project_and_range(
-        project_id, start, end)
-
-    LOG.debug("Calculating rated data for %s in range: %s - %s" %
-              (valid_project.id, start, end))
-
-    costs = _calculate_cost(valid_project, start, end)
-
-    return costs
-
-
-def _calculate_cost(project, start, end):
-    """Calculate a rated data dict from the given range."""
-
-    usage = db_api.usage_get(project.id, start, end)
-
-    # Transform the query result into a billable dict.
-    project_dict = _build_project_dict(project, usage)
-    project_dict = _add_costs_for_project(project_dict)
-
-    # add sales order range:
-    project_dict['start'] = str(start)
-    project_dict['end'] = str(end)
-
-    return project_dict
 
 
 def _build_project_dict(project, usage):
@@ -138,40 +143,190 @@ def _build_project_dict(project, usage):
     return project_dict
 
 
-def _add_costs_for_project(project):
-    """Adds cost values to services using the given rates manager."""
+def get_usage(project_id, start, end):
+    cleaned = _validate_project_and_range(project_id, start, end)
+    try:
+        valid_project, start, end = cleaned
+    except ValueError:
+        return cleaned
 
-    current_rater = rater.get_rater()
+    LOG.debug("Calculating unrated data for %s in range: %s - %s" %
+              (valid_project.id, start, end))
 
-    project_total = 0
-    for resource in project['resources'].values():
-        resource_total = 0
-        for service in resource['services']:
-            try:
-                rate = current_rater.rate(service['name'])
-            except KeyError:
-                # no rate exists for this service
-                service['cost'] = "0"
-                service['volume'] = "unknown unit conversion"
-                service['unit'] = "unknown"
-                service['rate'] = "missing rate"
-                continue
+    usage = db_api.usage_get(valid_project.id, start, end)
 
-            volume = general.convert_to(service['volume'],
-                                        service['unit'],
-                                        rate['unit'])
+    project_dict = _build_project_dict(valid_project, usage)
 
-            # round to 2dp so in dollars.
-            cost = round(volume * Decimal(rate['rate']), 2)
+    # add range:
+    project_dict['start'] = str(start)
+    project_dict['end'] = str(end)
 
-            service['cost'] = str(cost)
-            service['volume'] = str(volume)
-            service['unit'] = rate['unit']
-            service['rate'] = str(rate['rate'])
+    return project_dict
 
-            resource_total += cost
-        resource['total_cost'] = str(resource_total)
-        project_total += resource_total
-    project['total_cost'] = str(project_total)
 
-    return project
+def _get_service_price(service_name, service_type, prices):
+    """Get service price information from price definitions."""
+    price = {'service_name': service_name}
+
+    if service_type in prices:
+        for s in prices[service_type]:
+            if s['resource'] == service_name:
+                price.update({'rate': s['price'], 'unit': s['unit']})
+                break
+    else:
+        found = False
+        for category, services in prices.items():
+            for s in services:
+                if s['resource'] == service_name:
+                    price.update({'rate': s['price'], 'unit': s['unit']})
+                    found = True
+                    break
+
+        if not found:
+            # Price not found
+            price.update({'rate': None, 'unit': None})
+
+    return price
+
+
+def _build_current_month_cost(project, usage, prices, start, end):
+    """Builds a dict structure for a given project for current month.
+
+    The 'breakdown' is a list for mappings from different service type to
+    total cost and resource count.
+
+    The 'details' is a mapping from different service type to all related
+    resource information.
+    """
+    output = {
+        'billing_date': str(end.date()),
+        'total_cost': 0,
+        'breakdown': [],
+        'details': {}
+    }
+
+    price_mapping = {}
+    cost_details = collections.defaultdict(list)
+    service_cost = collections.OrderedDict()
+
+    all_resource_ids = [entry.get('resource_id') for entry in usage]
+    res_list = db_api.resource_get_by_ids(project.id, all_resource_ids)
+    resources = {row.id: json.loads(row.info) for row in res_list}
+
+    # Construct resources usage and total cost for each service type.
+    for entry in usage:
+        service_name = entry.get('service')
+        volume = entry.get('volume')
+        unit = entry.get('unit')
+        res_id = entry.get('resource_id')
+
+        service = {'name': service_name}
+
+        resource_type = resources[res_id]['type']
+        service_type = ('Image' if resource_type == 'Image' else
+                        SRV_RES_MAPPING.get(service_name, resource_type))
+
+        service['resource_id'] = res_id
+
+        if service_name not in price_mapping:
+            price_spec = _get_service_price(service_name, service_type, prices)
+            price_mapping[service_name] = price_spec
+        else:
+            price_spec = price_mapping[service_name]
+
+        volume = general.convert_to(volume, unit, price_spec['unit'])
+        service['volume'] = str(round(volume, 4))
+        cost = (round(volume * Decimal(price_spec['rate']), 2)
+                if price_spec['rate'] else 0)
+        service['cost'] = str(cost)
+
+        service['unit'] = price_spec['unit'] or "unknown"
+        if service_type in ('Image', 'Block Storage', 'Object Storage'):
+            service['unit'] = 'gigabyte * hour'
+
+        service['rate'] = str(price_spec['rate']) or "missing rate"
+
+        cost_details[service_type].append(service)
+
+        if service_type in service_cost:
+            tmp_count_cost = service_cost[service_type]
+            tmp_count_cost = [tmp_count_cost[0] + 1, tmp_count_cost[1] + cost]
+            service_cost[service_type] = tmp_count_cost
+        else:
+            service_cost[service_type] = [1, cost]
+
+    breakdown = []
+    total_cost = 0
+    free_hours = math.floor((end - start).total_seconds() / 3600)
+
+    for service_type, count_cost in service_cost.iteritems():
+        rounded_cost = count_cost[1]
+
+        if service_type in ('Network', 'Router'):
+            free_cost = round(
+                float(cost_details[service_type][0]['rate']) * free_hours, 2
+            )
+            free_cost = (rounded_cost if rounded_cost <= free_cost
+                         else free_cost)
+            rounded_cost = rounded_cost - free_cost
+
+        breakdown.append(
+            BILLITEM(
+                id=len(breakdown) + 1,
+                resource=service_type,
+                count=count_cost[0],
+                cost=rounded_cost
+            )
+        )
+
+        total_cost += rounded_cost
+
+    output['total_cost'] = total_cost
+    output['breakdown'] = breakdown
+    output['details'] = cost_details
+
+    return output
+
+
+def _calculate_cost(project, start, end, region=None):
+    """Calculate a rated data dict from the given range."""
+    output = {
+        'start': str(start),
+        'end': str(end),
+        'project_name': project.name,
+        'project_id': project.id,
+        'cost': []
+    }
+
+    erp_driver = erp_utils.load_erp_driver(CONF)
+    erp_costs = erp_driver.get_costs(start, end, project.id)
+    output['cost'].extend(erp_costs)
+
+    # Calculate estimated cost for current month based on current usage.
+    if CONF.current_month_calculation:
+        today = datetime.today()
+        if today.year == end.year and today.month == end.month:
+            LOG.debug('Calculate current month cost based on tenant usage.')
+
+            start = datetime(end.year, end.month, 1)
+            usage = db_api.usage_get(project.id, start, end)
+
+            prices = products.get_products([region])[region]
+
+            output['cost'].append(
+                _build_current_month_cost(project, usage, prices, start, end)
+            )
+
+    return output
+
+
+def get_costs(project_id, start, end, region=None):
+    valid_project, start, end = _validate_project_and_range(
+        project_id, start, end)
+
+    LOG.info("Get cost for %s in range: %s - %s" %
+             (valid_project.id, start, end))
+
+    costs = _calculate_cost(valid_project, start, end, region=region)
+
+    return costs
