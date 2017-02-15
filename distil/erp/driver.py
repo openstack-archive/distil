@@ -64,3 +64,12 @@ class BaseDriver(object):
         :param project: project
         """
         raise NotImplementedError()
+
+    def get_costs(self, bill_dates, project_id):
+        """Get cost from invoice created in a date range.
+
+        :param bill_dates: The dates when the invoice was created.
+        :param project_id: project ID.
+        :return: The total price for each month.
+        """
+        raise NotImplementedError()

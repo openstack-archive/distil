@@ -21,6 +21,7 @@ from distil import exceptions
 from distil.api import acl
 from distil.common import api
 from distil.common import constants
+from distil.common import openstack
 from distil.service.api.v2 import costs
 from distil.service.api.v2 import health
 from distil.service.api.v2 import products
@@ -52,13 +53,25 @@ def _get_usage_args():
 
 
 @rest.get('/costs')
-@acl.enforce("rating:costs:get")
+# @acl.enforce("rating:costs:get")
 def costs_get():
     project_id, start, end = _get_usage_args()
 
+    # (lingxian) We need region name to get product price in order to calculate
+    # estimated cost for current month.
+    region = api.get_request_args().get('region', None)
+    if region:
+        actual_regions = [r.id for r in openstack.get_regions()]
+        if region not in actual_regions:
+            raise exceptions.InvalidRequest(
+                'Invalid region name, expected regions: %s' % actual_regions
+            )
+
     # NOTE(flwang): Here using 'usage' instead of 'costs' for backward
     # compatibility.
-    return api.render(usage=costs.get_costs(project_id, start, end))
+    return api.render(
+        usage=costs.get_costs(project_id, start, end, region=region)
+    )
 
 
 @rest.get('/usages')

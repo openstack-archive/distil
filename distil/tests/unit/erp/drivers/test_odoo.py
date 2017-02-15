@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
-
 from collections import namedtuple
+from datetime import date
+
+import mock
 
 from distil.erp.drivers import odoo
 from distil.tests.unit import base
@@ -110,3 +111,31 @@ class TestOdooDriver(base.DistilTestCase):
                                                        'resource': 'o1.object',
                                                        'unit': 'hour'}]}},
                          products)
+
+    @mock.patch('odoorpc.ODOO')
+    def test_get_costs(self, mock_odoo):
+        bill_dates = [date(2016, 12, 31), date(2017, 1, 31)]
+
+        class Invoice(object):
+            def __init__(self, date_invoice, amount_total):
+                self.date_invoice = date_invoice
+                self.amount_total = amount_total
+
+        odoodriver = odoo.OdooDriver(self.conf)
+        odoodriver.invoice.search.return_value = [1, 2]
+        odoodriver.invoice.read.return_value = [
+            Invoice(bill_dates[0], 10),
+            Invoice(bill_dates[1], 20)
+        ]
+
+        costs = odoodriver.get_costs(
+            [str(d) for d in bill_dates],
+            'fake_project_id'
+        )
+
+        expected = [
+            {'billing_date': str(bill_dates[0]), 'total_cost': 10},
+            {'billing_date': str(bill_dates[1]), 'total_cost': 20}
+        ]
+
+        self.assertListEqual(expected, costs)
