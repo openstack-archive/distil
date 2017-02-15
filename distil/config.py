@@ -43,6 +43,11 @@ DEFAULT_OPTIONS = (
                default='odoo',
                help='The ERP driver used for Distil',
                ),
+    cfg.BoolOpt('calculate_current_month',
+                default=True,
+                help='If True, calculate current month cost on the fly, '
+                     'otherwise query from erp system.',
+                ),
 )
 
 COLLECTOR_OPTS = [
@@ -88,7 +93,14 @@ ODOO_OPTS = [
                help='Password of Odoo account to login.'),
     cfg.StrOpt('region_mapping',
                help='Region name mappings between Keystone and Odoo. For '
-               'example, region_mapping=region1:RegionOne,region2:RegionTwo')
+                    'example, '
+                    'region_mapping=region1:RegionOne,region2:RegionTwo'),
+    cfg.StrOpt('object_storage_product_name',
+               default='NZ.o1.standard',
+               help='Product name in Odoo for object storage.'),
+    cfg.StrOpt('object_storage_service_name',
+               default='o1.standard',
+               help='Service name for object storage.'),
 ]
 
 RATER_OPTS = [

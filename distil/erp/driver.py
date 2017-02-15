@@ -64,3 +64,13 @@ class BaseDriver(object):
         :param project: project
         """
         raise NotImplementedError()
+
+    def get_costs(self, start, end, project_id):
+        """Get history cost from erp given a time range.
+
+        :param start: Start time, a datetime object.
+        :param end: End time, a datetime object.
+        :param project_id: project ID.
+        :return: The history cost information for each month.
+        """
+        raise NotImplementedError()
