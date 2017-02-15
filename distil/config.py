@@ -43,6 +43,11 @@ DEFAULT_OPTIONS = (
                default='odoo',
                help='The ERP driver used for Distil',
                ),
+    cfg.BoolOpt('current_month_calculation',
+                default=True,
+                help='If calculating current month cost on the fly or query '
+                     'from erp system.',
+                ),
 )
 
 COLLECTOR_OPTS = [
