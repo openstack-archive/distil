@@ -12,9 +12,9 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import collections
 
 import odoorpc
-
 from oslo_log import log
 
 from distil.erp import driver
@@ -26,7 +26,6 @@ PRODUCT_CATEGORY = ('Compute', 'Network', 'Block Storage', 'Object Storage')
 
 
 class OdooDriver(driver.BaseDriver):
-
     def __init__(self, conf):
         self.odoo = odoorpc.ODOO(conf.odoo.hostname,
                                  protocol=conf.odoo.protocol,
@@ -50,6 +49,7 @@ class OdooDriver(driver.BaseDriver):
         self.pricelist = self.odoo.env['product.pricelist']
         self.product = self.odoo.env['product.product']
         self.category = self.odoo.env['product.category']
+        self.invoice = self.odoo.env['account.invoice']
 
     def get_products(self, regions=None):
         if not regions:
@@ -66,32 +66,98 @@ class OdooDriver(driver.BaseDriver):
             for r in regions:
                 if not r:
                     continue
-                prices[r] = {}
-                for cat in PRODUCT_CATEGORY:
-                    prices[r][cat.lower()] = []
-                    c = self.category.search([('name', '=', cat),
-                                              ('display_name', 'ilike', r)])
-                    product_ids = self.product.search([('categ_id', '=', c[0]),
-                                                       ('sale_ok', '=', True),
-                                                       ('active', '=', True)])
-                    products = self.odoo.execute('product.product',
-                                                 'read',
-                                                 product_ids)
-                    for p in products:
-                        name = p['name_template'][len(r) + 1:]
-                        if 'pre-prod' in name:
-                            continue
-                        price = round(p['lst_price'], 5)
-                        # NOTE(flwang): default_code is Internal Reference on
-                        # Odoo GUI
-                        unit = p['default_code']
-                        desc = p['description']
-                        prices[r][cat.lower()].append({'resource': name,
-                                                       'price': price,
-                                                       'unit': unit,
-                                                       'description': desc})
+
+                prices[r] = collections.defaultdict(list)
+
+                c = self.category.search([('name', 'in', PRODUCT_CATEGORY),
+                                          ('display_name', 'ilike', r)])
+                product_ids = self.product.search([('categ_id', 'in', c),
+                                                   ('sale_ok', '=', True),
+                                                   ('active', '=', True)])
+                products = self.odoo.execute('product.product',
+                                             'read',
+                                             product_ids)
+                for p in products:
+                    category = p['categ_id'][1].split('/')[-1].strip()
+
+                    name = p['name_template'][len(r) + 1:]
+                    if 'pre-prod' in name:
+                        continue
+                    price = round(p['lst_price'], 5)
+                    # NOTE(flwang): default_code is Internal Reference on
+                    # Odoo GUI
+                    unit = p['default_code']
+                    desc = p['description']
+                    prices[r][category.lower()].append({'resource': name,
+                                                        'price': price,
+                                                        'unit': unit,
+                                                        'description': desc})
         except odoorpc.error.Error as e:
             LOG.exception(e)
             return {}
 
         return prices
+
+    def get_costs(self, bill_dates, project_id):
+        """Get total cost for each billing month.
+
+        :param bill_dates: List of datetime string, supposed to be the last
+            day of the month.
+        :param project_id: Project ID.
+        :return: A dict contains total cost for each month. If it's not
+            returned by Odoo, set total cost of that month to 0.
+        """
+        costs = []
+        default = []
+
+        for d in bill_dates:
+            default.append(
+                {'billing_date': d, 'total_cost': 0}
+            )
+
+        try:
+            invoice_ids = self.invoice.search(
+                [
+                    ('date_invoice', 'in', bill_dates),
+                    ('comment', 'like', project_id)
+                ],
+                order='date_invoice'
+            )
+
+            if not len(invoice_ids):
+                LOG.debug('No history invoices returned from Odoo.')
+                return default
+
+            LOG.debug('Found invoices: %s' % invoice_ids)
+
+            # Convert ids from string to int.
+            ids = []
+            for i in invoice_ids:
+                ids.append(int(i))
+
+            invoices = self.odoo.execute(
+                'account.invoice',
+                'read',
+                ids,
+                ['date_invoice', 'amount_total']
+            )
+        except Exception as e:
+            LOG.exception(
+                'Error occured when getting invoices from Odoo, '
+                'error: %s' % str(e)
+            )
+            return default
+
+        invoice_dict = {}
+        for v in invoices:
+            invoice_dict[str(v['date_invoice'])] = round(v['amount_total'], 2)
+
+        for d in bill_dates:
+            if d not in invoice_dict:
+                costs.append({'billing_date': d, 'total_cost': 0})
+            else:
+                costs.append(
+                    {'billing_date': d, 'total_cost': invoice_dict[d]}
+                )
+
+        return costs
