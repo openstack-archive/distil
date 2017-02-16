@@ -178,6 +178,17 @@ def transform_and_insert(tenant, usage_by_resource, transformer, service,
                 res = mapping.get('res_id_template', '%s') % res
 
                 md_def = mapping['metadata']
+                # NOTE(flwang): Currently the column size of resource id in DB
+                # is 100 chars, but the container name of swift could be 256,
+                # plus project id and a '/', the id for a swift container
+                # could be 32+1+256. So this is a fix for the problem. But
+                # instead of checking the length of resource id, here I'm
+                # hashing the name only for swift to get a consistent
+                # id for swift billing. Another change will be proposed to
+                # openstack-billing to handle this case as well.
+                if 'o1.standard' in transformed:
+                    md_def['original_id'] = res
+                    res = hashlib.md5(res.encode('utf-8')).hexdigest()
 
                 LOG.debug("Start to insert resource %s", res)
                 db.insert_resource(tenant.id, res, mapping['type'],
