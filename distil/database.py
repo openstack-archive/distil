@@ -70,8 +70,12 @@ class Database(object):
             if resource_type == 'Object Storage Container':
                 # NOTE(flwang): It's safe to get container name by /, since
                 # Swift doesn't allow container name with /.
-                idx = resource_id.index('/') + 1
-                info['name'] = resource_id[idx:]
+                # NOTE(flwang): Instead of using the resource_id from the
+                # input parameters, here we use the original resource id from
+                # the entry. Because the resource_id has been hashed(MD5) to
+                # avoid too long.
+                idx = entry['resource_id'].index('/') + 1
+                info['name'] = entry['resource_id'][idx:]
             self.session.add(Resource(
                 id=resource_id,
                 info=json.dumps(info),
