@@ -13,6 +13,7 @@
 #    under the License.
 
 import abc
+from datetime import timedelta
 import re
 import yaml
 
@@ -64,11 +65,16 @@ class BaseCollector(object):
             resources = {}
             usage_entries = []
 
+            # NOTE(kong): Set 10min as leadin time when getting samples, this
+            # helps us to get correct instance uptime, in case the instance
+            # status in first sample is not in our tracked status list.
+            actual_start = window_start - timedelta(minutes=10)
+
             try:
                 for mapping in self.meter_mappings:
                     # Invoke get_meter function of specific collector.
                     usage = self.get_meter(project['id'], mapping['meter'],
-                                           window_start, window_end)
+                                           actual_start, window_end)
 
                     usage_by_resource = {}
                     self._filter_and_group(usage, usage_by_resource)
@@ -125,7 +131,9 @@ class BaseCollector(object):
                 os_distro = image_meta.get('os_distro', 'unknown')
             else:
                 # Boot from image
-                image_id = entry['metadata']['image.id']
+                image_id = entry['metadata'].get('image.id', None)
+                image_id = image_id or entry['metadata'].get('image_ref', None)
+
                 os_distro = getattr(
                     openstack.get_image(image_id),
                     'os_distro',
@@ -180,6 +188,11 @@ class BaseCollector(object):
                 service, entries, window_start, window_end
             )
 
+            LOG.debug(
+                'After transformation, usage for resource %s: %s' %
+                (res_id, transformed)
+            )
+
             if transformed:
                 res_id = mapping.get('res_id_template', '%s') % res_id
                 res_info = self._get_resource_info(
@@ -192,7 +205,6 @@ class BaseCollector(object):
 
                 res = resources.setdefault(res_id, res_info)
                 res.update(res_info)
-                LOG.debug('resource info: %s', res)
 
                 for service, volume in transformed.items():
                     entry = {
@@ -205,4 +217,3 @@ class BaseCollector(object):
                         'tenant_id': project_id
                     }
                     usage_entries.append(entry)
-                    LOG.debug('new entry: %s', entry)
