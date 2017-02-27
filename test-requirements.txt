@@ -12,3 +12,4 @@ testrepository>=0.0.18
 testscenarios>=0.4
 testtools>=0.9.34
 WebTest>=2.0  # MIT
+mock>=2.0 # BSD

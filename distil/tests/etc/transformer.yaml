@@ -1,0 +1,22 @@
+uptime:
+  tracked_states:
+      - active
+      - paused
+      - rescue
+      - rescued
+      - resize
+      - resized
+      - verify_resize
+      - suspended
+      - shutoff
+      - stopped
+from_image:
+  service: b1.standard
+  md_keys:
+    - image_ref
+    - image_meta.base_image_ref
+  none_values:
+    - None
+    - ""
+  size_keys:
+    - root_gb

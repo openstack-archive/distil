@@ -88,7 +88,7 @@ def setup_db():
 def drop_db():
     try:
         engine = get_engine()
-        m.Cluster.metadata.drop_all(engine)
+        m.Tenant.metadata.drop_all(engine)
     except Exception as e:
         LOG.exception("Database shutdown exception: %s", e)
         return False
