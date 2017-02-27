@@ -14,6 +14,7 @@
 
 import abc
 from datetime import timedelta
+import hashlib
 import re
 import yaml
 
@@ -86,6 +87,7 @@ class BaseCollector(object):
                 # time of project within one session.
                 db_api.usages_add(project['id'], resources, usage_entries,
                                   window_end)
+
                 LOG.info('Finish project %s(%s) slice %s %s', project['id'],
                          project['name'], window_start, window_end)
             except Exception as e:
@@ -171,8 +173,12 @@ class BaseCollector(object):
             if resource_type == 'Object Storage Container':
                 # NOTE(flwang): It's safe to get container name by /, since
                 # Swift doesn't allow container name with /.
-                idx = resource_id.index('/') + 1
-                resource_info['name'] = resource_id[idx:]
+                # NOTE(flwang): Instead of using the resource_id from the
+                # input parameters, here we use the original resource id from
+                # the entry. Because the resource_id has been hashed(MD5) to
+                # avoid too long.
+                idx = entry['resource_id'].index('/') + 1
+                resource_info['name'] = entry['resource_id'][idx:]
 
         return resource_info
 
@@ -195,6 +201,23 @@ class BaseCollector(object):
 
             if transformed:
                 res_id = mapping.get('res_id_template', '%s') % res_id
+
+                # NOTE(flwang): Currently the column size of resource id in DB
+                # is 100 chars, but the container name of swift could be 256,
+                # plus project id and a '/', the id for a swift container
+                # could be 32+1+256. So this is a fix for the problem. But
+                # instead of checking the length of resource id, here I'm
+                # hashing the name only for swift to get a consistent
+                # id for swift billing. Another change will be proposed to
+                # openstack-billing to handle this case as well.
+                if 'o1.standard' in transformed:
+                    res_id = hashlib.md5(res_id.encode('utf-8')).hexdigest()
+
+                LOG.debug(
+                    'After transformation, usage for resource %s: %s' %
+                    (res_id, transformed)
+                )
+
                 res_info = self._get_resource_info(
                     project_id,
                     res_id,
