@@ -15,6 +15,7 @@
 import abc
 from datetime import timedelta
 import hashlib
+import itertools
 import re
 import yaml
 
@@ -54,11 +55,12 @@ class BaseCollector(object):
         LOG.info('collect_usage by %s for project: %s(%s)' %
                  (self.__class__.__name__, project['id'], project['name']))
 
-        windows = list(general.generate_windows(start, end))
-
+        windows_iter = general.generate_windows(start, end)
         if CONF.collector.max_windows_per_cycle > 0:
-            windows = windows[:CONF.collector.max_windows_per_cycle]
-
+            windows_iter = itertools.islice(
+                windows_iter, CONF.collector.max_windows_per_cycle
+            )
+        windows = list(windows_iter)
         if not windows:
             LOG.info("Skipped project %s(%s), less than 1 hour since last "
                      "collection time.", project['id'], project['name'])

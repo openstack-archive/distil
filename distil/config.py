@@ -54,6 +54,9 @@ COLLECTOR_OPTS = [
                help=('Data collector.')),
     cfg.IntOpt('max_windows_per_cycle', default=0,
                help=('The maximum number of windows per collecting cycle.')),
+    cfg.StrOpt('collect_end_time', default='',
+               help=('The end date per collecting cycle, e.g. '
+                     '2017-02-28T00:00:00')),
     cfg.StrOpt('meter_mappings_file', default='/etc/distil/meter_mappings.yml',
                help=('The meter mappings configuration.')),
     cfg.StrOpt('transformer_file', default='/etc/distil/transformer.yml',

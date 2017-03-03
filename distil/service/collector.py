@@ -23,6 +23,7 @@ from stevedore import driver
 
 from distil.db import api as db_api
 from distil import exceptions
+from distil.common import constants
 from distil.common import general
 from distil.common import openstack
 
@@ -119,6 +120,12 @@ class CollectorService(service.Service):
         last_collect = db_api.get_last_collect(project_ids).last_collected
 
         end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+        if CONF.collector.collect_end_time:
+            end = datetime.strptime(
+                CONF.collector.collect_end_time,
+                constants.iso_time
+            )
+
         count = 0
 
         valid_projects = self._get_projects_by_order(valid_projects)
