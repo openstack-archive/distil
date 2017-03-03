@@ -97,6 +97,7 @@ class DistilTestCase(base.BaseTestCase):
         """
         for k, v in kw.items():
             self.conf.set_override(k, v, group)
+            self.addCleanup(self.conf.clear_override, k, group)
 
     def _my_dir(self):
         return os.path.abspath(os.path.dirname(__file__))

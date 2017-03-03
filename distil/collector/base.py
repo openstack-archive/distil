@@ -15,6 +15,7 @@
 import abc
 from datetime import timedelta
 import hashlib
+import itertools
 import re
 import yaml
 
@@ -25,7 +26,6 @@ from distil.db import api as db_api
 from distil import exceptions as exc
 from distil import transformer as d_transformer
 from distil.common import constants
-from distil.common import general
 from distil.common import openstack
 
 LOG = logging.getLogger(__name__)
@@ -46,22 +46,13 @@ class BaseCollector(object):
     def get_meter(self, project, meter, start, end):
         raise NotImplementedError
 
-    def collect_usage(self, project, start, end):
+    def collect_usage(self, project, windows):
         """Collect usage for specific tenant.
 
         :return: True if no error happened otherwise return False.
         """
         LOG.info('collect_usage by %s for project: %s(%s)' %
                  (self.__class__.__name__, project['id'], project['name']))
-
-        windows = list(general.generate_windows(start, end))
-
-        if CONF.collector.max_windows_per_cycle > 0:
-            windows = windows[:CONF.collector.max_windows_per_cycle]
-
-        if not windows:
-            LOG.info("Skipped project %s(%s), less than 1 hour since last "
-                     "collection time.", project['id'], project['name'])
 
         for window_start, window_end in windows:
             LOG.info("Project %s(%s) slice %s %s", project['id'],

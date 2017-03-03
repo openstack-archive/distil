@@ -52,7 +52,7 @@ COLLECTOR_OPTS = [
                help=('Window of usage collection in hours.')),
     cfg.StrOpt('collector_backend', default='ceilometer',
                help=('Data collector.')),
-    cfg.IntOpt('max_windows_per_cycle', default=0,
+    cfg.IntOpt('max_windows_per_cycle', default=1,
                help=('The maximum number of windows per collecting cycle.')),
     cfg.StrOpt('meter_mappings_file', default='/etc/distil/meter_mappings.yml',
                help=('The meter mappings configuration.')),
@@ -110,6 +110,15 @@ RATER_OPTS = [
                'is "file".'),
 ]
 
+CLI_OPTS = [
+    cfg.StrOpt(
+        'collect-end-time',
+        help=('The end date of usage to collect before distil-collector is '
+              'stopped. If not provided, distil-collector will keep running. '
+              'Time format is %Y-%m-%dT%H:%M:%S')
+    ),
+]
+
 AUTH_GROUP = 'keystone_authtoken'
 ODOO_GROUP = 'odoo'
 COLLECTOR_GROUP = 'collector'
@@ -120,6 +129,7 @@ CONF.register_opts(DEFAULT_OPTIONS)
 CONF.register_opts(ODOO_OPTS, group=ODOO_GROUP)
 CONF.register_opts(COLLECTOR_OPTS, group=COLLECTOR_GROUP)
 CONF.register_opts(RATER_OPTS, group=RATER_GROUP)
+CONF.register_cli_opts(CLI_OPTS)
 
 
 def list_opts():

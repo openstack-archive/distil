@@ -13,6 +13,7 @@
 #    under the License.
 
 from datetime import datetime
+import os
 from random import shuffle
 
 from oslo_config import cfg
@@ -23,6 +24,7 @@ from stevedore import driver
 
 from distil.db import api as db_api
 from distil import exceptions
+from distil.common import constants
 from distil.common import general
 from distil.common import openstack
 
@@ -110,6 +112,11 @@ class CollectorService(service.Service):
     def collect_usage(self):
         LOG.info("Starting to collect usage...")
 
+        if CONF.collector.max_windows_per_cycle <= 0:
+            LOG.info("Finished collecting usage with configuration "
+                     "max_windows_per_cycle<=0.")
+            return
+
         projects = openstack.get_projects()
         project_ids = [p['id'] for p in projects]
         valid_projects = filter_projects(projects)
@@ -119,7 +126,15 @@ class CollectorService(service.Service):
         last_collect = db_api.get_last_collect(project_ids).last_collected
 
         end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
-        count = 0
+        if CONF.collect_end_time:
+            end = datetime.strptime(CONF.collect_end_time, constants.iso_time)
+
+        # Number of projects updated successfully.
+        success_count = 0
+        # Number of projects processed actually.
+        processed_count = 0
+        # Number of projects already up-to-date.
+        updated_count = 0
 
         valid_projects = self._get_projects_by_order(valid_projects)
         for project in valid_projects:
@@ -127,7 +142,6 @@ class CollectorService(service.Service):
             # instance. If no, will get a lock and continue processing,
             # otherwise just skip it.
             locks = db_api.get_project_locks(project['id'])
-
             if locks and locks[0].owner != self.identifier:
                 LOG.debug(
                     "Project %s is being processed by collector %s." %
@@ -137,13 +151,31 @@ class CollectorService(service.Service):
 
             try:
                 with db_api.project_lock(project['id'], self.identifier):
+                    processed_count += 1
+
                     # Add a project or get last_collected of existing project.
                     db_project = db_api.project_add(project, last_collect)
                     start = db_project.last_collected
 
-                    if self.collector.collect_usage(project, start, end):
-                        count = count + 1
+                    windows = general.get_windows(start, end)
+                    if not windows:
+                        LOG.info(
+                            "project %s(%s) already up-to-date.",
+                            project['id'], project['name']
+                        )
+                        updated_count += 1
+                        continue
+
+                    if self.collector.collect_usage(project, windows):
+                        success_count += 1
             except Exception:
                 LOG.warning('Get lock failed. Process: %s' % self.identifier)
 
-        LOG.info("Finished collecting usage for %s projects." % count)
+        LOG.info("Finished collecting usage for %s projects." % success_count)
+
+        # If we start distil-collector manually with 'collect_end_time' param
+        # specified, the service should be stopped automatically after all
+        # projects usage collection is up-to-date.
+        if CONF.collect_end_time and updated_count == processed_count:
+            self.stop()
+            os.kill(os.getpid(), 9)
