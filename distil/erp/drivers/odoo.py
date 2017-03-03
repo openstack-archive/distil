@@ -87,7 +87,14 @@ class OdooDriver(driver.BaseDriver):
                     # NOTE(flwang): default_code is Internal Reference on
                     # Odoo GUI
                     unit = p['default_code']
+
+                    # NOTE(lingxian): Original description is an ugly plain
+                    # string, it's not a structured json string.
                     desc = p['description']
+                    if 'description' in desc:
+                        desc_index = desc.index('description')
+                        desc = desc[desc_index + 15:]
+
                     prices[r][category.lower()].append({'resource': name,
                                                         'price': price,
                                                         'unit': unit,
@@ -163,3 +170,19 @@ class OdooDriver(driver.BaseDriver):
                 )
 
         return costs
+
+    def build_service_name_mapping(self, products):
+        """Gets mapping from service name to service type.
+
+        :param products: Product dict in a region returned from odoo.
+        """
+        srv_res_mapping = {}
+
+        for category, p_list in products.items():
+            for p in p_list:
+                if category == 'network':
+                    srv_res_mapping[p['resource']] = p['description']
+                else:
+                    srv_res_mapping[p['resource']] = category.title()
+
+        return srv_res_mapping

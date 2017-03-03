@@ -39,52 +39,6 @@ BILLITEM = collections.namedtuple(
     ['id', 'resource', 'count', 'cost']
 )
 
-SRV_RES_MAPPING = {
-    'm1.tiny': 'Compute',
-    'm1.small': 'Compute',
-    'm1.mini': 'Compute',
-    'm1.medium': 'Compute',
-    'c1.small': 'Compute',
-    'm1.large': 'Compute',
-    'm1.xlarge': 'Compute',
-    'c1.large': 'Compute',
-    'c1.xlarge': 'Compute',
-    'c1.xxlarge': 'Compute',
-    'm1.2xlarge': 'Compute',
-    'c1.c1r1': 'Compute',
-    'c1.c1r2': 'Compute',
-    'c1.c1r4': 'Compute',
-    'c1.c2r1': 'Compute',
-    'c1.c2r2': 'Compute',
-    'c1.c2r4': 'Compute',
-    'c1.c2r8': 'Compute',
-    'c1.c2r16': 'Compute',
-    'c1.c4r2': 'Compute',
-    'c1.c4r4': 'Compute',
-    'c1.c4r8': 'Compute',
-    'c1.c4r16': 'Compute',
-    'c1.c4r32': 'Compute',
-    'c1.c8r4': 'Compute',
-    'c1.c8r8': 'Compute',
-    'c1.c8r16': 'Compute',
-    'c1.c8r32': 'Compute',
-    'c1.c8r64': 'Compute',
-    'c1.c16r8': 'Compute',
-    'c1.c16r16': 'Compute',
-    'c1.c16r32': 'Compute',
-    'c1.c16r64': 'Compute',
-    'b1.standard': 'Block Storage',
-    'o1.standard': 'Object Storage',
-    'n1.ipv4': 'Floating IP',
-    'n1.network': 'Network',
-    'n1.router': 'Router',
-    'n1.vpn': 'VPN',
-    'n1.international-in': 'Inbound International Traffic',
-    'n1.international-out': 'Outbound International Traffic',
-    'n1.national-in': 'Inbound National Traffic',
-    'n1.national-out': 'Outbound National Traffic'
-}
-
 
 def _validate_project_and_range(project_id, start, end):
     try:
@@ -106,10 +60,11 @@ def _validate_project_and_range(project_id, start, end):
             except ValueError:
                 end = datetime.strptime(end, constants.iso_time)
     except ValueError:
-            raise exceptions.DateTimeException(
-                message=(
-                    "Missing parameter: " +
-                    "'end' in format: y-m-d or y-m-dTH:M:S"))
+        raise exceptions.DateTimeException(
+            message=(
+                "Missing parameter: " +
+                "'end' in format: y-m-d or y-m-dTH:M:S")
+        )
 
     if end < start:
         raise exceptions.DateTimeException(
@@ -216,7 +171,8 @@ def _get_service_price(service_name, service_type, prices):
     return price
 
 
-def _build_current_month_cost(project, usage, prices, start, end):
+def _build_current_month_cost(project, usage, srv_res_mapping, prices, start,
+                              end):
     """Builds a dict structure for a given project for current month.
 
     The 'breakdown' is a list for mappings from different service type to
@@ -251,7 +207,7 @@ def _build_current_month_cost(project, usage, prices, start, end):
 
         resource_type = resources[res_id]['type']
         service_type = ('Image' if resource_type == 'Image' else
-                        SRV_RES_MAPPING.get(service_name, resource_type))
+                        srv_res_mapping.get(service_name, resource_type))
 
         service['resource_id'] = res_id
 
@@ -308,6 +264,11 @@ def _build_current_month_cost(project, usage, prices, start, end):
 
         total_cost += rounded_cost
 
+    LOG.debug(
+        'For current month: total cost: %s, service cost breakdown: %s' %
+        (total_cost, breakdown)
+    )
+
     output['total_cost'] = total_cost
     output['breakdown'] = breakdown
     output['details'] = cost_details
@@ -329,6 +290,8 @@ def _calculate_cost(project, start, end, region=None):
     bill_date = _get_billing_date(start)
     bill_dates = []
 
+    erp_driver = erp_utils.load_erp_driver(CONF)
+
     while bill_date < end:
         bill_dates.append(str(bill_date.date()))
         bill_date = _get_next_billing_date(bill_date)
@@ -337,22 +300,23 @@ def _calculate_cost(project, start, end, region=None):
         bill_dates.append(str(bill_date.date()))
 
     if bill_dates:
-        LOG.debug('Get history costs for %s' % bill_dates)
-        erp_driver = erp_utils.load_erp_driver(CONF)
+        LOG.info('Get history costs for %s' % bill_dates)
         erp_costs = erp_driver.get_costs(bill_dates, project.id)
         output['cost'].extend(erp_costs)
 
     if today.year == end.year and today.month == end.month:
         # Calculate estimated cost for current month according to usage.
-        LOG.debug('Calculate current month cost based on tenant usage.')
+        LOG.info('Calculate current month cost based on tenant usage.')
 
         start = datetime(end.year, end.month, 1)
         usage = db_api.usage_get(project.id, start, end)
 
         prices = products.get_products([region])[region]
+        srv_res_mapping = erp_driver.build_service_name_mapping(prices)
 
         output['cost'].append(
-            _build_current_month_cost(project, usage, prices, start, end)
+            _build_current_month_cost(project, usage, srv_res_mapping, prices,
+                                      start, end)
         )
 
     return output
