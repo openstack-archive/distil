@@ -74,6 +74,11 @@ class TestCostServiceAPI(base.DistilTestCase):
         mock_load_erp.return_value = erp_driver
         erp_driver.get_costs.return_value = get_cost_ret
 
+        erp_driver.get_service_name_mapping.return_value = {
+            'b1.standard': 'Block Storage',
+            'n1.network': 'Network'
+        }
+
         mock_usage_get.return_value = [
             models.UsageEntry(
                 tenant_id='fake_project_id',
@@ -307,6 +312,11 @@ class TestCostServiceAPI(base.DistilTestCase):
                     }
                 ],
             }
+        }
+
+        erp_driver.get_service_name_mapping.return_value = {
+            'b1.standard': 'Block Storage',
+            'n1.network': 'Network'
         }
 
         mock_resources.return_value = [
