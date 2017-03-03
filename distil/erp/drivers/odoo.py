@@ -76,9 +76,8 @@ class OdooDriver(driver.BaseDriver):
                 product_ids = self.product.search([('categ_id', 'in', c),
                                                    ('sale_ok', '=', True),
                                                    ('active', '=', True)])
-                products = self.odoo.execute('product.product',
-                                             'read',
-                                             product_ids)
+                products = self.product.read(product_ids)
+
                 for p in products:
                     category = p['categ_id'][1].split('/')[-1].strip()
 
@@ -90,6 +89,7 @@ class OdooDriver(driver.BaseDriver):
                     # Odoo GUI
                     unit = p['default_code']
                     desc = p['description']
+
                     prices[r][category.lower()].append({'resource': name,
                                                         'price': price,
                                                         'unit': unit,
@@ -221,3 +221,19 @@ class OdooDriver(driver.BaseDriver):
                 )
 
         return costs
+
+    def get_service_name_mapping(self, products):
+        """Gets mapping from service name to service type.
+
+        :param products: Product dict in a region returned from odoo.
+        """
+        srv_res_mapping = {}
+
+        for category, p_list in products.items():
+            for p in p_list:
+                if category == 'network':
+                    srv_res_mapping[p['resource']] = p['description']
+                else:
+                    srv_res_mapping[p['resource']] = category.title()
+
+        return srv_res_mapping
