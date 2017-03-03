@@ -20,7 +20,10 @@ import os
 import mock
 
 from distil.collector import base as collector_base
+from distil.common import constants
+from distil import config
 from distil.db.sqlalchemy import api as db_api
+from distil.service import collector as c_service
 from distil.tests.unit import base
 
 
@@ -97,3 +100,33 @@ class CollectorTest(base.DistilWithDbTestCase):
 
         self.assertEquals(1, len(entries))
         self.assertEquals(resource_id_hash, entries[0].resource_id)
+
+    @mock.patch('distil.common.openstack.get_projects')
+    @mock.patch('distil.common.openstack.get_ceilometer_client')
+    def test_collect_with_end_time(self, mock_get_client, mock_get_projects):
+        mock_get_projects.return_value = [
+            {
+                'id': 'fake_id',
+                'name': 'fake_name',
+                'description': 'description'
+            }
+        ]
+
+        srv = c_service.CollectorService()
+        srv.collector = mock.Mock()
+
+        self.override_config(
+            config.COLLECTOR_GROUP,
+            collect_end_time='2017-03-01T00:00:00'
+        )
+
+        expected_end = datetime.strptime(
+            '2017-03-01T00:00:00',
+            constants.iso_time
+        )
+
+        srv.collect_usage()
+
+        actual_end = srv.collector.collect_usage.call_args[0][2]
+
+        self.assertEqual(expected_end, actual_end)
