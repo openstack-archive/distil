@@ -73,3 +73,10 @@ class BaseDriver(object):
         :return: The total price for each month.
         """
         raise NotImplementedError()
+
+    def build_service_name_mapping(self, products):
+        """Gets mapping from service name to service type.
+
+        :param products: Product dict returned from erp.
+        """
+        raise NotImplementedError()

@@ -73,6 +73,11 @@ class TestCostServiceAPI(base.DistilTestCase):
         mock_load_erp.return_value = erp_driver
         erp_driver.get_costs.return_value = get_cost_ret
 
+        erp_driver.build_service_name_mapping.return_value = {
+            'b1.standard': 'Block Storage',
+            'n1.network': 'Network'
+        }
+
         mock_usage_get.return_value = [
             models.UsageEntry(
                 tenant_id='fake_project_id',
@@ -268,7 +273,9 @@ class TestCostServiceAPI(base.DistilTestCase):
     @mock.patch('distil.db.api.usage_get')
     @mock.patch('distil.db.api.resource_get_by_ids')
     @mock.patch('distil.service.api.v2.products.get_products')
+    @mock.patch('distil.erp.utils.load_erp_driver')
     def test_get_costs_current_month(self,
+                                     mock_load_erp,
                                      mock_get_products,
                                      mock_resources,
                                      mock_usage_get,
@@ -310,6 +317,13 @@ class TestCostServiceAPI(base.DistilTestCase):
                     }
                 ],
             }
+        }
+
+        erp_driver = mock.Mock()
+        mock_load_erp.return_value = erp_driver
+        erp_driver.build_service_name_mapping.return_value = {
+            'b1.standard': 'Block Storage',
+            'n1.network': 'Network'
         }
 
         mock_resources.return_value = [
