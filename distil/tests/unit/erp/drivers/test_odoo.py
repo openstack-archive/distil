@@ -150,3 +150,36 @@ class TestOdooDriver(base.DistilTestCase):
         ]
 
         self.assertEqual(expected, costs)
+
+    @mock.patch('odoorpc.ODOO')
+    def test_build_service_name_mapping(self, mock_odoo):
+        products = {
+            'block storage': [{'description': 'Block storage',
+                               'price': 0.00035,
+                               'resource': 'b1.volume',
+                               'unit': 'hour'}],
+            'compute': [{'description': '1 CPU, 1GB RAM',
+                         'price': 0.00015,
+                         'resource': 'c1.c1r1',
+                         'unit': 'hour'}],
+            'network': [{'description': 'Router',
+                         'price': 0.00025,
+                         'resource': 'n1.router',
+                         'unit': 'hour'}],
+            'object storage': [{'description': 'Object storage',
+                                'price': 0.00045,
+                                'resource': 'o1.object',
+                                'unit': 'hour'}]
+        }
+
+        odoodriver = odoo.OdooDriver(self.conf)
+        mapping = odoodriver.build_service_name_mapping(products)
+
+        expected = {
+            'b1.volume': 'Block Storage',
+            'c1.c1r1': 'Compute',
+            'n1.router': 'Router',
+            'o1.object': 'Object Storage'
+        }
+
+        self.assertEqual(expected, mapping)
