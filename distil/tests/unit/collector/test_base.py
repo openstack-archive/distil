@@ -148,8 +148,7 @@ class CollectorBaseTest(base.DistilWithDbTestCase):
         srv = collector.CollectorService()
         ret = srv.collector.collect_usage(
             {'name': 'fake_project', 'id': '123'},
-            datetime.utcnow() - timedelta(hours=1.5),
-            datetime.utcnow()
+            [(datetime.utcnow() - timedelta(hours=1), datetime.utcnow())]
         )
 
         self.assertFalse(ret)

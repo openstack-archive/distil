@@ -13,6 +13,7 @@
 #    under the License.
 
 from datetime import datetime
+from datetime import timedelta
 import hashlib
 import json
 import os
@@ -20,6 +21,8 @@ import os
 import mock
 
 from distil.collector import base as collector_base
+from distil.common import constants
+from distil import config
 from distil.db.sqlalchemy import api as db_api
 from distil.service import collector
 from distil.tests.unit import base
@@ -86,7 +89,7 @@ class CollectorTest(base.DistilWithDbTestCase):
         ]
 
         collector = collector_base.BaseCollector()
-        collector.collect_usage(project, start_time, end_time)
+        collector.collect_usage(project, [(start_time, end_time)])
 
         resources = db_api.resource_get_by_ids(project_id, [resource_id_hash])
         res_info = json.loads(resources[0].info)
@@ -144,22 +147,17 @@ class CollectorTest(base.DistilWithDbTestCase):
             project_2_collect
         )
 
-        end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
-
         svc = collector.CollectorService()
         svc.collect_usage()
 
         mock_collect_usage.assert_called_once_with(
             {'id': '333', 'name': 'project_3', 'description': ''},
-            project_1_collect,
-            end
+            [(project_1_collect, project_1_collect + timedelta(hours=1))]
         )
 
-    @mock.patch('distil.db.api.get_project_locks')
     @mock.patch('distil.common.openstack.get_ceilometer_client')
     @mock.patch('distil.common.openstack.get_projects')
-    def test_project_order_ascending(self, mock_get_projects, mock_cclient,
-                                     mock_getlocks):
+    def test_project_order_ascending(self, mock_get_projects, mock_cclient):
         mock_get_projects.return_value = [
             {'id': '111', 'name': 'project_1', 'description': ''},
             {'id': '222', 'name': 'project_2', 'description': ''},
@@ -174,23 +172,25 @@ class CollectorTest(base.DistilWithDbTestCase):
                 'name': 'project_1',
                 'description': '',
             },
-            datetime(2017, 5, 17, 19)
+            datetime.utcnow() - timedelta(hours=2)
         )
 
         svc = collector.CollectorService()
+        svc.collector = mock.Mock()
         svc.collect_usage()
 
+        expected_projects = []
+        for call in svc.collector.collect_usage.call_args_list:
+            expected_projects.append(call[0][0]['id'])
+
         self.assertEqual(
-            [mock.call('111'), mock.call('222'), mock.call('333'),
-             mock.call('444')],
-            mock_getlocks.call_args_list
+            ['111', '222', '333', '444'],
+            expected_projects
         )
 
-    @mock.patch('distil.db.api.get_project_locks')
     @mock.patch('distil.common.openstack.get_ceilometer_client')
     @mock.patch('distil.common.openstack.get_projects')
-    def test_project_order_descending(self, mock_get_projects, mock_cclient,
-                                      mock_getlocks):
+    def test_project_order_descending(self, mock_get_projects, mock_cclient):
         self.override_config('collector', project_order='descending')
 
         mock_get_projects.return_value = [
@@ -207,23 +207,25 @@ class CollectorTest(base.DistilWithDbTestCase):
                 'name': 'project_1',
                 'description': '',
             },
-            datetime(2017, 5, 17, 19)
+            datetime.utcnow() - timedelta(hours=2)
         )
 
         svc = collector.CollectorService()
+        svc.collector = mock.Mock()
         svc.collect_usage()
 
+        expected_projects = []
+        for call in svc.collector.collect_usage.call_args_list:
+            expected_projects.append(call[0][0]['id'])
+
         self.assertEqual(
-            [mock.call('444'), mock.call('333'), mock.call('222'),
-             mock.call('111')],
-            mock_getlocks.call_args_list
+            ['444', '333', '222', '111'],
+            expected_projects
         )
 
-    @mock.patch('distil.db.api.get_project_locks')
     @mock.patch('distil.common.openstack.get_ceilometer_client')
     @mock.patch('distil.common.openstack.get_projects')
-    def test_project_order_random(self, mock_get_projects, mock_cclient,
-                                  mock_getlocks):
+    def test_project_order_random(self, mock_get_projects, mock_cclient):
         self.override_config('collector', project_order='random')
 
         mock_get_projects.return_value = [
@@ -240,14 +242,51 @@ class CollectorTest(base.DistilWithDbTestCase):
                 'name': 'project_1',
                 'description': '',
             },
-            datetime(2017, 5, 17, 19)
+            datetime.utcnow() - timedelta(hours=2)
         )
 
         svc = collector.CollectorService()
+        svc.collector = mock.Mock()
         svc.collect_usage()
 
+        expected_projects = []
+        for call in svc.collector.collect_usage.call_args_list:
+            expected_projects.append(call[0][0]['id'])
+
         self.assertNotEqual(
-            [mock.call('111'), mock.call('222'), mock.call('333'),
-             mock.call('444')],
-            mock_getlocks.call_args_list
+            ['111', '222', '333', '444'],
+            expected_projects
         )
+
+    @mock.patch('os.kill')
+    @mock.patch('distil.common.openstack.get_ceilometer_client')
+    @mock.patch('distil.common.openstack.get_projects')
+    def test_collect_with_end_time(self, mock_get_projects, mock_cclient,
+                                   mock_kill):
+        end_time = datetime.utcnow() + timedelta(hours=0.5)
+        end_time_str = end_time.strftime(constants.iso_time)
+        self.override_config(collect_end_time=end_time_str)
+
+        mock_get_projects.return_value = [
+            {
+                'id': '111',
+                'name': 'project_1',
+                'description': 'description'
+            }
+        ]
+        # Insert the project info in the database.
+        db_api.project_add(
+            {
+                'id': '111',
+                'name': 'project_1',
+                'description': '',
+            },
+            datetime.utcnow()
+        )
+
+        srv = collector.CollectorService()
+        srv.thread_grp = mock.Mock()
+        srv.collect_usage()
+
+        self.assertEqual(1, srv.thread_grp.stop.call_count)
+        self.assertEqual(1, mock_kill.call_count)
