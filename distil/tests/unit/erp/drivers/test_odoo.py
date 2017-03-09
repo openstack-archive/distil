@@ -43,9 +43,6 @@ class TestOdooDriver(base.DistilTestCase):
 
     config_file = 'distil.conf'
 
-    def setUp(self):
-        super(TestOdooDriver, self).setUp()  
-
     @mock.patch('odoorpc.ODOO')
     @mock.patch('distil.common.openstack.get_regions')
     def test_get_products(self, mock_get_regions, mock_odoo):
