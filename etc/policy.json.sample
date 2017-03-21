@@ -4,5 +4,5 @@
     "default": "rule:admin_or_owner",
 
     "rating:costs:get": "rule:context_is_admin",
-    "rating:usages:get": "rule:context_is_admin",
+    "rating:measures:get": "rule:context_is_admin",
 }
