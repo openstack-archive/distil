@@ -61,9 +61,9 @@ def costs_get():
     return api.render(usage=costs.get_costs(project_id, start, end))
 
 
-@rest.get('/usages')
-@acl.enforce("rating:usages:get")
-def usage_get():
+@rest.get('/measurements')
+@acl.enforce("rating:measurements:get")
+def measurements_get():
     project_id, start, end = _get_usage_args()
 
-    return api.render(usage=costs.get_usage(project_id, start, end))
+    return api.render(measurements=costs.get_usage(project_id, start, end))
