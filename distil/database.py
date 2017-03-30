@@ -90,14 +90,24 @@ class Database(object):
 
     def _get_os_distro(self, entry):
         os_distro = 'unknown'
-        if 'image.id' in entry['resource_metadata']:
-            # Boot from image
-            image_id = entry['resource_metadata']['image.id']
-            os_distro = getattr(helpers.get_image(image_id), 'os_distro', 'unknown')
 
-        if entry['resource_metadata']['image_ref'] == 'None':
+        if ('image.id' in entry['resource_metadata']
+            or 'image_ref' in entry['resource_metadata']):
+            # Boot from image
+            image_id = (entry['resource_metadata'].get('image.id', None) or
+                        entry['resource_metadata'].get('image_ref', None))
+            os_distro = getattr(
+                helpers.get_image(image_id),
+                'os_distro',
+                'unknown'
+            )
+        else:
             # Boot from volume
-            image_meta = getattr(helpers.get_volume(entry['resource_id']), 'volume_image_metadata', {})
+            image_meta = getattr(
+                helpers.get_volume(entry['resource_id']),
+                'volume_image_metadata',
+                {}
+            )
             os_distro = image_meta.get('os_distro', 'unknown')
 
         return os_distro
