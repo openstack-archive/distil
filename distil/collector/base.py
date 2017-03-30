@@ -120,31 +120,53 @@ class BaseCollector(object):
             entries.append(u)
 
     def _get_os_distro(self, entry):
+        """Gets os distro info for instance.
+
+        1. If instance is booted from image, get distro info from image_ref_url
+           in sample's metadata.
+        2. If instance is booted from volume, get distro info from
+           volume_image_metadata property of the root volume.
+        3. If instance is booted from volume and it's already been deleted,
+           use default value('unknown').
+        """
         os_distro = 'unknown'
+        root_vol = None
 
         try:
             # Check if the VM is booted from volume first. When VM is booted
             # from a windows image and do a rebuild using a linux image, the
             # 'image_ref' property will be set inappropriately.
             root_vol = openstack.get_root_volume(entry['resource_id'])
-
-            if root_vol:
-                image_meta = getattr(root_vol, 'volume_image_metadata', {})
-                os_distro = image_meta.get('os_distro', 'unknown')
-            else:
-                # Boot from image
-                image_id = entry['metadata'].get('image.id', None)
-                image_id = image_id or entry['metadata'].get('image_ref', None)
-
-                os_distro = getattr(
-                    openstack.get_image(image_id),
-                    'os_distro',
-                    'unknown'
-                )
         except Exception as e:
             LOG.warning(
-                'Error occured when getting os_distro, reason: %s', str(e)
+                'Error occured when getting root_volume for %s, reason: %s' %
+                (entry['resource_id'], str(e))
             )
+
+        if root_vol:
+            image_meta = getattr(root_vol, 'volume_image_metadata', {})
+            os_distro = image_meta.get('os_distro', 'unknown')
+        else:
+            # 'image_ref_url' is always there no matter it is sample created by
+            # Ceilometer polster or sent by notification. For instance booted
+            # from volume the value is string 'None' in Ceilometer client
+            # response.
+            image_url = entry['metadata']['image_ref_url']
+
+            if image_url and image_url != 'None':
+                image_id = image_url.split('/')[-1]
+
+                try:
+                    os_distro = getattr(
+                        openstack.get_image(image_id),
+                        'os_distro',
+                        'unknown'
+                    )
+                except Exception as e:
+                    LOG.warning(
+                        'Error occured when getting image %s, reason: %s' %
+                        (image_id, str(e))
+                    )
 
         return os_distro
 
