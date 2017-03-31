@@ -216,11 +216,6 @@ class BaseCollector(object):
                 service, entries, window_start, window_end
             )
 
-            LOG.debug(
-                'After transformation, usage for resource %s: %s' %
-                (res_id, transformed)
-            )
-
             if transformed:
                 res_id = mapping.get('res_id_template', '%s') % res_id
 

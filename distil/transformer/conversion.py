@@ -75,6 +75,13 @@ class UpTimeTransformer(BaseTransformer):
         return usage_dict
 
     def _clean_entry(self, entry):
+        try:
+            timestamp = datetime.strptime(
+                entry['timestamp'], constants.date_format)
+        except ValueError:
+            timestamp = datetime.strptime(
+                entry['timestamp'], constants.date_format_f)
+
         result = {
             'status': entry['metadata'].get(
                 'status', entry['metadata'].get(
@@ -82,11 +89,9 @@ class UpTimeTransformer(BaseTransformer):
                 )
             ),
             'flavor': entry['metadata'].get('instance_type'),
-            'timestamp': datetime.strptime(
-                entry['timestamp'],
-                "%Y-%m-%dT%H:%M:%S"
-            )
+            'timestamp': timestamp
         }
+
         return result
 
 
