@@ -90,14 +90,26 @@ class Database(object):
 
     def _get_os_distro(self, entry):
         os_distro = 'unknown'
-        if 'image.id' in entry['resource_metadata']:
-            # Boot from image
-            image_id = entry['resource_metadata']['image.id']
-            os_distro = getattr(helpers.get_image(image_id), 'os_distro', 'unknown')
 
-        if entry['resource_metadata']['image_ref'] == 'None':
+        # 'image_ref_url' is always there no matter it is sample created by
+        # Ceilometer pollster or sent by notification. For instance booted from
+        # volume the value is string 'None' in Ceilometer client response.
+        if entry['resource_metadata']['image_ref_url'] != 'None':
+            # Boot from image
+            image_url = entry['resource_metadata']['image_ref_url']
+            image_id = image_url.split('/')[-1]
+            os_distro = getattr(
+                helpers.get_image(image_id),
+                'os_distro',
+                'unknown'
+            )
+        else:
             # Boot from volume
-            image_meta = getattr(helpers.get_volume(entry['resource_id']), 'volume_image_metadata', {})
+            image_meta = getattr(
+                helpers.get_volume(entry['resource_id']),
+                'volume_image_metadata',
+                {}
+            )
             os_distro = image_meta.get('os_distro', 'unknown')
 
         return os_distro
