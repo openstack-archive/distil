@@ -74,7 +74,6 @@ class DistilTestCase(base.BaseTestCase):
         :returns: Project's config object.
         """
         conf = cfg.CONF
-        log.register_options(conf)
         conf(args=[], default_config_files=[cls.conf_path(filename)])
         return conf
 
