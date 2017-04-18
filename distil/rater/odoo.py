@@ -27,7 +27,7 @@ class OdooRater(rater.BaseRater):
         if not self.prices:
             return rate_file.FileRater().rate(name, region)
         region_prices = (self.prices[region] if region else
-                         self.prices.values[0])
+                         self.prices.values()[0])
 
         for category in region_prices:
             for product in region_prices[category]:

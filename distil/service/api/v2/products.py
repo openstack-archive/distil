@@ -24,7 +24,7 @@ CONF = cfg.CONF
 
 
 @cache.memoize
-def get_products(regions):
+def get_products(regions=None):
     erp_driver = erp_utils.load_erp_driver(CONF)
     products = erp_driver.get_products(regions)
     return products
