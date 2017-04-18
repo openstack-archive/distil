@@ -29,6 +29,18 @@ LOG = log.getLogger(__name__)
 
 rest = api.Rest('v2', __name__)
 
+def _get_usage_args():
+    if api.context.current().is_admin:
+        # NOTE(flwang): Get 'tenant' first for backward compatibility.
+        tenant_id = api.get_request_args().get('tenant', None)
+        project_id = api.get_request_args().get('project_id', tenant_id)
+    else:
+        project_id = api.context.current().project_id
+
+    start = api.get_request_args().get('start', None)
+    end = api.get_request_args().get('end', None)
+    return project_id, start, end
+
 
 @rest.get('/health')
 def health_get():
@@ -42,23 +54,12 @@ def products_get():
     return api.render(products=products.get_products(regions))
 
 
-def _get_usage_args():
-    # NOTE(flwang): Get 'tenant' first for backward compatibility.
-    tenant_id = api.get_request_args().get('tenant', None)
-    project_id = api.get_request_args().get('project_id', tenant_id)
-    start = api.get_request_args().get('start', None)
-    end = api.get_request_args().get('end', None)
-    return project_id, start, end
-
-
 @rest.get('/costs')
 @acl.enforce("rating:costs:get")
 def costs_get():
     project_id, start, end = _get_usage_args()
 
-    # NOTE(flwang): Here using 'usage' instead of 'costs' for backward
-    # compatibility.
-    return api.render(usage=costs.get_costs(project_id, start, end))
+    return api.render(costs=costs.get_costs(project_id, start, end))
 
 
 @rest.get('/measurements')
