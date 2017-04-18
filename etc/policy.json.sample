@@ -3,9 +3,9 @@
     "admin_or_owner": "is_admin:True or project_id:%(project_id)s",
     "default": "rule:admin_or_owner",
 
-    "rating:credits:get": "rule:context_is_admin",
-    "rating:measurements:get": "rule:context_is_admin",
-    "rating:invoices:get": "rule:context_is_admin",
-    "rating:quotations:get": "rule:context_is_admin",
+    "rating:credits:get": "",
+    "rating:measurements:get": "",
+    "rating:invoices:get": "",
+    "rating:quotations:get": "",
     "health:get": "rule:context_is_admin",
 }
