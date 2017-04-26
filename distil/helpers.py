@@ -12,7 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from novaclient import client as novaclient
+from novaclient import client as nova_client
 from cinderclient.v2 import client as cinderclient
 from glanceclient import client as glanceclient
 from keystoneclient.v2_0 import client as keystoneclient
@@ -32,16 +32,25 @@ def reset_cache():
 
 def flavor_name(f_id):
     """Grabs the correct flavor name from Nova given the correct ID."""
-    _client_class = novaclient.get_client_class(2)
-
     if f_id not in cache['flavors']:
-        nova = _client_class(
-            config.auth['username'],
-            config.auth['password'],
-            config.auth['default_tenant'],
-            config.auth['end_point'],
-            region_name=config.main['region'],
-            insecure=config.auth['insecure'])
+        try:
+            _client_class = nova_client.get_client_class(2)
+            nova = _client_class(
+                config.auth['username'],
+                config.auth['password'],
+                config.auth['default_tenant'],
+                config.auth['end_point'],
+                region_name=config.main['region'],
+                insecure=config.auth['insecure'])
+        except:
+            nova = nova_client.Client('2',
+                username=config.auth['username'],
+                api_key=config.auth['password'],
+                password=config.auth['password'],
+                project_id=config.auth['default_tenant'],
+                auth_url=config.auth['end_point'],
+                region_name=config.main['region'],
+                insecure=config.auth['insecure'])
 
         cache['flavors'][f_id] = nova.flavors.get(f_id).name
     return cache['flavors'][f_id]
@@ -95,14 +104,24 @@ def get_image(image_id):
 
 def get_volume(instance_id):
     try:
-        _client_class = novaclient.get_client_class(2)
-        nova = _client_class(
-            config.auth['username'],
-            config.auth['password'],
-            config.auth['default_tenant'],
-            config.auth['end_point'],
-            region_name=config.main['region'],
-            insecure=config.auth['insecure'])
+        try:
+            _client_class = nova_client.get_client_class(2)
+            nova = _client_class(
+                config.auth['username'],
+                config.auth['password'],
+                config.auth['default_tenant'],
+                config.auth['end_point'],
+                region_name=config.main['region'],
+                insecure=config.auth['insecure'])
+        except:
+            nova = nova_client.Client('2',
+                username=config.auth['username'],
+                api_key=config.auth['password'],
+                password=config.auth['password'],
+                project_id=config.auth['default_tenant'],
+                auth_url=config.auth['end_point'],
+                region_name=config.main['region'],
+                insecure=config.auth['insecure'])
 
         instance = nova.servers.get(instance_id)
         # Assume first volume is the root disk
