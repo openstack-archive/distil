@@ -6,4 +6,5 @@
     "rating:costs:get": "rule:context_is_admin",
     "rating:measurements:get": "rule:context_is_admin",
     "rating:invoices:get": "rule:context_is_admin",
+    "rating:quotations:get": "rule:context_is_admin",
 }

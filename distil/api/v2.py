@@ -26,6 +26,7 @@ from distil.service.api.v2 import costs
 from distil.service.api.v2 import health
 from distil.service.api.v2 import invoices
 from distil.service.api.v2 import products
+from distil.service.api.v2 import quotations
 
 LOG = log.getLogger(__name__)
 
@@ -122,5 +123,17 @@ def invoices_get():
             params['start'],
             params['end'],
             detailed=params['detailed']
+        )
+    )
+
+
+@rest.get('/quotations')
+@acl.enforce("rating:quotations:get")
+def quotations_get():
+    params = _get_request_args()
+
+    return api.render(
+        quotations.get_quotations(
+            params['project_id'], detailed=params['detailed']
         )
     )
