@@ -26,6 +26,7 @@ from distil.service.api.v2 import costs
 from distil.service.api.v2 import health
 from distil.service.api.v2 import invoices
 from distil.service.api.v2 import products
+from distil.service.api.v2 import quotations
 
 LOG = log.getLogger(__name__)
 
@@ -84,20 +85,6 @@ def products_get():
     return api.render(products=products.get_products(regions))
 
 
-@rest.get('/costs')
-@acl.enforce("rating:costs:get")
-def costs_get():
-    params = _get_request_args()
-
-    # NOTE(flwang): Here using 'usage' instead of 'costs' for backward
-    # compatibility.
-    return api.render(
-        usage=costs.get_costs(
-            params['project_id'], params['start'], params['end']
-        )
-    )
-
-
 @rest.get('/measurements')
 @acl.enforce("rating:measurements:get")
 def measurements_get():
@@ -121,5 +108,17 @@ def invoices_get():
             params['start'],
             params['end'],
             detailed=params['detailed']
+        )
+    )
+
+
+@rest.get('/quotations')
+@acl.enforce("rating:quotations:get")
+def quotations_get():
+    params = _get_request_args()
+
+    return api.render(
+        quotations.get_quotations(
+            params['project_id'], detailed=params['detailed']
         )
     )

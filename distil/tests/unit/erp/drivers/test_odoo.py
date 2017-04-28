@@ -189,3 +189,150 @@ class TestOdooDriver(base.DistilTestCase):
             },
             invoices
         )
+
+    @mock.patch('odoorpc.ODOO')
+    @mock.patch('distil.erp.drivers.odoo.OdooDriver.get_products')
+    def test_get_quotations_without_details(self, mock_get_products,
+                                            mock_odoo):
+        mock_get_products.return_value = {
+            'nz_1': {
+                'Compute': [
+                    {
+                        'name': 'c1.c2r16', 'description': 'c1.c2r16',
+                        'price': 0.01, 'unit': 'hour'
+                    }
+                ],
+                'Block Storage': [
+                    {
+                        'name': 'b1.standard', 'description': 'b1.standard',
+                        'price': 0.02, 'unit': 'gigabyte'
+                    }
+                ]
+            }
+        }
+
+        class Resource(object):
+            def __init__(self, id, info):
+                self.id = id
+                self.info = info
+
+        resources = [
+            Resource(1, '{"name": "", "type": "Volume"}'),
+            Resource(2, '{"name": "", "type": "Virtual Machine"}')
+        ]
+
+        usage = [
+            {
+                'service': 'b1.standard',
+                'resource_id': 1,
+                'volume': 1024 * 1024 * 1024,
+                'unit': 'byte',
+            },
+            {
+                'service': 'c1.c2r16',
+                'resource_id': 2,
+                'volume': 3600,
+                'unit': 'second',
+            }
+        ]
+
+        odoodriver = odoo.OdooDriver(self.conf)
+        quotations = odoodriver.get_quotations(
+            'nz_1', 'fake_id', measurements=usage, resources=resources
+        )
+
+        self.assertEqual(
+            {'total_cost': 0.03},
+            quotations
+        )
+
+    @mock.patch('odoorpc.ODOO')
+    @mock.patch('distil.erp.drivers.odoo.OdooDriver.get_products')
+    def test_get_quotations_with_details(self, mock_get_products,
+                                         mock_odoo):
+        mock_get_products.return_value = {
+            'nz_1': {
+                'Compute': [
+                    {
+                        'name': 'c1.c2r16', 'description': 'c1.c2r16',
+                        'price': 0.01, 'unit': 'hour'
+                    }
+                ],
+                'Block Storage': [
+                    {
+                        'name': 'b1.standard', 'description': 'b1.standard',
+                        'price': 0.02, 'unit': 'gigabyte'
+                    }
+                ]
+            }
+        }
+
+        class Resource(object):
+            def __init__(self, id, info):
+                self.id = id
+                self.info = info
+
+        resources = [
+            Resource(1, '{"name": "volume1", "type": "Volume"}'),
+            Resource(2, '{"name": "instance2", "type": "Virtual Machine"}')
+        ]
+
+        usage = [
+            {
+                'service': 'b1.standard',
+                'resource_id': 1,
+                'volume': 1024 * 1024 * 1024,
+                'unit': 'byte',
+            },
+            {
+                'service': 'c1.c2r16',
+                'resource_id': 2,
+                'volume': 3600,
+                'unit': 'second',
+            }
+        ]
+
+        odoodriver = odoo.OdooDriver(self.conf)
+        quotations = odoodriver.get_quotations(
+            'nz_1', 'fake_id', measurements=usage, resources=resources,
+            detailed=True
+        )
+
+        self.assertEqual(
+            {
+                'total_cost': 0.03,
+                'details': {
+                    'Compute': {
+                        'total_cost': 0.01,
+                        'breakdown': {
+                            'NZ-1.c1.c2r16': [
+                                {
+                                    "resource_name": "instance2",
+                                    "resource_id": 2,
+                                    "cost": 0.01,
+                                    "quantity": 1.0,
+                                    "rate": 0.01,
+                                    "unit": "hour",
+                                }
+                            ],
+                        }
+                    },
+                    'Block Storage': {
+                        'total_cost': 0.02,
+                        'breakdown': {
+                            'NZ-1.b1.standard': [
+                                {
+                                    "resource_name": "volume1",
+                                    "resource_id": 1,
+                                    "cost": 0.02,
+                                    "quantity": 1.0,
+                                    "rate": 0.02,
+                                    "unit": "gigabyte",
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            quotations
+        )
