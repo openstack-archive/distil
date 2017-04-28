@@ -20,6 +20,7 @@ from oslotest import base
 from oslo_config import cfg
 from oslo_log import log
 
+from distil.common import cache
 from distil import context
 from distil import config
 from distil.db import api as db_api
@@ -36,6 +37,8 @@ class DistilTestCase(base.BaseTestCase):
             self.conf = self.load_conf(self.config_file)
         else:
             self.conf = cfg.CONF
+
+        cache.setup_cache(self.conf)
 
         self.conf.register_opts(config.DEFAULT_OPTIONS)
         self.conf.register_opts(config.ODOO_OPTS, group=config.ODOO_GROUP)
