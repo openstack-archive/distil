@@ -80,3 +80,8 @@ class Forbidden(DistilException):
 class InvalidDriver(DistilException):
     """A driver was not found or loaded."""
     message = _("Failed to load driver")
+
+
+class ERPException(DistilException):
+    code = 500
+    message = _("ERP server error.")

@@ -22,6 +22,7 @@ from stevedore import driver
 from distil import exceptions
 
 LOG = log.getLogger(__name__)
+_ERP_DRIVER = None
 
 
 def load_erp_driver(conf):
@@ -31,17 +32,23 @@ def load_erp_driver(conf):
         driver. Must include a 'drivers' group.
     """
 
-    _invoke_args = [conf]
+    global _ERP_DRIVER
 
-    try:
-        mgr = driver.DriverManager('distil.erp',
-                                   conf.erp_driver,
-                                   invoke_on_load=True,
-                                   invoke_args=_invoke_args)
+    if not _ERP_DRIVER:
+        _invoke_args = [conf]
 
-        return mgr.driver
+        try:
+            mgr = driver.DriverManager('distil.erp',
+                                       conf.erp_driver,
+                                       invoke_on_load=True,
+                                       invoke_args=_invoke_args)
 
-    except Exception as exc:
-        LOG.exception(exc)
-        raise exceptions.InvalidDriver('Failed to load ERP driver'
-                                       ' for {0}'.format(conf.erp_driver))
+            _ERP_DRIVER = mgr.driver
+
+        except Exception as exc:
+            LOG.exception(exc)
+            raise exceptions.InvalidDriver(
+                'Failed to load ERP driver for {0}'.format(conf.erp_driver)
+            )
+
+    return _ERP_DRIVER
