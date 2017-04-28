@@ -55,9 +55,9 @@ def _validate_project_and_range(project_id, start, end):
                     "Missing parameter: " +
                     "'end' in format: y-m-d or y-m-dTH:M:S"))
 
-    if end <= start:
+    if end < start:
         raise exceptions.DateTimeException(
-            message="End date must be greater than start.")
+            message="End date must be greater than or equal to start.")
 
     if not project_id:
         raise exceptions.NotFoundException("Missing parameter: project_id")
