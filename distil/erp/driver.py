@@ -62,3 +62,19 @@ class BaseDriver(object):
         :return: The history invoices information for each month.
         """
         raise NotImplementedError()
+
+    def get_quotations(self, region, project_id, measurements=[], resources=[],
+                       detailed=False):
+        """Get usage cost for current month.
+
+        It depends on ERP system to decide how to get current month cost.
+
+        :param region: Region name.
+        :param project_id: Project ID.
+        :param measurements: Current month usage.
+        :param resources: List of resources.
+        :param detailed: If get detailed information or not.
+        :return: Current month quotation.
+        """
+
+        raise NotImplementedError()
