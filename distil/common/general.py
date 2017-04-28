@@ -24,6 +24,10 @@ import yaml
 from oslo_config import cfg
 from oslo_log import log as logging
 
+from distil.common import constants
+from distil.db import api as db_api
+from distil import exceptions
+
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 _TRANS_CONFIG = None
@@ -107,3 +111,45 @@ def convert_to(value, from_unit, to_unit):
 def get_process_identifier():
     """Gets current running process identifier."""
     return "%s_%s" % (socket.gethostname(), CONF.collector.partitioning_suffix)
+
+
+def convert_project_and_range(project_id, start, end):
+    now = datetime.utcnow()
+
+    try:
+        if start is not None:
+            try:
+                start = datetime.strptime(start, constants.iso_date)
+            except ValueError:
+                start = datetime.strptime(start, constants.iso_time)
+        else:
+            raise exceptions.DateTimeException(
+                message=(
+                    "Missing parameter:" +
+                    "'start' in format: y-m-d or y-m-dTH:M:S"))
+        if not end:
+            end = now
+        else:
+            try:
+                end = datetime.strptime(end, constants.iso_date)
+            except ValueError:
+                end = datetime.strptime(end, constants.iso_time)
+
+            if end > now:
+                end = now
+    except ValueError:
+        raise exceptions.DateTimeException(
+            message=(
+                "Missing parameter: " +
+                "'end' in format: y-m-d or y-m-dTH:M:S"))
+
+    if end <= start:
+        raise exceptions.DateTimeException(
+            message="End date must be greater than start.")
+
+    if not project_id:
+        raise exceptions.NotFoundException("Missing parameter: project_id")
+
+    valid_project = db_api.project_get(project_id)
+
+    return valid_project, start, end
