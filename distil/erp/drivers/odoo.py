@@ -19,6 +19,7 @@ from oslo_log import log
 
 from distil.common import openstack
 from distil.erp import driver
+from distil import exceptions
 
 LOG = log.getLogger(__name__)
 
@@ -60,6 +61,8 @@ class OdooDriver(driver.BaseDriver):
         self.pricelist = self.odoo.env['product.pricelist']
         self.product = self.odoo.env['product.product']
         self.category = self.odoo.env['product.category']
+        self.invoice = self.odoo.env['account.invoice']
+        self.invoice_line = self.odoo.env['account.invoice.line']
 
     def get_products(self, regions=[]):
         odoo_regions = []
@@ -140,3 +143,123 @@ class OdooDriver(driver.BaseDriver):
             return {}
 
         return prices
+
+    def _get_invoice_detail(self, invoice_id):
+        """Get invoice details.
+
+        Return details in the following format:
+        {
+          '<product_name>': [
+            {
+              'resource_name': '',
+              'quantity': '',
+              'unit': '',
+              'rate': '',
+              'subtotal': ''
+            }
+          ],
+          '<product_name>': [
+            {
+              'resource_name': '',
+              'quantity': '',
+              'unit': '',
+              'rate': '',
+              'subtotal': ''
+            }
+          ]
+        }
+        """
+        detail_dict = collections.defaultdict(list)
+
+        invoice_lines_ids = self.invoice_line.search(
+            [('invoice_id', '=', invoice_id)]
+        )
+        invoice_lines = self.invoice_line.read(invoice_lines_ids)
+
+        for line in invoice_lines:
+            line_info = {
+                'resource_name': line['name'],
+                'quantity': line['quantity'],
+                'rate': line['price_unit'],
+                'unit': line['uos_id'][1],
+                'cost': round(line['price_subtotal'], 2)
+            }
+
+            # Original product is a string like "[hour] NZ-POR-1.c1.c2r8"
+            product = line['product_id'][1].split(']')[1].strip()
+            detail_dict[product].append(line_info)
+
+        return detail_dict
+
+    def get_invoices(self, start, end, project_id, detailed=False):
+        """Get history invoices from Odoo given a time range.
+
+        Return value is in the following format:
+        {
+          '<billing_date1>': {
+            'total_cost': 100,
+            'details': {
+                ...
+            }
+          },
+          '<billing_date2>': {
+            'total_cost': 200,
+            'details': {
+                ...
+            }
+          }
+        }
+
+        :param start: Start time, a datetime object.
+        :param end: End time, a datetime object.
+        :param project_id: project ID.
+        :param detailed: Get detailed information.
+        :return: The history invoices information for each month.
+        """
+        # Get invoices in time ascending order.
+        result = collections.OrderedDict()
+
+        try:
+            invoice_ids = self.invoice.search(
+                [
+                    ('date_invoice', '>=', str(start.date())),
+                    ('date_invoice', '<=', str(end.date())),
+                    ('comment', 'like', project_id)
+                ],
+                order='date_invoice'
+            )
+
+            if not len(invoice_ids):
+                LOG.debug('No history invoices returned from Odoo.')
+                return result
+
+            LOG.debug('Found invoices: %s' % invoice_ids)
+
+            # Convert ids from string to int.
+            ids = [int(i) for i in invoice_ids]
+
+            invoices = self.odoo.execute(
+                'account.invoice',
+                'read',
+                ids,
+                ['date_invoice', 'amount_total']
+            )
+            for v in invoices:
+                result[v['date_invoice']] = {
+                    'total_cost': round(v['amount_total'], 2)
+                }
+
+                if detailed:
+                    details = self._get_invoice_detail(v['id'])
+                    result[v['date_invoice']].update({'details': details})
+        except Exception as e:
+            LOG.exception(
+                'Error occured when getting invoices from Odoo, '
+                'error: %s' % str(e)
+            )
+
+            raise exceptions.ERPException(
+                'Failed to get invoices from ERP server.'
+            )
+
+        return result
