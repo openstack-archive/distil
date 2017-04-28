@@ -75,3 +75,17 @@ class BaseDriver(object):
         :return: The history invoices information for each month.
         """
         raise NotImplementedError()
+
+    def get_current_month_cost(self, region, project, usage, detailed=False):
+        """Get usage cost for current month.
+
+        It depends on ERP system to decide how to get current month cost.
+
+        :param region: Region name.
+        :param project: Project object get from Keystone.
+        :param usage: Current month usage.
+        :param detailed: If get detailed information or not.
+        :return: Cost information of current month.
+        """
+
+        raise NotImplementedError()

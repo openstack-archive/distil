@@ -12,15 +12,22 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import calendar
 import collections
 from datetime import datetime
+from decimal import Decimal
+import json
 
 import odoorpc
 from oslo_log import log
 
+from distil.common import cache
+from distil.common import general
 from distil.common import openstack
+from distil.db import api as db_api
 from distil.erp import driver
+from distil import exceptions
 
 LOG = log.getLogger(__name__)
 
@@ -65,6 +72,7 @@ class OdooDriver(driver.BaseDriver):
         self.invoice = self.odoo.env['account.invoice']
         self.invoice_line = self.odoo.env['account.invoice.line']
 
+    @cache.memoize
     def get_products(self, regions=[]):
         odoo_regions = []
 
@@ -292,5 +300,115 @@ class OdooDriver(driver.BaseDriver):
                 'error: %s' % str(e)
             )
             return result
+
+        return result
+
+    def _get_service_mapping(self, products):
+        """Gets mapping from service name to service type.
+
+        :param products: Product dict in a region returned from odoo.
+        """
+        srv_mapping = {}
+
+        for category, p_list in products.items():
+            for p in p_list:
+                if category == 'network':
+                    srv_mapping[p['name']] = p['description']
+                else:
+                    srv_mapping[p['name']] = category.title()
+
+        return srv_mapping
+
+    def _get_service_price(self, service_name, service_type, products):
+        """Get service price information from price definitions."""
+        price = {'service_name': service_name}
+
+        if service_type in products:
+            for s in products[service_type]:
+                if s['name'] == service_name:
+                    price.update({'rate': s['price'], 'unit': s['unit']})
+                    break
+        else:
+            found = False
+            for category, services in products.items():
+                for s in services:
+                    if s['name'] == service_name:
+                        price.update({'rate': s['price'], 'unit': s['unit']})
+                        found = True
+                        break
+
+            if not found:
+                raise exceptions.NotFoundException(
+                    'Price not found, service name: %s, service type: %s' %
+                    (service_name, service_type)
+                )
+
+        return price
+
+    def get_current_month_cost(self, region, project, usage, detailed=False):
+        """Get usage cost for current month.
+
+        :param region: Region name.
+        :param project: Project object get from Keystone.
+        :param usage: Current month usage.
+        :param detailed: If get detailed information or not.
+        :return: Cost information of current month.
+        """
+        total_cost = 0
+        price_mapping = {}
+        cost_details = collections.defaultdict(list)
+
+        odoo_region = self.region_mapping.get(region, region).upper()
+
+        products = self.get_products([region])[region]
+        service_mapping = self._get_service_mapping(products)
+
+        all_resource_ids = [entry.get('resource_id') for entry in usage]
+        res_list = db_api.resource_get_by_ids(project.id, all_resource_ids)
+        resources = {row.id: json.loads(row.info) for row in res_list}
+
+        for entry in usage:
+            service_name = entry.get('service')
+            volume = entry.get('volume')
+            unit = entry.get('unit')
+            res_id = entry.get('resource_id')
+
+            odoo_service_name = "%s.%s" % (odoo_region, service_name)
+
+            resource_type = resources[res_id]['type']
+            service_type = ('Image' if resource_type == 'Image' else
+                            service_mapping.get(service_name, resource_type))
+
+            if service_name not in price_mapping:
+                price_spec = self._get_service_price(
+                    service_name, service_type, products
+                )
+                price_mapping[service_name] = price_spec
+            else:
+                price_spec = price_mapping[service_name]
+
+            # Convert volume according to unit in price definition.
+            volume = general.convert_to(volume, unit, price_spec['unit'])
+
+            cost = (round(volume * Decimal(price_spec['rate']), 2)
+                    if price_spec['rate'] else 0)
+
+            total_cost += cost
+
+            if detailed:
+                cost_details[odoo_service_name].append(
+                    {
+                        "resource_name": resources[res_id].get('name', ''),
+                        "resource_id": res_id,
+                        "cost": cost,
+                        "quantity": round(volume, 4),
+                        "rate": price_spec['rate'],
+                        "unit": price_spec['unit'],
+                    }
+                )
+
+        result = {'total_cost': round(total_cost, 2)}
+        if detailed:
+            result.update({'details': cost_details})
 
         return result

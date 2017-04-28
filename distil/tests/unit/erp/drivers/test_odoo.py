@@ -165,3 +165,155 @@ class TestOdooDriver(base.DistilTestCase):
             },
             invoices
         )
+
+    @mock.patch('odoorpc.ODOO')
+    @mock.patch('distil.db.api.resource_get_by_ids')
+    @mock.patch('distil.erp.drivers.odoo.OdooDriver.get_products')
+    def test_get_current_month_cost_without_details(self, mock_get_products,
+                                                    mock_get_resource,
+                                                    mock_odoo):
+        class Resource(object):
+            def __init__(self, id, info):
+                self.id = id
+                self.info = info
+
+        mock_get_resource.return_value = [
+            Resource(1, '{"name": "", "type": "Volume"}'),
+            Resource(2, '{"name": "", "type": "Virtual Machine"}')
+        ]
+
+        class Project(object):
+            id = '123'
+            name = 'fake_project'
+
+        fake_project = Project()
+
+        mock_get_products.return_value = {
+            'nz_1': {
+                'Compute': [
+                    {
+                        'name': 'c1.c2r16', 'description': 'c1.c2r16',
+                        'price': 0.01, 'unit': 'hour'
+                    }
+                ],
+                'Block Storage': [
+                    {
+                        'name': 'b1.standard', 'description': 'b1.standard',
+                        'price': 0.02, 'unit': 'gigabyte'
+                    }
+                ]
+            }
+        }
+
+        usage = [
+            {
+                'service': 'b1.standard',
+                'resource_id': 1,
+                'volume': 1024 * 1024 * 1024,
+                'unit': 'byte',
+            },
+            {
+                'service': 'c1.c2r16',
+                'resource_id': 2,
+                'volume': 3600,
+                'unit': 'second',
+            }
+        ]
+
+        odoodriver = odoo.OdooDriver(self.conf)
+        quotations = odoodriver.get_current_month_cost(
+            'nz_1', fake_project, usage
+        )
+
+        self.assertEqual(
+            {'total_cost': 0.03},
+            quotations
+        )
+
+    @mock.patch('odoorpc.ODOO')
+    @mock.patch('distil.db.api.resource_get_by_ids')
+    @mock.patch('distil.erp.drivers.odoo.OdooDriver.get_products')
+    def test_get_current_month_cost_with_details(self, mock_get_products,
+                                                 mock_get_resource,
+                                                 mock_odoo):
+        class Resource(object):
+            def __init__(self, id, info):
+                self.id = id
+                self.info = info
+
+        mock_get_resource.return_value = [
+            Resource(1, '{"name": "volume1", "type": "Volume"}'),
+            Resource(2, '{"name": "instance2", "type": "Virtual Machine"}')
+        ]
+
+        class Project(object):
+            id = '123'
+            name = 'fake_project'
+
+        fake_project = Project()
+
+        mock_get_products.return_value = {
+            'nz_1': {
+                'Compute': [
+                    {
+                        'name': 'c1.c2r16', 'description': 'c1.c2r16',
+                        'price': 0.01, 'unit': 'hour'
+                    }
+                ],
+                'Block Storage': [
+                    {
+                        'name': 'b1.standard', 'description': 'b1.standard',
+                        'price': 0.02, 'unit': 'gigabyte'
+                    }
+                ]
+            }
+        }
+
+        usage = [
+            {
+                'service': 'b1.standard',
+                'resource_id': 1,
+                'volume': 1024 * 1024 * 1024,
+                'unit': 'byte',
+            },
+            {
+                'service': 'c1.c2r16',
+                'resource_id': 2,
+                'volume': 3600,
+                'unit': 'second',
+            }
+        ]
+
+        odoodriver = odoo.OdooDriver(self.conf)
+        quotations = odoodriver.get_current_month_cost(
+            'nz_1', fake_project, usage, detailed=True
+        )
+
+        self.assertEqual(
+            {
+                'total_cost': 0.03,
+                'details': {
+                    'NZ-1.c1.c2r16': [
+                        {
+                            "resource_name": "instance2",
+                            "resource_id": 2,
+                            "cost": 0.01,
+                            "quantity": 1.0,
+                            "rate": 0.01,
+                            "unit": "hour",
+                        }
+                    ],
+                    'NZ-1.b1.standard': [
+                        {
+                            "resource_name": "volume1",
+                            "resource_id": 1,
+                            "cost": 0.02,
+                            "quantity": 1.0,
+                            "rate": 0.02,
+                            "unit": "gigabyte",
+                        }
+                    ]
+                }
+            },
+            quotations
+        )
