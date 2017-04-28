@@ -21,6 +21,7 @@ from distil import exceptions
 from distil.api import acl
 from distil.common import api
 from distil.common import constants
+from distil.common import openstack
 from distil.service.api.v2 import costs
 from distil.service.api.v2 import health
 from distil.service.api.v2 import products
@@ -38,7 +39,17 @@ def health_get():
 @rest.get('/products')
 def products_get():
     os_regions = api.get_request_args().get('regions', None)
-    regions = os_regions.split(',') if os_regions else None
+    regions = os_regions.split(',') if os_regions else []
+
+    if regions:
+        actual_regions = [r.id for r in openstack.get_regions()]
+        for region in regions:
+            if region not in actual_regions:
+                raise exceptions.NotFoundException(
+                    'Region name not found, expected regions: %s' %
+                    actual_regions
+                )
+
     return api.render(products=products.get_products(regions))
 
 
