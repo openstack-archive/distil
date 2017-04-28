@@ -48,7 +48,7 @@ def _keygen(*args, **kwargs):
 def memoize(function):
     @wraps(function)
     def wrapper(*args, **kwargs):
-        key = _keygen(*args, **kwargs)
+        key = _keygen(function.__name__, *args, **kwargs)
         value = CACHE_REGION.get(key)
         if value is core.NO_VALUE:
             value = function(*args, **kwargs)
