@@ -64,3 +64,14 @@ class BaseDriver(object):
         :param project: project
         """
         raise NotImplementedError()
+
+    def get_invoices(self, start, end, project_id, detailed=False):
+        """Get history invoices from Odoo given a time range.
+
+        :param start: Start time, a datetime object.
+        :param end: End time, a datetime object.
+        :param project_id: project ID.
+        :param detailed: If get detailed information or not.
+        :return: The history invoices information for each month.
+        """
+        raise NotImplementedError()
