@@ -14,8 +14,8 @@
 # limitations under the License.
 
 from dateutil import parser
-
 from oslo_log import log
+from oslo_utils import strutils
 
 from distil import exceptions
 from distil.api import acl
@@ -24,11 +24,30 @@ from distil.common import constants
 from distil.common import openstack
 from distil.service.api.v2 import costs
 from distil.service.api.v2 import health
+from distil.service.api.v2 import invoices
 from distil.service.api.v2 import products
 
 LOG = log.getLogger(__name__)
 
 rest = api.Rest('v2', __name__)
+
+
+def _get_usage_args():
+    if api.context.current().is_admin:
+        # NOTE(flwang): Get 'tenant' first for backward compatibility.
+        tenant_id = api.get_request_args().get('tenant', None)
+        project_id = api.get_request_args().get('project_id', tenant_id)
+    else:
+        project_id = api.context.current().project_id
+
+    start = api.get_request_args().get('start', None)
+    end = api.get_request_args().get('end', None)
+
+    detailed = strutils.bool_from_string(
+        api.get_request_args().get('detailed', False)
+    )
+
+    return project_id, start, end, detailed
 
 
 @rest.get('/health')
@@ -54,19 +73,10 @@ def products_get():
     return api.render(products=products.get_products(regions))
 
 
-def _get_usage_args():
-    # NOTE(flwang): Get 'tenant' first for backward compatibility.
-    tenant_id = api.get_request_args().get('tenant', None)
-    project_id = api.get_request_args().get('project_id', tenant_id)
-    start = api.get_request_args().get('start', None)
-    end = api.get_request_args().get('end', None)
-    return project_id, start, end
-
-
 @rest.get('/costs')
 @acl.enforce("rating:costs:get")
 def costs_get():
-    project_id, start, end = _get_usage_args()
+    project_id, start, end, _ = _get_usage_args()
 
     # NOTE(flwang): Here using 'usage' instead of 'costs' for backward
     # compatibility.
@@ -76,6 +86,16 @@ def costs_get():
 @rest.get('/measurements')
 @acl.enforce("rating:measurements:get")
 def measurements_get():
-    project_id, start, end = _get_usage_args()
+    project_id, start, end, _ = _get_usage_args()
 
     return api.render(measurements=costs.get_usage(project_id, start, end))
+
+
+@rest.get('/invoices')
+@acl.enforce("rating:invoices:get")
+def invoices_get():
+    project_id, start, end, detailed = _get_usage_args()
+
+    return api.render(
+        invoices.get_invoices(project_id, start, end, detailed=detailed)
+    )
