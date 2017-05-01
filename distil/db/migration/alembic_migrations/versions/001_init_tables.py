@@ -25,12 +25,26 @@ Create Date: 2014-04-01 20:46:25.783444
 revision = '001'
 down_revision = None
 
+import re
+
 from alembic import op
+from sqlalchemy.ext.compiler import compiles
 import sqlalchemy as sa
+from sqlalchemy.schema import CreateTable
+
 from distil.db.sqlalchemy import model_base
 
 MYSQL_ENGINE = 'InnoDB'
 MYSQL_CHARSET = 'utf8'
+
+
+@compiles(CreateTable)
+def _add_if_not_exists(element, compiler, **kw):
+    output = compiler.visit_create_table(element, **kw)
+    if element.element.info.get("check_ifexists"):
+        output = re.sub(
+            "^\s*CREATE TABLE", "CREATE TABLE IF NOT EXISTS", output, re.S)
+    return output
 
 
 def upgrade():
@@ -43,7 +57,8 @@ def upgrade():
                     sa.Column('last_collected', sa.DateTime(), nullable=True),
                     sa.PrimaryKeyConstraint('id'),
                     mysql_engine=MYSQL_ENGINE,
-                    mysql_charset=MYSQL_CHARSET)
+                    mysql_charset=MYSQL_CHARSET,
+                    info={"check_ifexists": True})
 
     op.create_table('resources',
                     sa.Column('id', sa.String(length=100)),
@@ -55,7 +70,8 @@ def upgrade():
                     sa.PrimaryKeyConstraint('id', 'tenant_id'),
                     sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ),
                     mysql_engine=MYSQL_ENGINE,
-                    mysql_charset=MYSQL_CHARSET)
+                    mysql_charset=MYSQL_CHARSET,
+                    info={"check_ifexists": True})
 
     op.create_table('usage_entry',
                     sa.Column('service', sa.String(length=100),
@@ -77,7 +93,8 @@ def upgrade():
                     sa.ForeignKeyConstraint(['resource_id'],
                                             ['resources.id'], ),
                     mysql_engine=MYSQL_ENGINE,
-                    mysql_charset=MYSQL_CHARSET)
+                    mysql_charset=MYSQL_CHARSET,
+                    info={"check_ifexists": True})
 
     op.create_table('sales_orders',
                     sa.Column('id', sa.Integer, primary_key=True),
@@ -91,7 +108,8 @@ def upgrade():
                                             'end_at'),
                     sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ),
                     mysql_engine=MYSQL_ENGINE,
-                    mysql_charset=MYSQL_CHARSET)
+                    mysql_charset=MYSQL_CHARSET,
+                    info={"check_ifexists": True})
 
     op.create_table('distil_last_run',
                     sa.Column('id', sa.Integer,
@@ -99,7 +117,8 @@ def upgrade():
                               primary_key=True,),
                     sa.Column('last_run', sa.DateTime(), nullable=True),
                     mysql_engine=MYSQL_ENGINE,
-                    mysql_charset=MYSQL_CHARSET)
+                    mysql_charset=MYSQL_CHARSET,
+                    info={"check_ifexists": True})
 
 
 def downgrade():
