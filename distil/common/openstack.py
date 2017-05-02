@@ -23,6 +23,7 @@ from keystoneclient.v3 import client as ks_client
 from novaclient import client as novaclient
 from oslo_config import cfg
 
+from distil.common import cache as distil_cache
 from distil.common import general
 
 CONF = cfg.CONF
@@ -100,6 +101,7 @@ def get_projects():
 
 
 @general.disable_ssl_warnings
+@distil_cache.memoize
 def get_regions():
     keystone = get_keystone_client()
 

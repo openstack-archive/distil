@@ -35,7 +35,7 @@ class BaseDriver(object):
         """
         raise NotImplementedError()
 
-    def get_products(self, regions=None):
+    def get_products(self, regions=[]):
         """List products based o given regions
 
         :param regions: List of regions to get projects
