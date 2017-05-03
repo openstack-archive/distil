@@ -22,6 +22,7 @@ from distil.api import acl
 from distil.common import api
 from distil.common import constants
 from distil.common import openstack
+from distil.service.api.v2 import credits
 from distil.service.api.v2 import health
 from distil.service.api.v2 import invoices
 from distil.service.api.v2 import measurements
@@ -123,3 +124,11 @@ def quotations_get():
             params['project_id'], detailed=params['detailed']
         )
     )
+
+
+@rest.get('/credits')
+@acl.enforce("rating:credits:get")
+def credits_get():
+    params = _get_request_args()
+
+    return api.render(credits=credits.get_credits(params['project_id']))
