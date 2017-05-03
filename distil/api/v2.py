@@ -23,6 +23,7 @@ from distil.common import api
 from distil.common import constants
 from distil.common import openstack
 from distil.service.api.v2 import costs
+from distil.service.api.v2 import credits
 from distil.service.api.v2 import health
 from distil.service.api.v2 import products
 
@@ -54,10 +55,14 @@ def products_get():
     return api.render(products=products.get_products(regions))
 
 
-def _get_usage_args():
-    # NOTE(flwang): Get 'tenant' first for backward compatibility.
-    tenant_id = api.get_request_args().get('tenant', None)
-    project_id = api.get_request_args().get('project_id', tenant_id)
+def _get_request_args():
+    if api.context.current().is_admin:
+        # NOTE(flwang): Get 'tenant' first for backward compatibility.
+        tenant_id = api.get_request_args().get('tenant', None)
+        project_id = api.get_request_args().get('project_id', tenant_id)
+    else:
+        project_id = api.context.current().project_id
+
     start = api.get_request_args().get('start', None)
     end = api.get_request_args().get('end', None)
     return project_id, start, end
@@ -66,7 +71,7 @@ def _get_usage_args():
 @rest.get('/costs')
 @acl.enforce("rating:costs:get")
 def costs_get():
-    project_id, start, end = _get_usage_args()
+    project_id, start, end = _get_request_args()
 
     # NOTE(flwang): Here using 'usage' instead of 'costs' for backward
     # compatibility.
@@ -76,6 +81,13 @@ def costs_get():
 @rest.get('/measurements')
 @acl.enforce("rating:measurements:get")
 def measurements_get():
-    project_id, start, end = _get_usage_args()
+    project_id, start, end = _get_request_args()
 
     return api.render(measurements=costs.get_usage(project_id, start, end))
+
+
+@rest.get('/credits')
+def credits_get():
+    project_id, _, _ = _get_request_args()
+
+    return api.render(credits=credits.get_credits(project_id))
