@@ -37,18 +37,23 @@ class BaseDriver(object):
         """
         raise NotImplementedError()
 
-    def get_credits(self, project):
+    def get_credits(self, project_id, expiry_date):
         """Get project credits
 
-        :param instance: nova.objects.instance.Instance
+        :param project_id: Project ID
+        :param expiry_date: 
         :returns list of credits current project can get
         """
         raise NotImplementedError()
 
-    def create_credit(self, project, credit):
-        """Create credit for a given project
+    def create_credit(self, project_name, expiry_date, credit,
+                      project_id=None):
+        """Get project credits
 
-        :param project: project
+        :param project_id: Project id.
+        :param expiry_date: Expiry date of credits.
+        :param project_id: Project ID.
+        :return: All credits before the expiry date.
         """
         raise NotImplementedError()
 
