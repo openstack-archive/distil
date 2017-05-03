@@ -25,7 +25,7 @@ class RequestContext(context.RequestContext):
                  auth_token=None, user=None, tenant=None, domain=None,
                  user_domain=None, project_domain=None, is_admin=False,
                  read_only=False, show_deleted=False, request_id=None,
-                 instance_uuid=None, roles=None, **kwargs):
+                 instance_uuid=None, roles=[], **kwargs):
         super(RequestContext, self).__init__(auth_token=auth_token,
                                              user=user,
                                              tenant=tenant,
@@ -37,6 +37,7 @@ class RequestContext(context.RequestContext):
                                              show_deleted=False,
                                              request_id=request_id,
                                              roles=roles)
+        self.is_admin = 'admin' in roles
         self.project_id = project_id or self.tenant
         if overwrite or not hasattr(context._request_store, 'context'):
             self.update_store()

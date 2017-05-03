@@ -37,6 +37,8 @@ class OdooDriver(driver.BaseDriver):
                                  protocol=conf.odoo.protocol,
                                  port=conf.odoo.port,
                                  version=conf.odoo.version)
+        import pdb
+        pdb.set_trace()
         self.odoo.login(conf.odoo.database, conf.odoo.user, conf.odoo.password)
 
         self.region_mapping = {}
@@ -68,6 +70,7 @@ class OdooDriver(driver.BaseDriver):
         self.category = self.odoo.env['product.category']
         self.invoice = self.odoo.env['account.invoice']
         self.invoice_line = self.odoo.env['account.invoice.line']
+        self.credit = self.odoo.env['cloud.credit']
 
         self.product_catagory_mapping = {}
 
@@ -423,3 +426,19 @@ class OdooDriver(driver.BaseDriver):
             result.update({'details': cost_details})
 
         return result
+
+    def _normalize_credit(self, credit):
+        return {"code": credit["code"],
+                "type": credit["credit_type_id"][1],
+                "start_date": credit["create_date"],
+                "expiry_date": credit["expiry_date"],
+                "balance": credit["current_balance"],
+                "recurring": credit["recurring"]}
+
+    def get_credits(self, project_id, expiry_date):
+        ids = self.credit.search(
+            [('cloud_tenant.tenant_id', '=', project_id),
+             ('expiry_date', '>', expiry_date.isoformat()),
+             ('current_balance', '>', 0.0001)])
+
+        return [self._normalize_credit(c) for c in self.credit.read(ids)]

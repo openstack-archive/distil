@@ -336,3 +336,35 @@ class TestOdooDriver(base.DistilTestCase):
             },
             quotations
         )
+
+    @mock.patch('odoorpc.ODOO')
+    def test_get_credits(self,  mock_odoo):
+        fake_credits = [{'create_uid': [182, 'OpenStack Testing'],
+                         'initial_balance': 500.0,
+                         'code': '3dd294588f15404f8d77bd97e653324b',
+                         'credit_type_id': [1, 'Cloud Trial Credit'],
+                         'name': '3dd294588f15404f8d77bd97e653324b',
+                         '__last_update': '2017-05-26 02:16:38',
+                         'current_balance': 500.0,
+                         'cloud_tenant': [212,
+                                          'openstack-dev.catalyst.net.nz'],
+                         'write_uid': [98, 'OpenStack Billing'],
+                         'expiry_date': '2017-11-24',
+                         'write_date': '2017-05-26 02:16:38',
+                         'id': 68, 'create_date': '2017-02-14 02:12:40',
+                         'recurring': False, 'start_date': '2017-10-23',
+                         'display_name': '3dd294588f15404f8d77bd97e653324b'}]
+
+        project_id = 'fake_project_id'
+        odoodriver = odoo.OdooDriver(self.conf)
+        odoodriver.credit.search.return_value = []
+        odoodriver.credit.read.return_value = fake_credits
+        credits = odoodriver.get_credits(project_id,
+                                         datetime.now())
+        self.assertEqual([{"code": "3dd294588f15404f8d77bd97e653324b",
+                           "recurring": False,
+                           "expiry_date": "2017-11-24",
+                           "balance": 500,
+                           "type": "Cloud Trial Credit",
+                           "start_date": "2017-02-14 02:12:40"}],
+                         credits)
