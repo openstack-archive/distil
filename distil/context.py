@@ -37,6 +37,7 @@ class RequestContext(context.RequestContext):
                                              show_deleted=False,
                                              request_id=request_id,
                                              roles=roles)
+        self.is_admin = 'admin' in roles
         self.project_id = project_id or self.tenant
         if overwrite or not hasattr(context._request_store, 'context'):
             self.update_store()
