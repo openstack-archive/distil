@@ -60,6 +60,7 @@ class OdooDriver(driver.BaseDriver):
         self.pricelist = self.odoo.env['product.pricelist']
         self.product = self.odoo.env['product.product']
         self.category = self.odoo.env['product.category']
+        self.credit = self.odoo.env['cloud.credit']
 
     def get_products(self, regions=[]):
         odoo_regions = []
@@ -140,3 +141,22 @@ class OdooDriver(driver.BaseDriver):
             return {}
 
         return prices
+
+    def _normalize_credit(self, credit):
+        return {"code": credit["code"],
+                "type": credit["credit_type_id"][1],
+                "start_date": credit["create_date"],
+                "expiry_date": credit["expiry_date"],
+                "balance": credit["current_balance"],
+                "recurring": credit["recurring"]}
+
+    def get_credits(self, project_name, expiry_date, project_id=None):
+        """Get project credits in Odoo"""
+
+        # TODO(adriant): Rename tenant to project once renamed in odoo:
+        ids = self.credit.search(
+            [('cloud_tenant', '=', project_name),
+             ('expiry_date', '>', expiry_date.isoformat()),
+             ('current_balance', '>', 0.0001)])
+
+        return [self._normalize_credit(c) for c in self.credit.read(ids)]
