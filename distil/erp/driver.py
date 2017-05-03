@@ -37,7 +37,7 @@ class BaseDriver(object):
         """
         raise NotImplementedError()
 
-    def get_credits(self, project):
+    def get_credits(self, project_name, expiry_date, project_id=None):
         """Get project credits
 
         :param instance: nova.objects.instance.Instance
@@ -45,7 +45,8 @@ class BaseDriver(object):
         """
         raise NotImplementedError()
 
-    def create_credit(self, project, credit):
+    def create_credit(self, project_name, expiry_date, credit,
+                      project_id=None):
         """Create credit for a given project
 
         :param project: project
