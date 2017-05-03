@@ -68,6 +68,7 @@ class OdooDriver(driver.BaseDriver):
         self.category = self.odoo.env['product.category']
         self.invoice = self.odoo.env['account.invoice']
         self.invoice_line = self.odoo.env['account.invoice.line']
+        self.credit = self.odoo.env['cloud.credit']
 
         self.product_catagory_mapping = {}
 
@@ -423,3 +424,27 @@ class OdooDriver(driver.BaseDriver):
             result.update({'details': cost_details})
 
         return result
+
+    def _normalize_credit(self, credit):
+        return {"code": credit["code"],
+                "type": credit["credit_type_id"][1],
+                "start_date": credit["create_date"],
+                "expiry_date": credit["expiry_date"],
+                "balance": credit["current_balance"],
+                "recurring": credit["recurring"]}
+
+    def get_credits(self, project_name, expiry_date, project_id=None):
+        """Get project credits from Odoo
+
+        :param project_name: Project name.
+        :param expiry_date: Expiry date of credits.
+        :param project_id: Project ID.
+        :return: All credits before the expiry date.
+        """
+
+        ids = self.credit.search(
+            [('cloud_tenant', '=', project_name),
+             ('expiry_date', '>', expiry_date.isoformat()),
+             ('current_balance', '>', 0.0001)])
+
+        return [self._normalize_credit(c) for c in self.credit.read(ids)]
