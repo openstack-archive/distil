@@ -22,19 +22,6 @@ class BaseDriver(object):
     def __init__(self, conf):
         self.conf = conf
 
-    def get_salesOrders(self, project, start_at, end_at):
-        """List sales orders based on the given project and time range
-
-        :param project: project id
-        :param start_at: start time
-        :param end_at: end time
-        :returns List of sales order, if the time range only cover one month,
-                 then, the list will only contain 1 sale orders. Otherwise,
-                 the length of the list depends on the months number of the
-                 time range.
-        """
-        raise NotImplementedError()
-
     def get_products(self, regions=[]):
         """List products based o given regions
 
@@ -62,5 +49,16 @@ class BaseDriver(object):
         """Create credit for a given project
 
         :param project: project
+        """
+        raise NotImplementedError()
+
+    def get_invoices(self, start, end, project_id, detailed=False):
+        """Get history invoices from ERP service given a time range.
+
+        :param start: Start time, a datetime object.
+        :param end: End time, a datetime object.
+        :param project_id: project ID.
+        :param detailed: If get detailed information or not.
+        :return: The history invoices information for each month.
         """
         raise NotImplementedError()
