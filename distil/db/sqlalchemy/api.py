@@ -114,20 +114,20 @@ def _project_get(session, project_id):
     return session.query(Tenant).filter_by(id=project_id).first()
 
 
-def project_add(values):
+def project_add(values, last_collect=None):
     session = get_session()
     project = _project_get(session, values['id'])
 
     if not project:
-        # In fact, it should be the project created time.
-        start_time = datetime.strptime(
-            CONF.collector.dawn_of_time,
-            "%Y-%m-%d %H:%M:%S"
-        )
+        if not last_collect:
+            last_collect = datetime.strptime(
+                CONF.collector.dawn_of_time,
+                "%Y-%m-%d %H:%M:%S"
+            )
 
         project = Tenant(id=values['id'], name=values['name'],
                          info=values['description'], created=datetime.utcnow(),
-                         last_collected=start_time)
+                         last_collected=last_collect)
 
         try:
             project.save(session=session)
@@ -155,6 +155,16 @@ def project_get(project_id):
         raise exceptions.NotFoundException(
             "Project %s not found." % project_id
         )
+
+
+def get_last_collect(project_ids):
+    session = get_session()
+    query = session.query(
+        func.min(Tenant.last_collected).label("last_collected")
+    )
+    query = query.filter(Tenant.id.in_(project_ids))
+
+    return query.one()
 
 
 def usage_get(project_id, start, end):

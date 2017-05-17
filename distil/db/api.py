@@ -106,8 +106,8 @@ def resource_add(project_id, resource_id, resource_type, rawdata, metadata):
                              rawdata, metadata)
 
 
-def project_add(values):
-    return IMPL.project_add(values)
+def project_add(values, last_collect=None):
+    return IMPL.project_add(values, last_collect)
 
 
 def resource_get_by_ids(project_id, resource_ids):
@@ -120,6 +120,10 @@ def project_get(project_id):
 
 def project_get_all():
     return IMPL.project_get_all()
+
+
+def get_last_collect(project_ids):
+    return IMPL.get_last_collect(project_ids)
 
 
 # Project Locks.
