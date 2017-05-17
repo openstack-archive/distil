@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime as dt
+from datetime import datetime
+from datetime import timedelta
 
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -25,29 +26,36 @@ CONF = cfg.CONF
 
 
 def get_health():
-    health = {}
+    """Get health status of distil.
+
+    Currently, we only check usage collection to achieve feature parity with
+    current monitoring requirements.
+
+    In future, we could add running status for ERP system, etc.
+    """
+    result = {}
+
     projects_keystone = openstack.get_projects()
-    project_id_list_keystone = [t['id'] for t in projects_keystone]
-    projects = db_api.project_get_all()
+    keystone_projects = [t['id'] for t in projects_keystone]
 
-    # NOTE(flwang): Check the last_collected field for each tenant of Distil,
-    # if the date is old (has not been updated more than 24 hours) and the
-    # tenant is still active in Keystone, we believe it should be investigated.
-    failed_collected_count = 0
-    for p in projects:
-        delta = (dt.now() - p.last_collected).total_seconds() // 3600
-        if delta >= 24 and p.id in project_id_list_keystone:
-            failed_collected_count += 1
+    threshold = datetime.utcnow() - timedelta(days=1)
 
-    # TODO(flwang): The format of health output need to be discussed so that
-    # we can get a stable format before it's used in monitor.
-    if failed_collected_count == 0:
-        health['metrics_collecting'] = {'status': 'OK',
-                                        'note': 'All tenants are synced.'}
+    failed_projects = db_api.project_get_all(
+        id={'op': 'in', 'value': keystone_projects},
+        last_collected={'op': 'lte', 'value': threshold}
+    )
+
+    failed_count = len(failed_projects)
+
+    if failed_count == 0:
+        result['usage_collection'] = {
+            'status': 'OK',
+            'msg': 'Tenant usage successfully collected and up-to-date.'
+        }
     else:
-        note = ('Failed to collect metrics for %s projects.' %
-                failed_collected_count)
-        health['metrics_collecting'] = {'status': 'FAIL',
-                                        'note': note}
+        result['usage_collection'] = {
+            'status': 'FAIL',
+            'msg': 'Failed to collect usage for %s projects.' % failed_count
+        }
 
-    return health
+    return result
