@@ -32,7 +32,7 @@ DEFAULT_OPTIONS = (
                help='The listen IP for the Distil API server',
                ),
     cfg.ListOpt('public_api_routes',
-                default=['/', '/v2/products', '/v2/health'],
+                default=['/', '/v2/products'],
                 help='The list of public API routes',
                 ),
     cfg.ListOpt('ignore_tenants',

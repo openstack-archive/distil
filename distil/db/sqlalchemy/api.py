@@ -110,6 +110,49 @@ def model_query(model, context, session=None, project_only=True):
     return query
 
 
+def apply_filters(query, model, **filters):
+    """Apply filter for db query.
+
+    Sample of filters:
+    {
+        'key1': {'op': 'in', 'value': [1, 2]},
+        'key2': {'op': 'lt', 'value': 10},
+        'key3': 'value'
+    }
+    """
+    filter_dict = {}
+
+    for key, criteria in filters.items():
+        column_attr = getattr(model, key)
+        if isinstance(criteria, dict):
+            if 'in' == criteria['op']:
+                query = query.filter(column_attr.in_(criteria['value']))
+            elif 'nin' == criteria['op']:
+                query = query.filter(~column_attr.in_(criteria['value']))
+            elif 'neq' == criteria['op']:
+                query = query.filter(column_attr != criteria['value'])
+            elif 'gt' == criteria['op']:
+                query = query.filter(column_attr > criteria['value'])
+            elif 'gte' == criteria['op']:
+                query = query.filter(column_attr >= criteria['value'])
+            elif 'lt' == criteria['op']:
+                query = query.filter(column_attr < criteria['value'])
+            elif 'lte' == criteria['op']:
+                query = query.filter(column_attr <= criteria['value'])
+            elif 'eq' == criteria['op']:
+                query = query.filter(column_attr == criteria['value'])
+            elif 'like' == criteria['op']:
+                like_pattern = '%{0}%'.format(criteria['value'])
+                query = query.filter(column_attr.like(like_pattern))
+        else:
+            filter_dict[key] = criteria
+
+    if filter_dict:
+        query = query.filter_by(**filter_dict)
+
+    return query
+
+
 def _project_get(session, project_id):
     return session.query(Tenant).filter_by(id=project_id).first()
 
@@ -139,9 +182,11 @@ def project_add(values, last_collect=None):
     return project
 
 
-def project_get_all():
+def project_get_all(**filters):
     session = get_session()
     query = session.query(Tenant)
+    query = apply_filters(query, Tenant, **filters)
+
     return query.all()
 
 
