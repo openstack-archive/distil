@@ -61,8 +61,9 @@ def _get_request_args():
 
 
 @rest.get('/health')
+@acl.enforce("health:get")
 def health_get():
-    return api.render(health=health.get_health())
+    return api.render(result=health.get_health())
 
 
 @rest.get('/products')
