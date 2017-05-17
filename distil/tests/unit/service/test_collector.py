@@ -21,6 +21,7 @@ import mock
 
 from distil.collector import base as collector_base
 from distil.db.sqlalchemy import api as db_api
+from distil.service import collector
 from distil.tests.unit import base
 
 
@@ -97,3 +98,49 @@ class CollectorTest(base.DistilWithDbTestCase):
 
         self.assertEquals(1, len(entries))
         self.assertEquals(resource_id_hash, entries[0].resource_id)
+
+    @mock.patch('stevedore.driver.DriverManager')
+    @mock.patch('distil.common.openstack.get_projects')
+    def test_last_collect_new_project(self, mock_get_projects, mock_driver):
+        self.override_config('collector', include_tenants=['project_3'])
+
+        # Assume project_3 is a new project that doesn't exist in distil db.
+        mock_get_projects.return_value = [
+            {'id': '111', 'name': 'project_1', 'description': ''},
+            {'id': '222', 'name': 'project_2', 'description': ''},
+            {'id': '333', 'name': 'project_3', 'description': ''},
+        ]
+
+        driver_manager = mock_driver.return_value
+        driver = driver_manager.driver
+
+        # Insert two projects in the database.
+        project_1_collect = datetime(2017, 5, 17, 20)
+        db_api.project_add(
+            {
+                'id': '111',
+                'name': 'project_1',
+                'description': '',
+            },
+            project_1_collect
+        )
+        project_2_collect = datetime(2017, 5, 17, 21)
+        db_api.project_add(
+            {
+                'id': '222',
+                'name': 'project_2',
+                'description': '',
+            },
+            project_2_collect
+        )
+
+        end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+
+        svc = collector.CollectorService()
+        svc.collect_usage()
+
+        driver.collect_usage.assert_called_once_with(
+            {'id': '333', 'name': 'project_3', 'description': ''},
+            project_1_collect,
+            end
+        )

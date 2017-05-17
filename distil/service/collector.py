@@ -61,7 +61,8 @@ class CollectorService(service.Service):
             'distil.collector',
             CONF.collector.collector_backend,
             invoke_on_load=True,
-            invoke_kwds=collector_args).driver
+            invoke_kwds=collector_args
+        ).driver
 
     def validate_config(self):
         include_tenants = set(CONF.collector.include_tenants)
@@ -98,12 +99,18 @@ class CollectorService(service.Service):
     def collect_usage(self):
         LOG.info("Starting to collect usage...")
 
-        projects = filter_projects(openstack.get_projects())
+        projects = openstack.get_projects()
+        project_ids = [p['id'] for p in projects]
+        valid_projects = filter_projects(projects)
+
+        # For new created project, we use the earliest last collection time
+        # among existing projects as the start time.
+        last_collect = db_api.get_last_collect(project_ids).last_collected
 
         end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
         count = 0
 
-        for project in projects:
+        for project in valid_projects:
             # Check if the project is being processed by other collector
             # instance. If no, will get a lock and continue processing,
             # otherwise just skip it.
@@ -119,7 +126,7 @@ class CollectorService(service.Service):
             try:
                 with db_api.project_lock(project['id'], self.identifier):
                     # Add a project or get last_collected of existing project.
-                    db_project = db_api.project_add(project)
+                    db_project = db_api.project_add(project, last_collect)
                     start = db_project.last_collected
 
                     self.collector.collect_usage(project, start, end)
