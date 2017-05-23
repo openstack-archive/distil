@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import copy
 from datetime import datetime
 
 from distil.transformer import BaseTransformer
@@ -25,6 +26,17 @@ class UpTimeTransformer(BaseTransformer):
     which is broken apart into flavor at point in time.
     """
 
+    def _wash_data(self, entries, tracked):
+        """Get rid of invalid entries."""
+        copy_entries = copy.deepcopy(entries)
+
+        for entry in copy_entries:
+            status = entry['metadata'].get(
+                'status', entry['metadata'].get('state', "")
+            )
+            if status not in tracked:
+                entries.remove(entry)
+
     def _transform_usage(self, name, data, start, end):
         # get tracked states from config
         tracked = self.config['uptime']['tracked_states']
@@ -37,6 +49,8 @@ class UpTimeTransformer(BaseTransformer):
             return clipped
 
         state = sort_and_clip_end(data)
+
+        self._wash_data(data, tracked)
 
         if not len(state):
             # there was no data for this period.
@@ -56,11 +70,12 @@ class UpTimeTransformer(BaseTransformer):
 
         for val in state[1:]:
             if last_state["status"] in tracked:
-                diff = val["timestamp"] - last_timestamp
                 if val['timestamp'] > last_timestamp:
                     # if diff < 0 then we were looking back before the start
                     # of the window.
+                    diff = val["timestamp"] - last_timestamp
                     _add_usage(diff)
+
                     last_timestamp = val['timestamp']
                     seen_sample_in_window = True
 
@@ -84,9 +99,7 @@ class UpTimeTransformer(BaseTransformer):
 
         result = {
             'status': entry['metadata'].get(
-                'status', entry['metadata'].get(
-                    'state', ""
-                )
+                'status', entry['metadata'].get('state', "")
             ),
             'flavor': entry['metadata'].get('instance_type'),
             'timestamp': timestamp
