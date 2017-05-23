@@ -19,6 +19,7 @@
         - OS-EXT-AZ:availability_zone
     host:
       sources:
+        - node
         - host
 -
   meter: ip.floating

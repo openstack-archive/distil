@@ -236,6 +236,33 @@ class TestUpTimeTransformer(base.DistilTestCase):
 
         self.assertEqual({}, result)
 
+    def test_wash_data(self):
+        entries = [
+            {'timestamp': FAKE_DATA.tpre.isoformat(),
+             'metadata': {'instance_type': FAKE_DATA.flavor,
+                          'status': 'active'}},
+            {'timestamp': FAKE_DATA.t0_10.isoformat(),
+             'metadata': {'instance_type': FAKE_DATA.flavor,
+                          'status': 'active'}},
+            {'timestamp': FAKE_DATA.t0_30.isoformat(),
+             'metadata': {'instance_type': FAKE_DATA.flavor,
+                          'status': 'shelving'}},
+            {'timestamp': FAKE_DATA.t1.isoformat(),
+             'metadata': {'instance_type': FAKE_DATA.flavor,
+                          'status': 'active'}}
+        ]
+
+        xform = conversion.UpTimeTransformer()
+        result = xform.transform_usage(
+            'instance',
+            entries,
+            FAKE_DATA.t0,
+            FAKE_DATA.t1
+        )
+
+        self.assertEqual({FAKE_DATA.flavor: 1800}, result)
+        self.assertEqual(3, len(entries))
+
 
 @mock.patch.object(general, 'get_transformer_config',
                    mock.Mock(return_value=FAKE_CONFIG))
