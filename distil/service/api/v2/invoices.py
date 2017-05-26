@@ -16,15 +16,15 @@
 from oslo_config import cfg
 from oslo_log import log as logging
 
+from distil.common import general
 from distil.erp import utils as erp_utils
-from distil.service.api.v2 import utils
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
 
 def get_invoices(project_id, start, end, detailed=False):
-    project, start, end = utils.convert_project_and_range(
+    project, start, end = general.convert_project_and_range(
         project_id, start, end)
 
     LOG.info(
