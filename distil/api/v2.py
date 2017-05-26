@@ -22,9 +22,9 @@ from distil.api import acl
 from distil.common import api
 from distil.common import constants
 from distil.common import openstack
-from distil.service.api.v2 import costs
 from distil.service.api.v2 import health
 from distil.service.api.v2 import invoices
+from distil.service.api.v2 import measurements
 from distil.service.api.v2 import products
 from distil.service.api.v2 import quotations
 
@@ -91,7 +91,7 @@ def measurements_get():
     params = _get_request_args()
 
     return api.render(
-        measurements=costs.get_usage(
+        measurements=measurements.get_measurements(
             params['project_id'], params['start'], params['end']
         )
     )
