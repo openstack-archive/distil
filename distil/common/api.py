@@ -20,7 +20,6 @@ from werkzeug import datastructures
 
 from distil import exceptions as ex
 from distil.i18n import _
-from distil.i18n import _LE
 from distil import context
 from oslo_log import log as logging
 from distil.common import wsgi
@@ -184,8 +183,8 @@ def get_request_args():
 
 
 def abort_and_log(status_code, descr, exc=None):
-    LOG.error(_LE("Request aborted with status code %(code)s and "
-                  "message '%(message)s'"),
+    LOG.error(("Request aborted with status code %(code)s and "
+              "message '%(message)s'"),
               {'code': status_code, 'message': descr})
 
     if exc is not None:
