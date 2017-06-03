@@ -38,7 +38,7 @@ class BaseCollector(object):
 
         with open(meter_file, 'r') as f:
             try:
-                self.meter_mappings = yaml.load(f)
+                self.meter_mappings = yaml.safe_load(f)
             except yaml.YAMLError:
                 raise exc.InvalidConfig("Invalid yaml file: %s" % meter_file)
 
