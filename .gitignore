@@ -42,5 +42,9 @@ bin/waitress-serve
 local/
 test_vm/
 env/
+AUTHORS
 ChangeLog
 .idea
+
+.coverage
+cover/*
