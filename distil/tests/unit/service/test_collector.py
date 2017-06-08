@@ -99,9 +99,12 @@ class CollectorTest(base.DistilWithDbTestCase):
         self.assertEquals(1, len(entries))
         self.assertEquals(resource_id_hash, entries[0].resource_id)
 
-    @mock.patch('stevedore.driver.DriverManager')
+    @mock.patch(
+        'distil.collector.ceilometer.CeilometerCollector.collect_usage')
+    @mock.patch('distil.common.openstack.get_ceilometer_client')
     @mock.patch('distil.common.openstack.get_projects')
-    def test_last_collect_new_project(self, mock_get_projects, mock_driver):
+    def test_last_collect_new_project(self, mock_get_projects, mock_cclient,
+                                      mock_collect_usage):
         self.override_config('collector', include_tenants=['project_3'])
 
         # Assume project_3 is a new project that doesn't exist in distil db.
@@ -110,9 +113,6 @@ class CollectorTest(base.DistilWithDbTestCase):
             {'id': '222', 'name': 'project_2', 'description': ''},
             {'id': '333', 'name': 'project_3', 'description': ''},
         ]
-
-        driver_manager = mock_driver.return_value
-        driver = driver_manager.driver
 
         # Insert 3 projects in the database, including one project which is
         # not in keystone.
@@ -149,7 +149,7 @@ class CollectorTest(base.DistilWithDbTestCase):
         svc = collector.CollectorService()
         svc.collect_usage()
 
-        driver.collect_usage.assert_called_once_with(
+        mock_collect_usage.assert_called_once_with(
             {'id': '333', 'name': 'project_3', 'description': ''},
             project_1_collect,
             end

@@ -20,12 +20,14 @@ from distil.tests.unit import base
 
 
 class QuotationsTest(base.DistilWithDbTestCase):
-    @mock.patch('stevedore.driver.DriverManager')
+    @mock.patch('distil.erp.drivers.odoo.OdooDriver.get_quotations')
     @mock.patch('distil.db.api.project_get')
     @mock.patch('distil.db.api.usage_get')
     @mock.patch('distil.db.api.resource_get_by_ids')
-    def test_get_quotations(self, mock_get_resources, mock_get_usage,
-                            mock_get_project, mock_driver):
+    @mock.patch('odoorpc.ODOO')
+    def test_get_quotations(self, mock_odoo, mock_get_resources,
+                            mock_get_usage, mock_get_project,
+                            mock_get_quotations):
         self.override_config('keystone_authtoken', region_name='region-1')
 
         class Project(object):
@@ -60,12 +62,9 @@ class QuotationsTest(base.DistilWithDbTestCase):
         res2 = Resource('222', json.dumps({'name': 'resource2'}))
         mock_get_resources.return_value = [res1, res2]
 
-        driver_manager = mock_driver.return_value
-        driver = driver_manager.driver
-
         quotations.get_quotations('123', detailed=False)
 
-        driver.get_quotations.assert_called_once_with(
+        mock_get_quotations.assert_called_once_with(
             'region-1', '123',
             measurements=usage,
             resources=[res1, res2],

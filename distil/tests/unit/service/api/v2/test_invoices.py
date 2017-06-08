@@ -22,8 +22,9 @@ from distil.tests.unit import base
 
 class InvoicesTest(base.DistilWithDbTestCase):
     @mock.patch('distil.common.general.convert_project_and_range')
-    @mock.patch('stevedore.driver.DriverManager')
-    def test_get_invoices(self, mock_driver, mock_convert):
+    @mock.patch('distil.erp.drivers.odoo.OdooDriver.get_invoices')
+    @mock.patch('odoorpc.ODOO')
+    def test_get_invoices(self, mock_odoo, mock_get_invoices, mock_convert):
         class Project(object):
             def __init__(self, id, name):
                 self.id = id
@@ -35,11 +36,8 @@ class InvoicesTest(base.DistilWithDbTestCase):
             Project('123', 'fake_project'), start, end
         )
 
-        driver_manager = mock_driver.return_value
-        driver = driver_manager.driver
-
         invoices.get_invoices('123', str(start), str(end))
 
-        driver.get_invoices.assert_called_once_with(
+        mock_get_invoices.assert_called_once_with(
             start, end, '123', detailed=False
         )

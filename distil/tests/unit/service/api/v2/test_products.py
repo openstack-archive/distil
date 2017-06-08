@@ -19,13 +19,11 @@ from distil.tests.unit import base
 
 
 class ProductsTest(base.DistilTestCase):
-    @mock.patch('stevedore.driver.DriverManager')
-    def test_get_products(self, mock_driver):
+    @mock.patch('distil.erp.drivers.odoo.OdooDriver.get_products')
+    @mock.patch('odoorpc.ODOO')
+    def test_get_products(self, mock_odoo, mock_get_products):
         fake_region = 'nz-1'
-
-        driver_manager = mock_driver.return_value
-        driver = driver_manager.driver
 
         products.get_products([fake_region])
 
-        driver.get_products.assert_called_once_with([fake_region])
+        mock_get_products.assert_called_once_with([fake_region])
