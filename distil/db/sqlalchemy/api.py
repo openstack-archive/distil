@@ -207,8 +207,10 @@ def usage_add(project_id, resource_id, samples, unit,
                                   volume=volume,
                                   unit=unit,
                                   resource_id=resource_id,
-                                  project_id=project_id,
-                                  start_at=start_at, end_at=end_at)
+                                  tenant_id=project_id,
+                                  start=start_at,
+                                  end=end_at,
+                                  created=datetime.utcnow())
         resource_ref.save(session=session)
     except sa.exc.InvalidRequestError as e:
         # FIXME(flwang): I assume there should be a DBDuplicateEntry error
@@ -271,11 +273,12 @@ def usages_add(project_id, resources, usage_entries, last_collect):
         )
 
 
-def resource_add(project_id, resource_id, resource_type, raw, metadata):
+def resource_add(project_id, resource_id, resource_info):
     session = get_session()
-    metadata = _merge_resource_metadata({'type': resource_type}, raw, metadata)
-    resource_ref = Resource(id=resource_id, project_id=project_id,
-                            resource_type=resource_type, meta_data=metadata)
+    resource_ref = Resource(
+        id=resource_id, tenant_id=project_id, info=json.dumps(resource_info),
+        created=datetime.utcnow()
+    )
 
     try:
         resource_ref.save(session=session)
@@ -297,28 +300,6 @@ def resource_get_by_ids(project_id, resource_ids):
              filter(Resource.tenant_id == project_id))
 
     return query.all()
-
-
-def _merge_resource_metadata(md_dict, entry, md_def):
-    """Strips metadata from the entry as defined in the config,
-       and merges it with the given metadata dict.
-    """
-    for field, parameters in md_def.iteritems():
-        for _, source in enumerate(parameters['sources']):
-            try:
-                value = entry['resource_metadata'][source]
-                if 'template' in parameters:
-                    md_dict[field] = parameters['template'] % value
-                    break
-                else:
-                    md_dict[field] = value
-                    break
-            except KeyError:
-                # Just means we haven't found the right value yet.
-                # Or value isn't present.
-                pass
-
-    return md_dict
 
 
 def get_project_locks(project_id):

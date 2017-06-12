@@ -13,3 +13,4 @@ testscenarios>=0.4
 testtools>=0.9.34
 WebTest>=2.0  # MIT
 mock>=2.0 # BSD
+Flask>=0.10,!=0.11,<1.0  # BSD
