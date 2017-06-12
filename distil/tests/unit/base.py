@@ -25,8 +25,8 @@ from distil import context
 from distil import config
 from distil.db import api as db_api
 
-class DistilTestCase(base.BaseTestCase):
 
+class DistilTestCase(base.BaseTestCase):
     config_file = None
 
     def setUp(self):

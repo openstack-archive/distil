@@ -5,6 +5,7 @@ omit =
  .tox/*
  distil/tests/*
  distil/api/web.py
+ distil/api/helpers.py
  distil/auth.py
  distil/database.py
  distil/helpers.py
