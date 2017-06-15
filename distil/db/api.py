@@ -119,8 +119,8 @@ def project_get(project_id):
     return IMPL.project_get(project_id)
 
 
-def project_get_all():
-    return IMPL.project_get_all()
+def project_get_all(**filters):
+    return IMPL.project_get_all(**filters)
 
 
 def get_last_collect(project_ids):
