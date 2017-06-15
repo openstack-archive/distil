@@ -88,6 +88,7 @@ def usage_get(project_id, start_at, end_at):
     return IMPL.usage_get(project_id, start_at, end_at)
 
 
+# NOTE(lingxian): This method is not used anywhere but for testing purpose.
 def usage_add(project_id, resource_id, samples, unit,
               start_at, end_at):
     """If a tenant exists does nothing,
@@ -101,9 +102,9 @@ def usages_add(project_id, resources, usage_entries, last_collect):
     return IMPL.usages_add(project_id, resources, usage_entries, last_collect)
 
 
-def resource_add(project_id, resource_id, resource_type, rawdata, metadata):
-    return IMPL.resource_add(project_id, resource_id, resource_type,
-                             rawdata, metadata)
+# NOTE(lingxian): This method is not used anywhere but for testing purpose.
+def resource_add(project_id, resource_id, resource_info):
+    return IMPL.resource_add(project_id, resource_id, resource_info)
 
 
 def project_add(values, last_collect=None):
