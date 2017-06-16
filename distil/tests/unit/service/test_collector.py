@@ -91,13 +91,13 @@ class CollectorTest(base.DistilWithDbTestCase):
         resources = db_api.resource_get_by_ids(project_id, [resource_id_hash])
         res_info = json.loads(resources[0].info)
 
-        self.assertEquals(1, len(resources))
-        self.assertEquals(container_name, res_info['name'])
+        self.assertEqual(1, len(resources))
+        self.assertEqual(container_name, res_info['name'])
 
         entries = db_api.usage_get(project_id, start_time, end_time)
 
-        self.assertEquals(1, len(entries))
-        self.assertEquals(resource_id_hash, entries[0].resource_id)
+        self.assertEqual(1, len(entries))
+        self.assertEqual(resource_id_hash, entries[0].resource_id)
 
     @mock.patch(
         'distil.collector.ceilometer.CeilometerCollector.collect_usage')
