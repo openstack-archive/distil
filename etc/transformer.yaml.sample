@@ -9,9 +9,8 @@ uptime:
     - resized
     - verify_resize
     - suspended
-  # uncomment these when we want to bill shutdown:
-  #  - shutoff
-  #  - stopped
+    - shutoff
+    - stopped
 from_image:
   service: b1.standard
   # What metadata values to check
