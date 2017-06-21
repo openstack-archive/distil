@@ -44,10 +44,16 @@ def enforce(rule):
             ctx = context.ctx()
             ctx.is_admin = check_is_admin(ctx)
 
-            ENFORCER.enforce(rule, {}, ctx.to_dict(), do_raise=True,
-                             exc=exceptions.Forbidden)
+            target = {
+                'project_id': ctx.project_id,
+                'user_id': ctx.user_id,
+            }
+
+            ENFORCER.enforce(rule, target, ctx.to_policy_values(),
+                             do_raise=True, exc=exceptions.Forbidden)
 
             return func(*args, **kwargs)
+
         return handler
 
     return decorator

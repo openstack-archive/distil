@@ -31,6 +31,9 @@ class TestAPI(base.APITest):
         acl.setup_policy()
 
     def _setup_policy(self, policy):
+        policy.update(
+            {"admin_or_owner": "is_admin:True or project_id:%(project_id)s"}
+        )
         rules = cpolicy.Rules.from_dict(policy)
         acl.ENFORCER.set_rules(rules, use_conf=False)
 
@@ -113,7 +116,7 @@ class TestAPI(base.APITest):
                 end=end
             )
 
-        self._setup_policy({"rating:measurements:get": ""})
+        self._setup_policy({"rating:measurements:get": "rule:admin_or_owner"})
         ret = self.client.get(url, headers={'X-Tenant-Id': default_project})
 
         self.assertEqual(
@@ -163,7 +166,7 @@ class TestAPI(base.APITest):
                 end=end
             )
 
-        self._setup_policy({"rating:invoices:get": ""})
+        self._setup_policy({"rating:invoices:get": "rule:admin_or_owner"})
         ret = self.client.get(url, headers={'X-Tenant-Id': default_project})
 
         self.assertEqual(
@@ -176,6 +179,24 @@ class TestAPI(base.APITest):
             },
             json.loads(ret.data)
         )
+
+    def test_get_other_project_invoice_not_admin(self):
+        default_project = 'tenant_1'
+        start = '2014-06-01T00:00:00'
+        end = '2014-07-01T00:00:00'
+
+        with self.app.test_request_context():
+            url = url_for(
+                'v2.invoices_get',
+                project_id='other_tenant',
+                start=start,
+                end=end
+            )
+
+        self._setup_policy({"rating:invoices:get": "rule:admin_or_owner"})
+        ret = self.client.get(url, headers={'X-Tenant-Id': default_project})
+
+        self.assertEqual(403, json.loads(ret.data).get('error_code'))
 
     @mock.patch('distil.erp.drivers.odoo.OdooDriver.get_quotations')
     @mock.patch('odoorpc.ODOO')
@@ -211,7 +232,7 @@ class TestAPI(base.APITest):
                 project_id=default_project,
             )
 
-        self._setup_policy({"rating:quotations:get": ""})
+        self._setup_policy({"rating:quotations:get": "rule:admin_or_owner"})
         ret = self.client.get(url, headers={'X-Tenant-Id': default_project})
 
         self.assertEqual(
