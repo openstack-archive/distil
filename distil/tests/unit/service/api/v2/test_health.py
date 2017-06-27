@@ -85,3 +85,7 @@ class HealthTest(base.DistilWithDbTestCase):
 
         self.assertEqual('FAIL', ret['usage_collection'].get('status'))
         self.assertIn('2', ret['usage_collection'].get('msg'))
+
+    def test_get_health_with_erp_backend(self):
+        
+        pass

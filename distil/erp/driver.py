@@ -22,6 +22,13 @@ class BaseDriver(object):
     def __init__(self, conf):
         self.conf = conf
 
+    def is_healthy(self):
+        """Check if the ERP back end is healthy or not
+        
+        :returns True if the ERP is healthy, otherwise False
+        """
+        raise NotImplementedError()
+
     def get_products(self, regions=[]):
         """List products based o given regions
 

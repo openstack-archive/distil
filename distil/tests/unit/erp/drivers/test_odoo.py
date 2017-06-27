@@ -368,3 +368,9 @@ class TestOdooDriver(base.DistilTestCase):
                            "type": "Cloud Trial Credit",
                            "start_date": "2017-02-14 02:12:40"}],
                          credits)
+
+    @mock.patch('odoorpc.ODOO')
+    def test_is_healthy(self):
+        odoodriver = odoo.OdooDriver(self.conf)
+        odoodriver.odoo.db.list.return_value = ["A", "B"]
+        self.assertTrue(odoodriver.is_healthy())
