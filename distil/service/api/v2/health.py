@@ -13,25 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 from datetime import datetime
 from datetime import timedelta
+
+import enum
 
 from oslo_config import cfg
 from oslo_log import log as logging
 from distil.db import api as db_api
+from distil.erp import utils as erp_utils
 from distil.common import openstack
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
 
+@enum.unique
+class Status(enum.IntEnum):
+    """Enum of status for a checking item."""
+    OK = 1
+    FAIL = 0
+
+
 def get_health():
     """Get health status of distil.
 
-    Currently, we only check usage collection to achieve feature parity with
-    current monitoring requirements.
-
-    In future, we could add running status for ERP system, etc.
+    Check usage collection and connection to ERP.
     """
     result = {}
 
@@ -49,13 +57,27 @@ def get_health():
 
     if failed_count == 0:
         result['usage_collection'] = {
-            'status': 'OK',
+            'status': Status.OK.name,
             'msg': 'Tenant usage successfully collected and up-to-date.'
         }
     else:
         result['usage_collection'] = {
-            'status': 'FAIL',
+            'status': Status.FAIL.name,
             'msg': 'Failed to collect usage for %s projects.' % failed_count
         }
+
+    try:
+        erp_driver = erp_utils.load_erp_driver(CONF)
+        print(erp_driver)
+        if erp_driver.is_healthy():
+            print("healthy")
+            result['erp_backend'] = {"status": Status.OK.name,
+                                     "msg": "ERP backend works."}
+            return result
+    except Exception:
+        pass
+
+    result['erp_backend'] = {"status": Status.FAIL.name,
+                             "msg": "ERP backend doesn't work."}
 
     return result
