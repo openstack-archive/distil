@@ -17,12 +17,17 @@ from datetime import timedelta
 
 import mock
 
+from distil.erp import utils as erp_utils
 from distil.db.sqlalchemy import api as db_api
 from distil.service.api.v2 import health
 from distil.tests.unit import base
 
 
 class HealthTest(base.DistilWithDbTestCase):
+    def setUp(self):
+        super(HealthTest, self).setUp()
+        erp_utils._ERP_DRIVER = None
+
     @mock.patch('distil.common.openstack.get_projects')
     def test_get_health_ok(self, mock_get_projects):
         mock_get_projects.return_value = [
@@ -85,3 +90,22 @@ class HealthTest(base.DistilWithDbTestCase):
 
         self.assertEqual('FAIL', ret['usage_collection'].get('status'))
         self.assertIn('2', ret['usage_collection'].get('msg'))
+
+    @mock.patch('odoorpc.ODOO')
+    @mock.patch('distil.common.openstack.get_projects')
+    def test_get_health_with_erp_abackend_fail(self, mock_get_projects,
+                                               mock_odoo):
+        new = mock.MagicMock()
+        new.db.list.side_effect = Exception('Boom!')
+        mock_odoo.return_value = new
+        # mock_odoo.side_effect = ValueError
+        ret = health.get_health()
+
+        self.assertEqual('FAIL', ret['erp_backend'].get('status'))
+
+    @mock.patch('odoorpc.ODOO')
+    @mock.patch('distil.common.openstack.get_projects')
+    def test_get_health_with_erp_backend(self, mock_get_projects, mock_odoo):
+        ret = health.get_health()
+
+        self.assertEqual('OK', ret['erp_backend'].get('status'))
