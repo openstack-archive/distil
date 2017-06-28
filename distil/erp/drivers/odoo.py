@@ -86,19 +86,21 @@ class OdooDriver(driver.BaseDriver):
 
         prices = {}
         try:
+            # NOTE(flwang): Currently, the main bottle neck is the query of
+            # odoo, so we prefer to get all the products by one call and then
+            # filter them in Distil. And another problem is the filter for
+            # region doesn't work when query odoo.
+            c = self.category.search([('name', 'in', PRODUCT_CATEGORY)])
+            product_ids = self.product.search([('categ_id', 'in', c),
+                                               ('sale_ok', '=', True),
+                                               ('active', '=', True)])
+            products = self.product.read(product_ids)
+
             for region in odoo_regions:
                 # Ensure returned region name is same with what user see from
                 # Keystone.
                 actual_region = self.reverse_region_mapping.get(region, region)
                 prices[actual_region] = collections.defaultdict(list)
-
-                # FIXME: Odoo doesn't suppport search by 'display_name'.
-                c = self.category.search([('name', 'in', PRODUCT_CATEGORY),
-                                          ('display_name', 'ilike', region)])
-                product_ids = self.product.search([('categ_id', 'in', c),
-                                                   ('sale_ok', '=', True),
-                                                   ('active', '=', True)])
-                products = self.product.read(product_ids)
 
                 for product in products:
                     if region.upper() not in product['name_template']:
