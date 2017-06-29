@@ -101,7 +101,7 @@ class TestAPI(test_interface.TestInterface):
             fake_memcache[key] = value
 
         def get_mem(key):
-            return fake_memcache.get(key, None)
+            return fake_memcache.get(key)
 
         utils.init_db(self.session, numTenants, numResources, end)
 
@@ -141,7 +141,7 @@ class TestAPI(test_interface.TestInterface):
             fake_memcache[key] = value
 
         def get_mem(key):
-            return fake_memcache.get(key, None)
+            return fake_memcache.get(key)
 
         utils.init_db(self.session, numTenants, numResources, end)
 
