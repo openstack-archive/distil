@@ -21,6 +21,7 @@ import odoorpc
 from oslo_log import log
 
 from distil.common import cache
+from distil.common import constants
 from distil.common import general
 from distil.common import openstack
 from distil.erp import driver
@@ -114,7 +115,8 @@ class OdooDriver(driver.BaseDriver):
 
                     self.product_catagory_mapping[product['id']] = category
 
-                    price = round(product['lst_price'], 5)
+                    rate = round(product['lst_price'],
+                                 constants.RATE_DIGITS)
                     # NOTE(flwang): default_code is Internal Reference on
                     # Odoo GUI
                     unit = product['default_code']
@@ -122,7 +124,7 @@ class OdooDriver(driver.BaseDriver):
 
                     prices[actual_region][category.lower()].append(
                         {'name': name,
-                         'price': price,
+                         'rate': rate,
                          'unit': unit,
                          'description': desc}
                     )
@@ -149,7 +151,8 @@ class OdooDriver(driver.BaseDriver):
 
                     prices[actual_region]['object storage'].append(
                         {'name': obj_s_name,
-                         'price': round(obj_p.lst_price, 5),
+                         'rate': round(obj_p.lst_price,
+                                       constants.RATE_DIGITS),
                          'unit': obj_p.default_code,
                          'description': obj_p.description}
                     )
@@ -200,9 +203,9 @@ class OdooDriver(driver.BaseDriver):
             line_info = {
                 'resource_name': line['name'],
                 'quantity': line['quantity'],
-                'rate': line['price_unit'],
+                'rate': round(line['price_unit'], constants.RATE_DIGITS),
                 'unit': line['uos_id'][1],
-                'cost': round(line['price_subtotal'], 2)
+                'cost': round(line['price_subtotal'], constants.PRICE_DIGITS)
             }
 
             # Original product is a string like "[hour] NZ-POR-1.c1.c2r8"
@@ -215,7 +218,10 @@ class OdooDriver(driver.BaseDriver):
                     'breakdown': collections.defaultdict(list)
                 }
 
-            detail_dict[catagory]['total_cost'] += line_info['cost']
+            detail_dict[catagory]['total_cost'] = round(
+                (detail_dict[catagory]['total_cost'] + line_info['cost']),
+                constants.PRICE_DIGITS
+            )
             detail_dict[catagory]['breakdown'][product].append(line_info)
 
         return detail_dict
@@ -275,7 +281,8 @@ class OdooDriver(driver.BaseDriver):
             )
             for v in invoices:
                 result[v['date_invoice']] = {
-                    'total_cost': round(v['amount_total'], 2)
+                    'total_cost': round(
+                        v['amount_total'], constants.PRICE_DIGITS)
                 }
 
                 if detailed:
@@ -320,14 +327,14 @@ class OdooDriver(driver.BaseDriver):
         if service_type in products:
             for s in products[service_type]:
                 if s['name'] == service_name:
-                    price.update({'rate': s['price'], 'unit': s['unit']})
+                    price.update({'rate': s['rate'], 'unit': s['unit']})
                     break
         else:
             found = False
             for category, services in products.items():
                 for s in services:
                     if s['name'] == service_name:
-                        price.update({'rate': s['price'], 'unit': s['unit']})
+                        price.update({'rate': s['rate'], 'unit': s['unit']})
                         found = True
                         break
 
@@ -399,7 +406,8 @@ class OdooDriver(driver.BaseDriver):
 
             # Convert volume according to unit in price definition.
             volume = general.convert_to(volume, unit, price_spec['unit'])
-            cost = (round(volume * Decimal(price_spec['rate']), 2)
+            cost = (round(volume * Decimal(price_spec['rate']),
+                          constants.PRICE_DIGITS)
                     if price_spec['rate'] else 0)
 
             total_cost += cost
@@ -407,7 +415,10 @@ class OdooDriver(driver.BaseDriver):
             if detailed:
                 odoo_service_name = "%s.%s" % (odoo_region, service_name)
 
-                cost_details[service_type]['total_cost'] += cost
+                cost_details[service_type]['total_cost'] = round(
+                    (cost_details[service_type]['total_cost'] + cost),
+                    constants.PRICE_DIGITS
+                )
                 cost_details[service_type]['breakdown'][
                     odoo_service_name
                 ].append(
@@ -415,13 +426,14 @@ class OdooDriver(driver.BaseDriver):
                         "resource_name": resources[res_id].get('name', ''),
                         "resource_id": res_id,
                         "cost": cost,
-                        "quantity": round(volume, 4),
-                        "rate": price_spec['rate'],
+                        "quantity": round(volume, 3),
+                        "rate": round(price_spec['rate'],
+                                      constants.RATE_DIGITS),
                         "unit": price_spec['unit'],
                     }
                 )
 
-        result = {'total_cost': round(total_cost, 2)}
+        result = {'total_cost': round(total_cost, constants.PRICE_DIGITS)}
         if detailed:
             result.update({'details': cost_details})
 
