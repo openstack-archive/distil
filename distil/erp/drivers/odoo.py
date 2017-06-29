@@ -86,19 +86,21 @@ class OdooDriver(driver.BaseDriver):
 
         prices = {}
         try:
+            # NOTE(lingxian): We have to query all products from all regions
+            # as Odoo doesn't support search by 'display_name'.
+            c = self.category.search([('name', 'in', PRODUCT_CATEGORY)])
+            product_ids = self.product.search(
+                [('categ_id', 'in', c),
+                 ('sale_ok', '=', True),
+                 ('active', '=', True)]
+            )
+            products = self.product.read(product_ids)
+
             for region in odoo_regions:
                 # Ensure returned region name is same with what user see from
                 # Keystone.
                 actual_region = self.reverse_region_mapping.get(region, region)
                 prices[actual_region] = collections.defaultdict(list)
-
-                # FIXME: Odoo doesn't suppport search by 'display_name'.
-                c = self.category.search([('name', 'in', PRODUCT_CATEGORY),
-                                          ('display_name', 'ilike', region)])
-                product_ids = self.product.search([('categ_id', 'in', c),
-                                                   ('sale_ok', '=', True),
-                                                   ('active', '=', True)])
-                products = self.product.read(product_ids)
 
                 for product in products:
                     if region.upper() not in product['name_template']:
@@ -198,9 +200,9 @@ class OdooDriver(driver.BaseDriver):
             line_info = {
                 'resource_name': line['name'],
                 'quantity': line['quantity'],
-                'rate': line['price_unit'],
+                'rate': round(line['price_unit'], 6),
                 'unit': line['uos_id'][1],
-                'cost': round(line['price_subtotal'], 2)
+                'cost': round(line['price_subtotal'], 6)
             }
 
             # Original product is a string like "[hour] NZ-POR-1.c1.c2r8"
@@ -213,7 +215,9 @@ class OdooDriver(driver.BaseDriver):
                     'breakdown': collections.defaultdict(list)
                 }
 
-            detail_dict[catagory]['total_cost'] += line_info['cost']
+            detail_dict[catagory]['total_cost'] = round(
+                (detail_dict[catagory]['total_cost'] + line_info['cost']), 6
+            )
             detail_dict[catagory]['breakdown'][product].append(line_info)
 
         return detail_dict
@@ -397,7 +401,7 @@ class OdooDriver(driver.BaseDriver):
 
             # Convert volume according to unit in price definition.
             volume = general.convert_to(volume, unit, price_spec['unit'])
-            cost = (round(volume * Decimal(price_spec['rate']), 2)
+            cost = (round(volume * Decimal(price_spec['rate']), 6)
                     if price_spec['rate'] else 0)
 
             total_cost += cost
@@ -405,7 +409,9 @@ class OdooDriver(driver.BaseDriver):
             if detailed:
                 odoo_service_name = "%s.%s" % (odoo_region, service_name)
 
-                cost_details[service_type]['total_cost'] += cost
+                cost_details[service_type]['total_cost'] = round(
+                    (cost_details[service_type]['total_cost'] + cost), 6
+                )
                 cost_details[service_type]['breakdown'][
                     odoo_service_name
                 ].append(
@@ -413,8 +419,8 @@ class OdooDriver(driver.BaseDriver):
                         "resource_name": resources[res_id].get('name', ''),
                         "resource_id": res_id,
                         "cost": cost,
-                        "quantity": round(volume, 4),
-                        "rate": price_spec['rate'],
+                        "quantity": round(volume, 6),
+                        "rate": round(price_spec['rate'], 6),
                         "unit": price_spec['unit'],
                     }
                 )
