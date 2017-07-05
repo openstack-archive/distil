@@ -72,6 +72,14 @@ class OdooDriver(driver.BaseDriver):
 
         self.product_catagory_mapping = {}
 
+    def is_healthy(self):
+        try:
+            self.odoo.db.list()
+            return True
+        except Exception as e:
+            LOG.exception(e)
+            return False
+
     @cache.memoize
     def get_products(self, regions=[]):
         self.product_catagory_mapping.clear()
