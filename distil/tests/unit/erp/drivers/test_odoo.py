@@ -56,7 +56,6 @@ class TestOdooDriver(base.DistilTestCase):
 
     @mock.patch('odoorpc.ODOO')
     def test_get_products(self, mock_odoo):
-
         odoodriver = odoo.OdooDriver(self.conf)
         odoodriver.product.search.return_value = []
         odoodriver.product.read.return_value = PRODUCTS
@@ -67,15 +66,15 @@ class TestOdooDriver(base.DistilTestCase):
             {
                 'nz_1': {
                     'block storage': [{'description': 'Block storage',
-                                       'price': 0.00035,
+                                       'rate': 0.00035,
                                        'name': 'b1.volume',
                                        'unit': 'hour'}],
                     'compute': [{'description': '1 CPU, 1GB RAM',
-                                 'price': 0.00015,
+                                 'rate': 0.00015,
                                  'name': 'c1.c1r1',
                                  'unit': 'hour'}],
                     'network': [{'description': 'Router',
-                                 'price': 0.00025,
+                                 'rate': 0.00025,
                                  'name': 'n1.router',
                                  'unit': 'hour'}]
                 }
@@ -119,29 +118,44 @@ class TestOdooDriver(base.DistilTestCase):
             [
                 {
                     'name': 'resource1',
-                    'quantity': 100,
-                    'price_unit': 0.01,
+                    'quantity': 1,
+                    'price_unit': 0.123,
                     'uos_id': [1, 'Gigabyte-hour(s)'],
-                    'price_subtotal': 10,
+                    'price_subtotal': 0.123,
+                    'product_id': [1, '[hour] NZ-POR-1.c1.c2r8']
+                },
+                {
+                    'name': 'resource2',
+                    'quantity': 2,
+                    'price_unit': 0.123,
+                    'uos_id': [1, 'Gigabyte-hour(s)'],
+                    'price_subtotal': 0.246,
                     'product_id': [1, '[hour] NZ-POR-1.c1.c2r8']
                 }
             ],
             [
                 {
-                    'name': 'resource2',
-                    'quantity': 200,
-                    'price_unit': 0.01,
+                    'name': 'resource3',
+                    'quantity': 3,
+                    'price_unit': 0.123,
                     'uos_id': [1, 'Gigabyte-hour(s)'],
-                    'price_subtotal': 20,
+                    'price_subtotal': 0.369,
+                    'product_id': [1, '[hour] NZ-POR-1.c1.c2r8']
+                },
+                {
+                    'name': 'resource4',
+                    'quantity': 4,
+                    'price_unit': 0.123,
+                    'uos_id': [1, 'Gigabyte-hour(s)'],
+                    'price_subtotal': 0.492,
                     'product_id': [1, '[hour] NZ-POR-1.c1.c2r8']
                 }
             ]
         ]
         odoodriver.odoo.execute.return_value = [
-            {'id': 1, 'date_invoice': '2017-03-31', 'amount_total': 10},
-            {'id': 2, 'date_invoice': '2017-04-30', 'amount_total': 20}
+            {'id': 1, 'date_invoice': '2017-03-31', 'amount_total': 0.371},
+            {'id': 2, 'date_invoice': '2017-04-30', 'amount_total': 0.859}
         ]
-
         odoodriver.product_catagory_mapping = {
             1: 'Compute'
         }
@@ -150,38 +164,58 @@ class TestOdooDriver(base.DistilTestCase):
             start, end, fake_project, detailed=True
         )
 
+        # The category total price is get from odoo. The total price of
+        # specific product is calculated based on invoice detail in odoo.
         self.assertEqual(
             {
                 '2017-03-31': {
-                    'total_cost': 10,
+                    'total_cost': 0.37,
                     'details': {
                         'Compute': {
-                            'total_cost': 10,
+                            'total_cost': 0.37,
                             'breakdown': {
-                                'NZ-POR-1.c1.c2r8': [{
-                                    "cost": 10,
-                                    "quantity": 100,
-                                    "rate": 0.01,
-                                    "resource_name": "resource1",
-                                    "unit": "Gigabyte-hour(s)"
-                                }]
+                                'NZ-POR-1.c1.c2r8': [
+                                    {
+                                        "cost": 0.12,
+                                        "quantity": 1,
+                                        "rate": 0.123,
+                                        "resource_name": "resource1",
+                                        "unit": "Gigabyte-hour(s)"
+                                    },
+                                    {
+                                        "cost": 0.25,
+                                        "quantity": 2,
+                                        "rate": 0.123,
+                                        "resource_name": "resource2",
+                                        "unit": "Gigabyte-hour(s)"
+                                    }
+                                ]
                             }
                         }
                     }
                 },
                 '2017-04-30': {
-                    'total_cost': 20,
+                    'total_cost': 0.86,
                     'details': {
                         'Compute': {
-                            'total_cost': 20,
+                            'total_cost': 0.86,
                             'breakdown': {
-                                'NZ-POR-1.c1.c2r8': [{
-                                    "cost": 20,
-                                    "quantity": 200,
-                                    "rate": 0.01,
-                                    "resource_name": "resource2",
-                                    "unit": "Gigabyte-hour(s)"
-                                }]
+                                'NZ-POR-1.c1.c2r8': [
+                                    {
+                                        "cost": 0.37,
+                                        "quantity": 3,
+                                        "rate": 0.123,
+                                        "resource_name": "resource3",
+                                        "unit": "Gigabyte-hour(s)"
+                                    },
+                                    {
+                                        "cost": 0.49,
+                                        "quantity": 4,
+                                        "rate": 0.123,
+                                        "resource_name": "resource4",
+                                        "unit": "Gigabyte-hour(s)"
+                                    }
+                                ]
                             }
                         }
                     }
@@ -199,13 +233,13 @@ class TestOdooDriver(base.DistilTestCase):
                 'Compute': [
                     {
                         'name': 'c1.c2r16', 'description': 'c1.c2r16',
-                        'price': 0.01, 'unit': 'hour'
+                        'rate': 0.01, 'unit': 'hour'
                     }
                 ],
                 'Block Storage': [
                     {
                         'name': 'b1.standard', 'description': 'b1.standard',
-                        'price': 0.02, 'unit': 'gigabyte'
+                        'rate': 0.02, 'unit': 'gigabyte'
                     }
                 ]
             }
@@ -255,13 +289,13 @@ class TestOdooDriver(base.DistilTestCase):
                 'Compute': [
                     {
                         'name': 'c1.c2r16', 'description': 'c1.c2r16',
-                        'price': 0.01, 'unit': 'hour'
+                        'rate': 0.01, 'unit': 'hour'
                     }
                 ],
                 'Block Storage': [
                     {
                         'name': 'b1.standard', 'description': 'b1.standard',
-                        'price': 0.02, 'unit': 'gigabyte'
+                        'rate': 0.02, 'unit': 'gigabyte'
                     }
                 ]
             }
@@ -338,7 +372,7 @@ class TestOdooDriver(base.DistilTestCase):
         )
 
     @mock.patch('odoorpc.ODOO')
-    def test_get_credits(self,  mock_odoo):
+    def test_get_credits(self, mock_odoo):
         fake_credits = [{'create_uid': [182, 'OpenStack Testing'],
                          'initial_balance': 500.0,
                          'code': '3dd294588f15404f8d77bd97e653324b',
