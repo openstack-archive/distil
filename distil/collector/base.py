@@ -47,6 +47,10 @@ class BaseCollector(object):
         raise NotImplementedError
 
     def collect_usage(self, project, start, end):
+        """Collect usage for specific tenant.
+
+        :return: True if no error happened otherwise return False.
+        """
         LOG.info('collect_usage by %s for project: %s(%s)' %
                  (self.__class__.__name__, project['id'], project['name']))
 
@@ -92,13 +96,15 @@ class BaseCollector(object):
                          project['name'], window_start, window_end)
             except Exception as e:
                 LOG.exception(
-                    "IntegrityError for %s(%s) in window: %s - %s, reason: %s",
-                    project['id'], project['name'],
+                    "Collection failed for %s(%s) in window: %s - %s, reason: "
+                    "%s", project['id'], project['name'],
                     window_start.strftime(constants.iso_time),
                     window_end.strftime(constants.iso_time),
                     str(e)
                 )
-                return
+                return False
+
+        return True
 
     def _filter_and_group(self, usage, usage_by_resource):
         trust_sources = set(CONF.collector.trust_sources)
