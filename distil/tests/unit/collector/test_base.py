@@ -11,11 +11,14 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+from datetime import datetime
+from datetime import timedelta
 import os
 
 import mock
 
 from distil.collector import base as collector_base
+from distil.service import collector
 from distil.tests.unit import base
 
 
@@ -136,3 +139,17 @@ class CollectorBaseTest(base.DistilWithDbTestCase):
         os_distro = collector._get_os_distro(entry)
 
         self.assertEqual('unknown', os_distro)
+
+    @mock.patch('distil.common.openstack.get_ceilometer_client')
+    def test_collect_usage_meter_exception(self, mock_cclient):
+        mock_cclient.new_samples.list.side_effect = Exception(
+            'get_meter exception!')
+
+        srv = collector.CollectorService()
+        ret = srv.collector.collect_usage(
+            {'name': 'fake_project', 'id': '123'},
+            datetime.utcnow() - timedelta(hours=1.5),
+            datetime.utcnow()
+        )
+
+        self.assertFalse(ret)
