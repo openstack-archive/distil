@@ -129,9 +129,8 @@ class CollectorService(service.Service):
                     db_project = db_api.project_add(project, last_collect)
                     start = db_project.last_collected
 
-                    self.collector.collect_usage(project, start, end)
-
-                    count = count + 1
+                    if self.collector.collect_usage(project, start, end):
+                        count = count + 1
             except Exception:
                 LOG.warning('Get lock failed. Process: %s' % self.identifier)
 
