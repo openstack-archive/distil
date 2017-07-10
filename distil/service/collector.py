@@ -13,6 +13,7 @@
 #    under the License.
 
 from datetime import datetime
+from random import shuffle
 
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -96,6 +97,16 @@ class CollectorService(service.Service):
         super(CollectorService, self).reset()
         logging.setup(CONF, 'distil-collector')
 
+    def _get_projects_by_order(self, projects):
+        if CONF.collector.project_order == 'ascending':
+            return projects
+        elif CONF.collector.project_order == 'descending':
+            projects.reverse()
+            return projects
+        elif CONF.collector.project_order == 'random':
+            shuffle(projects)
+            return projects
+
     def collect_usage(self):
         LOG.info("Starting to collect usage...")
 
@@ -110,6 +121,7 @@ class CollectorService(service.Service):
         end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
         count = 0
 
+        valid_projects = self._get_projects_by_order(valid_projects)
         for project in valid_projects:
             # Check if the project is being processed by other collector
             # instance. If no, will get a lock and continue processing,

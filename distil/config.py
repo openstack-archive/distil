@@ -68,7 +68,11 @@ COLLECTOR_OPTS = [
                help=('The earlist starting time for new tenant.')),
     cfg.StrOpt('partitioning_suffix',
                help=('Collector partitioning group suffix. It is used when '
-                     'running multiple collectors in favor of lock.'))
+                     'running multiple collectors in favor of lock.')),
+    cfg.StrOpt('project_order', default='ascending',
+               choices=['ascending', 'descending', 'random'],
+               help=('The order of project IDs to do usage collection. '
+                     'Default is ascending.'))
 ]
 
 ODOO_OPTS = [
