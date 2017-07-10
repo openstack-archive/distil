@@ -13,6 +13,7 @@
 #    under the License.
 
 from datetime import datetime
+from random import shuffle
 
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -109,6 +110,8 @@ class CollectorService(service.Service):
 
         end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
         count = 0
+
+        shuffle(valid_projects)
 
         for project in valid_projects:
             # Check if the project is being processed by other collector

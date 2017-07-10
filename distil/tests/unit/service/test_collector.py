@@ -154,3 +154,34 @@ class CollectorTest(base.DistilWithDbTestCase):
             project_1_collect,
             end
         )
+
+    @mock.patch('distil.db.api.get_project_locks')
+    @mock.patch('distil.common.openstack.get_ceilometer_client')
+    @mock.patch('distil.common.openstack.get_projects')
+    def test_shuffle_projects(self, mock_get_projects, mock_cclient,
+                              mock_getlocks):
+        mock_get_projects.return_value = [
+            {'id': '111', 'name': 'project_1', 'description': ''},
+            {'id': '222', 'name': 'project_2', 'description': ''},
+            {'id': '333', 'name': 'project_3', 'description': ''},
+            {'id': '444', 'name': 'project_4', 'description': ''},
+        ]
+
+        # Insert a project in the database in order to get last_collect time.
+        db_api.project_add(
+            {
+                'id': '111',
+                'name': 'project_1',
+                'description': '',
+            },
+            datetime(2017, 5, 17, 19)
+        )
+
+        svc = collector.CollectorService()
+        svc.collect_usage()
+
+        self.assertNotEqual(
+            [mock.call('111'), mock.call('222'), mock.call('333'),
+             mock.call('444')],
+            mock_getlocks.call_args_list
+        )
