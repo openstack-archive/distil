@@ -130,7 +130,7 @@ class CollectorService(service.Service):
 
             if locks and locks[0].owner != self.identifier:
                 LOG.debug(
-                    "Project %s is being processed by collector %s." %
+                    "Project %s is being processed by collector %s.",
                     (project['id'], locks[0].owner)
                 )
                 continue

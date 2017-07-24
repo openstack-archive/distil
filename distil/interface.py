@@ -29,7 +29,7 @@ def timed(desc):
     start = datetime.utcnow()
     yield
     end = datetime.utcnow()
-    log.debug("%s: %s" % (desc, end - start))
+    log.debug("%s: %s", (desc, end - start))
 
 
 class Interface(object):
@@ -59,12 +59,12 @@ class Interface(object):
         for tenant in _tenants:
             include_tenants = config.main.get('include_tenants', None)
             if include_tenants and tenant.name not in include_tenants:
-                log.debug("Ignored tenant %s (%s); not in include_tenants" %
+                log.debug("Ignored tenant %s (%s); not in include_tenants",
                         (tenant.id, tenant.name))
                 continue
 
             if tenant.name in config.main.get('ignore_tenants', []):
-                log.debug("Ignored tenant %s (%s); in ignore_tenants" %
+                log.debug("Ignored tenant %s (%s); in ignore_tenants",
                         (tenant.id, tenant.name))
                 continue
 
