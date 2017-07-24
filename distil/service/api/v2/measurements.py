@@ -49,7 +49,7 @@ def get_measurements(project_id, start, end):
     valid_project, start, end = general.convert_project_and_range(
         project_id, start, end)
 
-    LOG.debug("Get measurements for %s in range: %s - %s" %
+    LOG.debug("Get measurements for %s in range: %s - %s",
               (valid_project.id, start, end))
 
     usage = db_api.usage_get(valid_project.id, start, end)
