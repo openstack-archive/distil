@@ -17,9 +17,9 @@ from .models import Resource, UsageEntry, Tenant, SalesOrder, _Last_Run
 from distil.constants import dawn_of_time
 from datetime import timedelta
 import json
-import config
+from distil import config
 import logging as log
-import helpers
+from distil import helpers
 
 
 class Database(object):

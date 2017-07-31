@@ -14,14 +14,14 @@
 
 import requests
 import json
-import auth
-from constants import date_format, other_date_format
-import config
+from distil import auth
+from distil import constants
+from distil import config
 from datetime import timedelta, datetime
 from contextlib import contextmanager
 import logging as log
 
-import urlparse
+from six.moves.urllib import parse as urlparse
 
 
 @contextmanager
@@ -85,12 +85,12 @@ def add_dates(start, end):
         {
             "field": "timestamp",
             "op": "ge",
-            "value": start.strftime(date_format)
+            "value": start.strftime(constants.date_format)
         },
         {
             "field": "timestamp",
             "op": "lt",
-            "value": end.strftime(date_format)
+            "value": end.strftime(constants.date_format)
         }
     ]
 
@@ -103,10 +103,10 @@ def sort_entries(data):
     for entry in data:
         try:
             entry['timestamp'] = datetime.strptime(
-                entry['timestamp'], date_format)
+                entry['timestamp'], constants.date_format)
         except ValueError:
             entry['timestamp'] = datetime.strptime(
-                entry['timestamp'], other_date_format)
+                entry['timestamp'], constants.other_date_format)
     return sorted(data, key=lambda x: x['timestamp'])
 
 

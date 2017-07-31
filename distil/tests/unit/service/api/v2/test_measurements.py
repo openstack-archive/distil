@@ -76,13 +76,13 @@ class MeasurementsTest(base.DistilWithDbTestCase):
                     '111': {
                         'name': 'resource1',
                         'services': [
-                            {'name': 'srv1', 'volume': 10, 'unit': 'byte'}
+                            {'name': 'srv1', 'volume': '10', 'unit': 'byte'}
                         ]
                     },
                     '222': {
                         'name': 'resource2',
                         'services': [
-                            {'name': 'srv2', 'volume': 20, 'unit': 'byte'}
+                            {'name': 'srv2', 'volume': '20', 'unit': 'byte'}
                         ]
                     }
                 }
