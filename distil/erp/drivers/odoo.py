@@ -433,8 +433,8 @@ class OdooDriver(driver.BaseDriver):
             price_spec = price_mapping[service_name]
 
             # Convert volume according to unit in price definition.
-            volume = general.convert_to(volume, unit, price_spec['unit'])
-            cost = (round(volume * Decimal(price_spec['rate']),
+            volume = float(general.convert_to(volume, unit, price_spec['unit']))
+            cost = (round(volume * price_spec['rate'],
                           constants.PRICE_DIGITS)
                     if price_spec['rate'] else 0)
 
@@ -461,7 +461,7 @@ class OdooDriver(driver.BaseDriver):
                     }
                 )
 
-        result = {'total_cost': round(total_cost, constants.PRICE_DIGITS)}
+        result = {'total_cost': round(float(total_cost), constants.PRICE_DIGITS)}
         if detailed:
             result.update({'details': cost_details})
 
