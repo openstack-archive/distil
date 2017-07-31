@@ -15,7 +15,7 @@
 
 from collections import namedtuple
 from datetime import datetime
-
+from decimal import Decimal
 import mock
 
 from distil.erp.drivers import odoo
@@ -338,7 +338,7 @@ class TestOdooDriver(base.DistilTestCase):
             detailed=True
         )
 
-        self.assertEqual(
+        self.assertDictEqual(
             {
                 'total_cost': 0.03,
                 'details': {
@@ -365,7 +365,7 @@ class TestOdooDriver(base.DistilTestCase):
                                     "resource_name": "volume1",
                                     "resource_id": 1,
                                     "cost": 0.02,
-                                    "quantity": 1.0,
+                                    "quantity": 0.01,
                                     "rate": 0.02,
                                     "unit": "gigabyte",
                                 }

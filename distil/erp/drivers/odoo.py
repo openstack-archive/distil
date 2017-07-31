@@ -434,7 +434,7 @@ class OdooDriver(driver.BaseDriver):
 
             # Convert volume according to unit in price definition.
             volume = general.convert_to(volume, unit, price_spec['unit'])
-            cost = (round(volume * Decimal(price_spec['rate']),
+            cost = (round(volume * Decimal(float(price_spec['rate'])),
                           constants.PRICE_DIGITS)
                     if price_spec['rate'] else 0)
 

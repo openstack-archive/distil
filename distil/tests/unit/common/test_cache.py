@@ -47,5 +47,5 @@ class TestCache(base.DistilTestCase):
                 return "evening, Tom"
 
         name = 'Tom'
-        for x in xrange(0, 2):
+        for x in range(0, 2):
             self.assertEqual(test(name), 'hello, Tom')
