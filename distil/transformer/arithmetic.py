@@ -30,7 +30,8 @@ class MaxTransformer(BaseTransformer):
     """
 
     def _transform_usage(self, meter_name, raw_data, start_at, end_at):
-        max_vol = max([v["volume"] for v in raw_data]) if len(raw_data) else 0
+        max_vol = max([(v["volume"] if v["volume"] else 0)
+                       for v in raw_data]) if len(raw_data) else 0
         max_vol = max_vol if max_vol else 0
 
         hours = (end_at - start_at).total_seconds() / 3600.0
@@ -49,7 +50,8 @@ class StorageMaxTransformer(BaseTransformer):
         if not data:
             return None
 
-        max_vol = max([v["volume"] for v in data]) or 0
+        max_vol = max([(v["volume"] if v["volume"] else 0)
+                       for v in data]) or 0
 
         if "volume_type" in data[-1]['metadata']:
             vtype = data[-1]['metadata']['volume_type']

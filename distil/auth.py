@@ -15,7 +15,7 @@
 import requests
 import json
 import urllib
-import config
+from distil import config
 
 # Provides authentication against Openstack
 from keystoneclient.v2_0 import client as KeystoneClient

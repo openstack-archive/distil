@@ -44,7 +44,7 @@ class TestAPI(base.APITest):
 
         self.assertEqual(
             {'versions': [{'id': 'v2', 'status': 'CURRENT'}]},
-            json.loads(ret.data)
+            json.loads(ret.get_data(as_text=True))
         )
 
     @mock.patch('distil.erp.drivers.odoo.OdooDriver.get_products')
@@ -55,7 +55,7 @@ class TestAPI(base.APITest):
 
         ret = self.client.get('/v2/products')
 
-        self.assertEqual({'products': []}, json.loads(ret.data))
+        self.assertEqual({'products': []}, json.loads(ret.get_data(as_text=True)))
 
     @mock.patch('distil.erp.drivers.odoo.OdooDriver.get_products')
     @mock.patch('odoorpc.ODOO')
@@ -72,7 +72,7 @@ class TestAPI(base.APITest):
         ret = self.client.get('/v2/products?regions=nz_1,nz_2')
 
         mock_odoo_get_products.assert_called_once_with(['nz_1', 'nz_2'])
-        self.assertEqual({'products': []}, json.loads(ret.data))
+        self.assertEqual({'products': []}, json.loads(ret.get_data(as_text=True)))
 
     @mock.patch('distil.common.openstack.get_regions')
     def test_products_get_with_invalid_regions(self, mock_regions):
@@ -138,7 +138,7 @@ class TestAPI(base.APITest):
                     }
                 }
             },
-            json.loads(ret.data)
+            json.loads(ret.get_data(as_text=True))
         )
 
     @mock.patch('distil.erp.drivers.odoo.OdooDriver.get_invoices')
@@ -177,7 +177,7 @@ class TestAPI(base.APITest):
                 'project_id': default_project,
                 'invoices': {}
             },
-            json.loads(ret.data)
+            json.loads(ret.get_data(as_text=True))
         )
 
     def test_get_other_project_invoice_not_admin(self):
@@ -196,7 +196,7 @@ class TestAPI(base.APITest):
         self._setup_policy({"rating:invoices:get": "rule:admin_or_owner"})
         ret = self.client.get(url, headers={'X-Tenant-Id': default_project})
 
-        self.assertEqual(403, json.loads(ret.data).get('error_code'))
+        self.assertEqual(403, json.loads(ret.get_data(as_text=True)).get('error_code'))
 
     @mock.patch('distil.erp.drivers.odoo.OdooDriver.get_quotations')
     @mock.patch('odoorpc.ODOO')
@@ -205,7 +205,7 @@ class TestAPI(base.APITest):
 
         default_project = 'tenant_1'
         res_id = 'instance_1'
-        today = date.today()
+        today = datetime.utcnow()
         datetime_today = datetime(today.year, today.month, today.day)
 
         db_api.project_add(
@@ -241,7 +241,7 @@ class TestAPI(base.APITest):
                 'end': str(datetime_today),
                 'project_name': 'default_project',
                 'project_id': default_project,
-                'quotations': {str(today): {}}
+                'quotations': {today.strftime("%Y-%m-%d"): {}}
             },
-            json.loads(ret.data)
+            json.loads(ret.get_data(as_text=True))
         )

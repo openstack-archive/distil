@@ -12,9 +12,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import constants
-import helpers
-import config
+from distil import constants
+from distil import helpers
+from distil import config
 import logging as log
 from distil.constants import iso_time, iso_date
 
@@ -217,7 +217,8 @@ class GaugeMax(Transformer):
     """
 
     def _transform_usage(self, name, data, start, end):
-        max_vol = max([v["counter_volume"] for v in data]) if len(data) else 0
+        max_vol = max([(v["counter_volume"] if v["counter_volume"] else 0)
+                       for v in data]) if len(data) else 0
         if max_vol is None:
             max_vol = 0
             log.warning("None max_vol value for %s in window: %s - %s " %
@@ -239,7 +240,8 @@ class StorageMax(Transformer):
         if not data:
             return None
 
-        max_vol = max([v["counter_volume"] for v in data])
+        max_vol = max([(v["counter_volume"] if v["counter_volume"] else 0)
+                       for v in data])
 
         if max_vol is None:
             max_vol = 0

@@ -92,10 +92,12 @@ def products_get():
 def measurements_get():
     params = _get_request_args()
 
-    return api.render(
-        measurements=measurements.get_measurements(
+    m = measurements.get_measurements(
             params['project_id'], params['start'], params['end']
         )
+
+    return api.render(
+        measurements=m
     )
 
 
