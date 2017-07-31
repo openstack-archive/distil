@@ -17,7 +17,7 @@ from cinderclient.v2 import client as cinderclient
 from glanceclient import client as glanceclient
 from keystoneclient.v2_0 import client as keystoneclient
 from decimal import Decimal
-import config
+from distil import config
 import math
 import logging as log
 

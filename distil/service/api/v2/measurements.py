@@ -35,7 +35,7 @@ def _build_project_dict(project, usage):
 
     for entry in usage:
         service = {'name': entry.get('service'),
-                   'volume': entry.get('volume'),
+                   'volume': str(float(round(entry.get('volume'), 3))),
                    'unit': entry.get('unit')}
 
         resource = project_dict['resources'][entry.get('resource_id')]
