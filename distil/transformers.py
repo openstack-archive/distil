@@ -12,9 +12,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import constants
-import helpers
-import config
+from distil import constants
+from distil import helpers
+from distil import config
 import logging as log
 from distil.constants import iso_time, iso_date
 

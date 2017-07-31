@@ -38,7 +38,7 @@ from keystonemiddleware import auth_token
 
 from .helpers import returns_json, json_must, validate_tenant_id, require_admin
 from .helpers import require_admin_or_owner
-from urlparse import urlparse
+from six.moves.urllib import parse as urlparse
 
 from oslo_log import log
 from oslo_config import cfg
