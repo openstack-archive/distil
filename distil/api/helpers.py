@@ -16,6 +16,7 @@ from decorator import decorator
 import flask
 import itertools
 import json
+import six
 from distil.models import Tenant
 from distil import config
 
@@ -81,7 +82,7 @@ def validate_tenant_id(tenant_id, session):
     """Tenant ID validation that check that the id you passed is valid,
        and that a tenant with this ID exists.
        - returns tenant query, or a tuple if validation failure."""
-    if isinstance(tenant_id, basestring):
+    if isinstance(tenant_id, six.string_types):
         tenant_query = session.query(Tenant).\
             filter(Tenant.id == tenant_id)
         if tenant_query.count() == 0:
