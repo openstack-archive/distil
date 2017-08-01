@@ -234,6 +234,7 @@ class OdooDriver(driver.BaseDriver):
 
         return detail_dict
 
+    @cache.memoize
     def get_invoices(self, start, end, project_id, detailed=False):
         """Get history invoices from Odoo given a time range.
 
