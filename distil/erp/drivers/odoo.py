@@ -385,7 +385,12 @@ class OdooDriver(driver.BaseDriver):
         odoo_region = self.region_mapping.get(region, region).upper()
         resources = {row.id: json.loads(row.info) for row in resources}
 
-        products = self.get_products([region])[region]
+        # NOTE(flwang): For most of the cases of Distil API, the request comes
+        # from billing panel. Billing panel sends 1 API call for /invoices and
+        # several API calls for /quotations against different regions. So it's
+        # not efficient to specify the region for get_products method because
+        # it won't help cache the products based on the parameters.
+        products = self.get_products()[region]
         service_mapping = self._get_service_mapping(products)
 
         for entry in measurements:
