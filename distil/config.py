@@ -35,10 +35,6 @@ DEFAULT_OPTIONS = (
                 default=['/', '/v2/products'],
                 help='The list of public API routes',
                 ),
-    cfg.ListOpt('ignore_tenants',
-                default=[],
-                help=('The tenant name list which will be ignored when '
-                      'collecting metrics from Ceilometer.')),
     cfg.StrOpt('erp_driver',
                default='odoo',
                help='The ERP driver used for Distil',
@@ -102,31 +98,21 @@ ODOO_OPTS = [
                help='Service name for object storage.'),
 ]
 
-RATER_OPTS = [
-    cfg.StrOpt('rater_type', default='odoo',
-               help='Rater type, by default it is odoo.'),
-    cfg.StrOpt('rate_file_path', default='/etc/distil/rates.csv',
-               help='Rate file path, it will be used when the rater_type '
-               'is "file".'),
-]
 
 AUTH_GROUP = 'keystone_authtoken'
 ODOO_GROUP = 'odoo'
 COLLECTOR_GROUP = 'collector'
-RATER_GROUP = 'rater'
 
 
 CONF.register_opts(DEFAULT_OPTIONS)
 CONF.register_opts(ODOO_OPTS, group=ODOO_GROUP)
 CONF.register_opts(COLLECTOR_OPTS, group=COLLECTOR_GROUP)
-CONF.register_opts(RATER_OPTS, group=RATER_GROUP)
 
 
 def list_opts():
     return [
         (ODOO_GROUP, ODOO_OPTS),
         (COLLECTOR_GROUP, COLLECTOR_OPTS),
-        (RATER_GROUP, RATER_OPTS),
         (None, DEFAULT_OPTIONS)
     ]
 
