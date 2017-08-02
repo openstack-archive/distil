@@ -15,13 +15,13 @@
 import datetime
 from sqlalchemy.exc import IntegrityError, OperationalError
 import unittest
-import uuid
 
 from distil.models import Resource, Tenant, UsageEntry, _Last_Run
 from distil.tests.unit import test_interface
 from distil.tests.unit import utils
+from oslo_utils import uuidutils
 
-TENANT_ID = str(uuid.uuid4())
+TENANT_ID = str(uuidutils.generate_uuid())
 
 
 class TestModels(test_interface.TestInterface):
