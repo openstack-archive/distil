@@ -30,21 +30,21 @@ CONF = cfg.CONF
 def get_quotations(project_id, detailed=False):
     """Get real time cost of current month."""
 
-    today = date.today()
-    start = datetime(today.year, today.month, 1)
-    end = datetime(today.year, today.month, today.day)
+    # NOTE(flwang): Use UTC time to avoid timezone conflict
+    end = datetime.utcnow()
+    start = datetime(end.year, end.month, 1)
     region_name = CONF.keystone_authtoken.region_name
     project = db_api.project_get(project_id)
 
     LOG.info(
         'Get quotations for %s(%s) from %s to %s for current region: %s',
-        project.id, project.name, start, end, region_name
+        project.id, project.name, start, end.strftime("%Y-%m-%d"), region_name
     )
 
     # Same format with get_invoices output.
     output = {
         'start': str(start),
-        'end': str(end),
+        'end': str(end.strftime("%Y-%m-%d 00:00:00")),
         'project_id': project.id,
         'project_name': project.name,
     }
