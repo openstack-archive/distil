@@ -46,13 +46,21 @@ def get_transformer_config():
     return _TRANS_CONFIG
 
 
-def generate_windows(start, end):
-    """Generator for configured hour windows in a given range."""
+def get_windows(start, end):
+    """Get configured hour windows in a given range."""
+    windows = []
     window_size = timedelta(hours=CONF.collector.collect_window)
+
     while start + window_size <= end:
         window_end = start + window_size
-        yield start, window_end
+        windows.append((start, window_end))
+
+        if len(windows) >= CONF.collector.max_windows_per_cycle:
+            break
+
         start = window_end
+
+    return windows
 
 
 def log_and_time_it(f):
