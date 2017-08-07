@@ -77,7 +77,7 @@ class Rest(flask.Blueprint):
                     return func(**kwargs)
                 except ex.DistilException as e:
                     LOG.error('Error during API call: %s' % str(e))
-                    return render_error_message(e.code, e.message)
+                    return render_error_message(e.code, str(e))
                 except Exception as e:
                     return render_error_message(500, str(e))
 
