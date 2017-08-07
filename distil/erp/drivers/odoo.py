@@ -29,7 +29,14 @@ from distil import exceptions
 
 LOG = log.getLogger(__name__)
 
-PRODUCT_CATEGORY = ('Compute', 'Network', 'Block Storage', 'Object Storage')
+COMPUTE_CATEGORY = "Compute"
+NETWORK_CATEGORY = "Network"
+BLOCKSTORAGE_CATEGORY = "Block Storage"
+OBJECTSTORAGE_CATEGORY = "Object Storage"
+DISCOUNTS_CATEGORY = "Discounts"
+PRODUCT_CATEGORY = [COMPUTE_CATEGORY, NETWORK_CATEGORY,
+                    BLOCKSTORAGE_CATEGORY, OBJECTSTORAGE_CATEGORY,
+                    DISCOUNTS_CATEGORY]
 
 
 class OdooDriver(driver.BaseDriver):
@@ -120,8 +127,13 @@ class OdooDriver(driver.BaseDriver):
                         continue
 
                     category = product['categ_id'][1].split('/')[-1].strip()
-
+                    # NOTE(flwang): Always add the discount product into the
+                    # mapping so that we can use it for /invoices API. But
+                    # those product won't be returned as a part of the
+                    # /products API.
                     self.product_catagory_mapping[product['id']] = category
+                    if category == DISCOUNTS_CATEGORY:
+                        continue
 
                     rate = round(product['lst_price'],
                                  constants.RATE_DIGITS)
