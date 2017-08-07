@@ -43,13 +43,14 @@ def enforce(rule):
         def handler(*args, **kwargs):
             ctx = context.ctx()
             ctx.is_admin = check_is_admin(ctx)
+            ctx_dict = ctx.to_policy_values()
 
             target = {
-                'project_id': ctx.project_id,
-                'user_id': ctx.user_id,
+                'project_id': ctx_dict['project_id'],
+                'user_id': ctx_dict['user_id'],
             }
 
-            ENFORCER.enforce(rule, target, ctx.to_policy_values(),
+            ENFORCER.enforce(rule, target, ctx_dict,
                              do_raise=True, exc=exceptions.Forbidden)
 
             return func(*args, **kwargs)
