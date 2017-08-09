@@ -49,13 +49,15 @@ def _get_request_args():
     )
 
     regions = api.get_request_args().get('regions', None)
+    all_regions = api.get_request_args().get('all_regions', False)
 
     params = {
         'start': start,
         'end': end,
         'project_id': project_id,
         'detailed': detailed,
-        'regions': regions
+        'regions': regions,
+        'all_regions': all_regions
     }
 
     return params
@@ -121,7 +123,8 @@ def quotations_get():
 
     return api.render(
         quotations.get_quotations(
-            params['project_id'], detailed=params['detailed']
+            params['project_id'], detailed=params['detailed'],
+            all_regions=params['all_regions']
         )
     )
 

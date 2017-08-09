@@ -16,6 +16,7 @@ import re
 
 from ceilometerclient import client as ceilometerclient
 from cinderclient.v2 import client as cinderclient
+from distilclient import client as d_client
 from glanceclient import client as glanceclient
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
@@ -91,6 +92,12 @@ def get_nova_client():
         session=sess,
         region_name=CONF.keystone_authtoken.region_name
     )
+
+
+def get_distil_client(region):
+    sess = _get_keystone_session()
+
+    return d_client.Client(session=session, region_name=region)
 
 
 @general.disable_ssl_warnings
