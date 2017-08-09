@@ -16,6 +16,7 @@ import re
 
 from ceilometerclient import client as ceilometerclient
 from cinderclient.v2 import client as cinderclient
+from distilclient import client as d_client
 from glanceclient import client as glanceclient
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
@@ -91,6 +92,25 @@ def get_nova_client():
         session=sess,
         region_name=CONF.keystone_authtoken.region_name
     )
+
+
+def get_distil_client(region):
+    sess = _get_keystone_session()
+
+    distil_url_mapping = {
+        'nz-por-1': 'https://api.nz-por-1.catalystcloud.io:9999',
+        'nz_wlg_2': 'https://api.cloud.catalyst.net.nz:9999',
+        'nz-hlz-1': 'https://api.nz-hlz-1.catalystcloud.io:9999',
+    }
+    return d_client.Client(
+        version='2',
+        distil_url=distil_url_mapping[region],
+        session=sess, region_name=region
+    )
+
+    # NOTE(lingxian): When we have distil v2 registered in Keystone service
+    # catalog, we could directly use the following code.
+    # return d_client.Client(session=sess, region_name=region)
 
 
 @general.disable_ssl_warnings
