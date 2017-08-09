@@ -71,7 +71,7 @@ class OdooDriver(driver.BaseDriver):
         self.invoice_line = self.odoo.env['account.invoice.line']
         self.credit = self.odoo.env['cloud.credit']
 
-        self.product_catagory_mapping = {}
+        self.product_category_mapping = {}
 
     def is_healthy(self):
         try:
@@ -83,7 +83,7 @@ class OdooDriver(driver.BaseDriver):
 
     @cache.memoize
     def get_products(self, regions=[]):
-        self.product_catagory_mapping.clear()
+        self.product_category_mapping.clear()
         odoo_regions = []
 
         if not regions:
@@ -121,7 +121,7 @@ class OdooDriver(driver.BaseDriver):
 
                     category = product['categ_id'][1].split('/')[-1].strip()
 
-                    self.product_catagory_mapping[product['id']] = category
+                    self.product_category_mapping[product['id']] = category
 
                     rate = round(product['lst_price'],
                                  constants.RATE_DIGITS)
@@ -175,7 +175,7 @@ class OdooDriver(driver.BaseDriver):
 
         Return details in the following format:
         {
-          'catagory': {
+          'category': {
             'total_cost': xxx,
             'breakdown': {
               '<product_name>': [
@@ -218,19 +218,19 @@ class OdooDriver(driver.BaseDriver):
 
             # Original product is a string like "[hour] NZ-POR-1.c1.c2r8"
             product = line['product_id'][1].split(']')[1].strip()
-            catagory = self.product_catagory_mapping[line['product_id'][0]]
+            category = self.product_category_mapping[line['product_id'][0]]
 
-            if catagory not in detail_dict:
-                detail_dict[catagory] = {
+            if category not in detail_dict:
+                detail_dict[category] = {
                     'total_cost': 0,
                     'breakdown': collections.defaultdict(list)
                 }
 
-            detail_dict[catagory]['total_cost'] = round(
-                (detail_dict[catagory]['total_cost'] + line_info['cost']),
+            detail_dict[category]['total_cost'] = round(
+                (detail_dict[category]['total_cost'] + line_info['cost']),
                 constants.PRICE_DIGITS
             )
-            detail_dict[catagory]['breakdown'][product].append(line_info)
+            detail_dict[category]['breakdown'][product].append(line_info)
 
         return detail_dict
 
@@ -295,9 +295,9 @@ class OdooDriver(driver.BaseDriver):
                 }
 
                 if detailed:
-                    # Populate product catagory mapping first. This should be
+                    # Populate product category mapping first. This should be
                     # quick since we cached get_products()
-                    if not self.product_catagory_mapping:
+                    if not self.product_category_mapping:
                         self.get_products()
 
                     details = self._get_invoice_detail(v['id'])
