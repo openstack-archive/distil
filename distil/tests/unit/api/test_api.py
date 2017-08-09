@@ -11,6 +11,7 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+import copy
 from datetime import date
 from datetime import datetime
 import json
@@ -23,6 +24,124 @@ from distil.api import acl
 from distil.common import constants
 from distil.db import api as db_api
 from distil.tests.unit.api import base
+
+DETAILS_1 = {
+    "Compute": {
+        "breakdown": {
+            "NZ-POR-1.c1.c2r16": [
+                {
+                    "cost": 339.0,
+                    "quantity": 1000,
+                    "rate": 0.339,
+                    "resource_id": "nz_por_111",
+                    "resource_name": "nz_por_111",
+                    "unit": "hour"
+                }
+            ],
+        },
+        "total_cost": 339.0
+    },
+    "Network": {
+        "breakdown": {
+            "NZ-POR-1.n1.network": [
+                {
+                    # Will be calculated in the test case
+                    "cost": 0,
+                    "quantity": 0,
+                    "rate": 0.0164,
+                    "resource_id": "nz_por_222",
+                    "resource_name": "nz_por_222",
+                    "unit": "hour"
+                }
+            ],
+            "NZ-POR-1.n1.router": [
+                {
+                    # Will be calculated in the test case
+                    "cost": 0,
+                    "quantity": 0,
+                    "rate": 0.017,
+                    "resource_id": "nz_por_333",
+                    "resource_name": "nz_por_333",
+                    "unit": "hour"
+                }
+            ],
+        },
+        "total_cost": 0
+    },
+    "Object Storage": {
+        "breakdown": {
+            "NZ-POR-1.o1.standard": [
+                {
+                    "cost": 27.0,
+                    "quantity": 100000,
+                    "rate": 0.00027,
+                    "resource_id": "object_storage_id",
+                    "resource_name": "object_storage_name",
+                    "unit": "gigabyte"
+                },
+            ]
+        },
+        "total_cost": 27.0
+    }
+}
+DETAILS_2 = {
+    "Block Storage": {
+        "breakdown": {
+            "NZ-WLG-2.b1.standard": [
+                {
+                    "cost": 5.0,
+                    "quantity": 10000,
+                    "rate": 0.0005,
+                    "resource_id": "nz_wlg_111",
+                    "resource_name": "nz_wlg_111",
+                    "unit": "gigabyte"
+                },
+            ]
+        },
+        "total_cost": 5.0
+    },
+    "Network": {
+        "breakdown": {
+            "NZ-WLG-2.n1.network": [
+                {
+                    "cost": 164.0,
+                    "quantity": 10000,
+                    "rate": 0.0164,
+                    "resource_id": "nz_wlg_222",
+                    "resource_name": "nz_wlg_222",
+                    "unit": "hour"
+                }
+            ],
+            "NZ-WLG-2.n1.router": [
+                {
+                    "cost": 17.0,
+                    "quantity": 1000,
+                    "rate": 0.017,
+                    "resource_id": "nz_wlg_333",
+                    "resource_name": "nz_wlg_333",
+                    "unit": "hour"
+                }
+            ],
+        },
+        "total_cost": 181.0
+    },
+    "Object Storage": {
+        "breakdown": {
+            "NZ-WLG-2.o1.standard": [
+                {
+                    "cost": 54.0,
+                    "quantity": 200000,
+                    "rate": 0.00027,
+                    "resource_id": "object_storage_id",
+                    "resource_name": "object_storage_name",
+                    "unit": "gigabyte"
+                },
+            ]
+        },
+        "total_cost": 54.0
+    }
+}
+
 
 
 class TestAPI(base.APITest):
@@ -242,6 +361,222 @@ class TestAPI(base.APITest):
                 'project_name': 'default_project',
                 'project_id': default_project,
                 'quotations': {str(today): {}}
+            },
+            json.loads(ret.data)
+        )
+
+    @mock.patch(
+        'distil.service.api.v2.quotations._get_current_region_quotation'
+    )
+    @mock.patch('distil.common.openstack.get_regions')
+    @mock.patch('distil.common.openstack.get_distil_client')
+    def test_quotations_get_all_regions(self, mock_distil, mock_regions,
+                                        mock_cur_quotation):
+        self.override_config('keystone_authtoken', region_name='region-1')
+
+        class Region(object):
+            def __init__(self, name):
+                self.id = name
+
+        mock_regions.return_value = [
+            Region('region-1'),
+            Region('region-2'),
+            Region('region-3')
+        ]
+        distil_client_1 = mock.Mock()
+        distil_client_2 = mock.Mock()
+        mock_distil.side_effect = [distil_client_1, distil_client_2]
+
+        now = datetime.utcnow()
+        start_date = datetime(year=now.year, month=now.month, day=1)
+        free_hours = int((now - start_date).total_seconds() / 3600)
+
+        # We intentionally set the network/network quantity to control the
+        # discount value.
+        network_discount = round(0.0164 * free_hours, 2)
+        router_discount = round(0.017 * free_hours, 2)
+        detail_1 = copy.deepcopy(DETAILS_1)
+        detail_1['Network']['breakdown']['NZ-POR-1.n1.network'][0][
+            'quantity'] = free_hours
+        detail_1['Network']['breakdown']['NZ-POR-1.n1.network'][0][
+            'cost'] = network_discount
+        detail_1['Network']['breakdown']['NZ-POR-1.n1.router'][0][
+            'quantity'] = free_hours
+        detail_1['Network']['breakdown']['NZ-POR-1.n1.router'][0][
+            'cost'] = router_discount
+        detail_1['Network']['total_cost'] = network_discount + router_discount
+
+        distil_client_1.quotations.list.return_value = {
+            'quotations': {
+                str(now): {
+                    'details': detail_1
+                }
+            }
+        }
+        distil_client_2.quotations.list.return_value = {
+            'quotations': {
+                str(now): {
+                    'details': DETAILS_2
+                }
+            }
+        }
+
+        default_project = 'tenant_1'
+        today = date.today()
+        datetime_today = datetime(today.year, today.month, today.day)
+
+        db_api.project_add(
+            {
+                'id': default_project,
+                'name': 'default_project',
+                'description': 'project for test'
+            }
+        )
+
+        mock_cur_quotation.return_value = {
+            'start': str(datetime(today.year, today.month, 1)),
+            'end': str(datetime_today),
+            'project_id': default_project,
+            'project_name': 'default_project',
+            'quotations': {
+                str(today): {
+                    'details': {},
+                    'total_cost': 0.0
+                }
+            }
+        }
+
+        self._setup_policy({"rating:quotations:get": "rule:admin_or_owner"})
+        with self.app.test_request_context():
+            url = url_for(
+                'v2.quotations_get',
+                project_id=default_project,
+                detailed=True,
+                all_regions=True
+            )
+        ret = self.client.get(url, headers={'X-Tenant-Id': default_project})
+
+        final_details = {
+            "Compute": {
+                "breakdown": {
+                    "NZ-POR-1.c1.c2r16": [
+                        {
+                            "cost": 339.0,
+                            "quantity": 1000,
+                            "rate": 0.339,
+                            "resource_id": "nz_por_111",
+                            "resource_name": "nz_por_111",
+                            "unit": "hour"
+                        }
+                    ],
+                },
+                "total_cost": 339.0
+            },
+            "Block Storage": {
+                "breakdown": {
+                    "NZ-WLG-2.b1.standard": [
+                        {
+                            "cost": 5.0,
+                            "quantity": 10000,
+                            "rate": 0.0005,
+                            "resource_id": "nz_wlg_111",
+                            "resource_name": "nz_wlg_111",
+                            "unit": "gigabyte"
+                        },
+                    ]
+                },
+                "total_cost": 5.0
+            },
+            "Network": {
+                "breakdown": {
+                    "NZ-POR-1.n1.network": [
+                        {
+                            "cost": network_discount,
+                            "quantity": free_hours,
+                            "rate": 0.0164,
+                            "resource_id": "nz_por_222",
+                            "resource_name": "nz_por_222",
+                            "unit": "hour"
+                        }
+                    ],
+                    "NZ-POR-1.n1.router": [
+                        {
+                            "cost": router_discount,
+                            "quantity": free_hours,
+                            "rate": 0.017,
+                            "resource_id": "nz_por_333",
+                            "resource_name": "nz_por_333",
+                            "unit": "hour"
+                        }
+                    ],
+                    "NZ-WLG-2.n1.network": [
+                        {
+                            "cost": 164.0,
+                            "quantity": 10000,
+                            "rate": 0.0164,
+                            "resource_id": "nz_wlg_222",
+                            "resource_name": "nz_wlg_222",
+                            "unit": "hour"
+                        }
+                    ],
+                    "NZ-WLG-2.n1.router": [
+                        {
+                            "cost": 17.0,
+                            "quantity": 1000,
+                            "rate": 0.017,
+                            "resource_id": "nz_wlg_333",
+                            "resource_name": "nz_wlg_333",
+                            "unit": "hour"
+                        }
+                    ],
+                    "discount.n1.network": [
+                        {
+                            "cost": -network_discount,
+                            "quantity": -free_hours,
+                            "rate": 0.0164,
+                            "unit": "hour"
+                        }
+                    ],
+                    "discount.n1.router": [
+                        {
+                            "cost": -router_discount,
+                            "quantity": -free_hours,
+                            "rate": 0.017,
+                            "unit": "hour"
+                        }
+                    ],
+                },
+                "total_cost": 181.0
+            },
+            "Object Storage": {
+                "breakdown": {
+                    "NZ-WLG-2.o1.standard": [
+                        {
+                            "cost": 54.0,
+                            "quantity": 200000,
+                            "rate": 0.00027,
+                            "resource_id": "object_storage_id",
+                            "resource_name": "object_storage_name",
+                            "unit": "gigabyte"
+                        },
+                    ]
+                },
+                "total_cost": 54.0
+            }
+        }
+
+        self.assertEqual(
+            {
+                'start': str(datetime(today.year, today.month, 1)),
+                'end': str(datetime_today),
+                'project_name': 'default_project',
+                'project_id': default_project,
+                'quotations': {
+                    str(today): {
+                        'details': final_details,
+                        'total_cost': 579.0
+                    }
+                }
             },
             json.loads(ret.data)
         )

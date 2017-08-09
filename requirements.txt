@@ -20,6 +20,7 @@ python-novaclient!=2.33.0,>=2.29.0 # Apache-2.0
 python-neutronclient>=4.2.0 # Apache-2.0
 python-ceilometerclient>=2.2.1  # Apache-2.0
 python-glanceclient>=2.0.0  # Apache-2.0
+python-distilclient>=0.3.0
 
 oslo.cache>=1.5.0  # Apache-2.0
 oslo.config>=3.9.0 # Apache-2.0
