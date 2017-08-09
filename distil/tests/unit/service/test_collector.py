@@ -157,7 +157,9 @@ class CollectorTest(base.DistilWithDbTestCase):
 
     @mock.patch('distil.common.openstack.get_ceilometer_client')
     @mock.patch('distil.common.openstack.get_projects')
-    def test_project_order_ascending(self, mock_get_projects, mock_cclient):
+    @mock.patch('distil.db.api.get_project_locks')
+    def test_project_order_ascending(self, mock_get_lock, mock_get_projects,
+                                     mock_cclient):
         mock_get_projects.return_value = [
             {'id': '111', 'name': 'project_1', 'description': ''},
             {'id': '222', 'name': 'project_2', 'description': ''},
@@ -179,18 +181,16 @@ class CollectorTest(base.DistilWithDbTestCase):
         svc.collector = mock.Mock()
         svc.collect_usage()
 
-        expected_projects = []
-        for call in svc.collector.collect_usage.call_args_list:
-            expected_projects.append(call[0][0]['id'])
-
-        self.assertEqual(
-            ['111', '222', '333', '444'],
-            expected_projects
-        )
+        expected_list = ['111', '222', '333', '444']
+        actual_list = [call_args[0][0]
+                       for call_args in mock_get_lock.call_args_list]
+        self.assertEqual(expected_list, actual_list)
 
     @mock.patch('distil.common.openstack.get_ceilometer_client')
     @mock.patch('distil.common.openstack.get_projects')
-    def test_project_order_descending(self, mock_get_projects, mock_cclient):
+    @mock.patch('distil.db.api.get_project_locks')
+    def test_project_order_descending(self, mock_get_lock, mock_get_projects,
+                                      mock_cclient):
         self.override_config('collector', project_order='descending')
 
         mock_get_projects.return_value = [
@@ -214,18 +214,16 @@ class CollectorTest(base.DistilWithDbTestCase):
         svc.collector = mock.Mock()
         svc.collect_usage()
 
-        expected_projects = []
-        for call in svc.collector.collect_usage.call_args_list:
-            expected_projects.append(call[0][0]['id'])
-
-        self.assertEqual(
-            ['444', '333', '222', '111'],
-            expected_projects
-        )
+        expected_list = ['444', '333', '222', '111']
+        actual_list = [call_args[0][0]
+                       for call_args in mock_get_lock.call_args_list]
+        self.assertEqual(expected_list, actual_list)
 
     @mock.patch('distil.common.openstack.get_ceilometer_client')
     @mock.patch('distil.common.openstack.get_projects')
-    def test_project_order_random(self, mock_get_projects, mock_cclient):
+    @mock.patch('distil.db.api.get_project_locks')
+    def test_project_order_random(self, mock_get_lock, mock_get_projects,
+                                  mock_cclient):
         self.override_config('collector', project_order='random')
 
         mock_get_projects.return_value = [
@@ -249,14 +247,10 @@ class CollectorTest(base.DistilWithDbTestCase):
         svc.collector = mock.Mock()
         svc.collect_usage()
 
-        expected_projects = []
-        for call in svc.collector.collect_usage.call_args_list:
-            expected_projects.append(call[0][0]['id'])
-
-        self.assertNotEqual(
-            ['111', '222', '333', '444'],
-            expected_projects
-        )
+        unexpected_list = ['111', '222', '333', '444']
+        actual_list = [call_args[0][0]
+                       for call_args in mock_get_lock.call_args_list]
+        self.assertNotEqual(unexpected_list, actual_list)
 
     @mock.patch('os.kill')
     @mock.patch('distil.common.openstack.get_ceilometer_client')
