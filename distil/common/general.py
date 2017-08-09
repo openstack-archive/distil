@@ -66,11 +66,12 @@ def get_windows(start, end):
 def log_and_time_it(f):
     def decorator(*args, **kwargs):
         start = datetime.utcnow()
-        LOG.info('Entering %s at %s' % (f.__name__, start))
+        LOG.info('Entering %s at %s', f.__name__, start)
         f(*args, **kwargs)
-        LOG.info('Exiting %s at %s, elapsed %s' % (f.__name__,
-                                                   datetime.utcnow(),
-                                                   datetime.utcnow() - start))
+        LOG.info('Exiting %s at %s, elapsed %s',
+                 f.__name__,
+                 datetime.utcnow(),
+                 datetime.utcnow() - start)
     return decorator
 
 

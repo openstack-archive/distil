@@ -157,7 +157,7 @@ def filter_and_group(usage, usage_by_resource):
                 all([not re.match(source, u['source'])
                      for source in trust_sources]) == True):
                 LOG.warn('Ignoring untrusted usage sample ' +
-                            'from source `%s`' % u['source'])
+                            'from source `%s`', u['source'])
                 continue
 
             resource_id = u['resource_id']
@@ -205,7 +205,7 @@ def collect_usage(tenant, db, session, resp, end):
     timestamp = datetime.utcnow()
     session.begin(subtransactions=True)
 
-    LOG.info('collect_usage for %s %s' % (tenant.id, tenant.name))
+    LOG.info('collect_usage for %s %s', tenant.id, tenant.name)
 
     db_tenant = db.insert_tenant(tenant.id, tenant.name,
                                  tenant.description, timestamp)
@@ -221,8 +221,8 @@ def collect_usage(tenant, db, session, resp, end):
     for window_start, window_end in windows:
         try:
             with session.begin(subtransactions=True):
-                LOG.info("%s %s slice %s %s" % (tenant.id, tenant.name,
-                                                window_start, window_end))
+                LOG.info("%s %s slice %s %s", tenant.id, tenant.name,
+                                                window_start, window_end)
 
                 mappings = config.collection['meter_mappings']
 
@@ -267,10 +267,10 @@ def collect_usage(tenant, db, session, resp, end):
                  }
             )
             resp["errors"] += 1
-            LOG.warn("IntegrityError for %s %s in window: %s - %s " %
-                        (tenant.name, tenant.id,
+            LOG.warn("IntegrityError for %s %s in window: %s - %s ",
+                        tenant.name, tenant.id,
                          window_start.strftime(iso_time),
-                         window_end.strftime(iso_time)))
+                         window_end.strftime(iso_time))
             return run_once
     return run_once
 
@@ -349,7 +349,7 @@ def get_usage():
     start = flask.request.args.get('start')
     end = flask.request.args.get('end')
 
-    LOG.info("get_usage for %s %s %s" % (tenant_id, start, end))
+    LOG.info("get_usage for %s %s %s", tenant_id, start, end)
 
     try:
         start_dt = datetime.strptime(end, iso_time)
@@ -378,12 +378,12 @@ def get_usage():
 
         data = memcache.get(key)
         if data is not None:
-            LOG.info("Returning memcache raw data for %s in range: %s - %s" %
-                     (tenant_id, start, end))
+            LOG.info("Returning memcache raw data for %s in range: %s - %s",
+                     tenant_id, start, end)
             return 200, data
 
-    LOG.info("Calculating raw data for %s in range: %s - %s" %
-             (tenant_id, start, end))
+    LOG.info("Calculating raw data for %s in range: %s - %s",
+             tenant_id, start, end)
 
     # aggregate usage
     usage = db.usage(start, end, tenant_id)
@@ -447,12 +447,12 @@ def get_rated():
 
         data = memcache.get(key)
         if data is not None:
-            LOG.info("Returning memcache rated data for %s in range: %s - %s" %
-                     (valid_tenant.id, start, end))
+            LOG.info("Returning memcache rated data for %s in range: %s - %s",
+                     valid_tenant.id, start, end)
             return 200, data
 
-    LOG.info("Calculating rated data for %s in range: %s - %s" %
-             (valid_tenant.id, start, end))
+    LOG.info("Calculating rated data for %s in range: %s - %s",
+             valid_tenant.id, start, end)
 
     tenant_dict = calculate_rated_data(valid_tenant, start, end, session)
 
