@@ -156,7 +156,7 @@ class TestOdooDriver(base.DistilTestCase):
             {'id': 1, 'date_invoice': '2017-03-31', 'amount_total': 0.371},
             {'id': 2, 'date_invoice': '2017-04-30', 'amount_total': 0.859}
         ]
-        odoodriver.product_catagory_mapping = {
+        odoodriver.product_category_mapping = {
             1: 'Compute'
         }
 
