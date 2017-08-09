@@ -210,7 +210,7 @@ class OdooDriver(driver.BaseDriver):
         for line in invoice_lines:
             line_info = {
                 'resource_name': line['name'],
-                'quantity': line['quantity'],
+                'quantity': round(line['quantity'], constants.QUANTITY_DIGITS),
                 'rate': round(line['price_unit'], constants.RATE_DIGITS),
                 'unit': line['uos_id'][1],
                 'cost': round(line['price_subtotal'], constants.PRICE_DIGITS)

@@ -136,7 +136,7 @@ class TestOdooDriver(base.DistilTestCase):
             [
                 {
                     'name': 'resource3',
-                    'quantity': 3,
+                    'quantity': 653.2345,
                     'price_unit': 0.123,
                     'uos_id': [1, 'Gigabyte-hour(s)'],
                     'price_subtotal': 0.369,
@@ -203,7 +203,7 @@ class TestOdooDriver(base.DistilTestCase):
                                 'NZ-POR-1.c1.c2r8': [
                                     {
                                         "cost": 0.37,
-                                        "quantity": 3,
+                                        "quantity": 653.235,
                                         "rate": 0.123,
                                         "resource_name": "resource3",
                                         "unit": "Gigabyte-hour(s)"
