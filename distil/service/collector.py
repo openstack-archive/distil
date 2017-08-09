@@ -44,7 +44,7 @@ def filter_projects(projects):
     else:
         p_filtered = projects
 
-    LOG.info("After filtering, %s project(s) left." % len(p_filtered))
+    LOG.info("After filtering, %s project(s) left.", len(p_filtered))
 
     return p_filtered
 
@@ -144,8 +144,8 @@ class CollectorService(service.Service):
             locks = db_api.get_project_locks(project['id'])
             if locks and locks[0].owner != self.identifier:
                 LOG.debug(
-                    "Project %s is being processed by collector %s." %
-                    (project['id'], locks[0].owner)
+                    "Project %s is being processed by collector %s.",
+                    project['id'], locks[0].owner
                 )
                 continue
 
@@ -171,7 +171,7 @@ class CollectorService(service.Service):
             except Exception:
                 LOG.warning('Get lock failed. Process: %s' % self.identifier)
 
-        LOG.info("Finished collecting usage for %s projects." % success_count)
+        LOG.info("Finished collecting usage for %s projects.", success_count)
 
         # If we start distil-collector manually with 'collect_end_time' param
         # specified, the service should be stopped automatically after all

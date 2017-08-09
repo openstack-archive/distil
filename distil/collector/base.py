@@ -135,7 +135,7 @@ class BaseCollector(object):
             root_vol = openstack.get_root_volume(entry['resource_id'])
         except Exception as e:
             LOG.warning(
-                'Error occured when getting root_volume for %s, reason: %s' %
+                'Error occured when getting root_volume for %s, reason: %s',
                 (entry['resource_id'], str(e))
             )
 
@@ -160,8 +160,8 @@ class BaseCollector(object):
                     )
                 except Exception as e:
                     LOG.warning(
-                        'Error occured when getting image %s, reason: %s' %
-                        (image_id, str(e))
+                        'Error occured when getting image %s, reason: %s',
+                        image_id, str(e)
                     )
 
         return os_distro
@@ -227,8 +227,8 @@ class BaseCollector(object):
                     res_id = hashlib.md5(res_id.encode('utf-8')).hexdigest()
 
                 LOG.debug(
-                    'After transformation, usage for resource %s: %s' %
-                    (res_id, transformed)
+                    'After transformation, usage for resource %s: %s',
+                    res_id, transformed
                 )
 
                 res_info = self._get_resource_info(

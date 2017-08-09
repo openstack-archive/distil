@@ -28,8 +28,8 @@ def get_invoices(project_id, start, end, detailed=False):
         project_id, start, end)
 
     LOG.info(
-        "Get invoices for %s(%s) in range: %s - %s" %
-        (project.id, project.name, start, end)
+        "Get invoices for %s(%s) in range: %s - %s",
+        project.id, project.name, start, end
     )
 
     output = {
