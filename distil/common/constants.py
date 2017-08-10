@@ -50,3 +50,4 @@ states = {'active': 1,
 
 RATE_DIGITS = 6
 PRICE_DIGITS = 2
+QUANTITY_DIGITS = 3
