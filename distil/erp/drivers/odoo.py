@@ -29,7 +29,12 @@ from distil import exceptions
 
 LOG = log.getLogger(__name__)
 
-PRODUCT_CATEGORY = ('Compute', 'Network', 'Block Storage', 'Object Storage')
+COMPUTE_CATEGORY = "Compute"
+NETWORK_CATEGORY = "Network"
+BLOCKSTORAGE_CATEGORY = "Block Storage"
+OBJECTSTORAGE_CATEGORY = "Object Storage"
+PRODUCT_CATEGORY = [COMPUTE_CATEGORY, NETWORK_CATEGORY,
+                    BLOCKSTORAGE_CATEGORY, OBJECTSTORAGE_CATEGORY]
 
 
 class OdooDriver(driver.BaseDriver):
@@ -150,7 +155,8 @@ class OdooDriver(driver.BaseDriver):
 
             if len(obj_pids) > 0:
                 obj_p = self.product.browse(obj_pids[0])
-
+                self.product_catagory_mapping[obj_pids[0]] = \
+                    OBJECTSTORAGE_CATEGORY
                 for region in regions:
                     # Ensure returned region name is same with what user see
                     # from Keystone.
