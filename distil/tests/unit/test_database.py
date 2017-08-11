@@ -31,4 +31,4 @@ class TestDatabase(test_interface.TestInterface):
         for i in range(num_tenants):
             usage = db.usage(self.start, self.start + timedelta(days=60),
                              "tenant_id_" + str(i))
-            self.assertEqual(usage.count(), num_resources)
+            self.assertEqual(num_resources, usage.count())

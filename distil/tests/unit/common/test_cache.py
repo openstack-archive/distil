@@ -48,4 +48,4 @@ class TestCache(base.DistilTestCase):
 
         name = 'Tom'
         for x in xrange(0, 2):
-            self.assertEqual(test(name), 'hello, Tom')
+            self.assertEqual('hello, Tom', test(name))
