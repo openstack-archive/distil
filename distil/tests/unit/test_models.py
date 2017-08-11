@@ -33,7 +33,7 @@ class TestModels(test_interface.TestInterface):
         self.session.add(t)
         self.session.commit()
         t2 = self.session.query(Tenant).get(TENANT_ID)
-        self.assertEqual(t2.name, "test")
+        self.assertEqual("test", t2.name)
         # self.session.commit()
 
     def test_create_resource(self):
@@ -73,7 +73,7 @@ class TestModels(test_interface.TestInterface):
             #self.fail("Inserted overlapping row; failing")
         except (IntegrityError, OperationalError):
             self.session.rollback()
-            self.assertEqual(self.session.query(UsageEntry).count(), 1)
+            self.assertEqual(1, self.session.query(UsageEntry).count())
 
     def test_last_run(self):
         self.session.begin()
@@ -81,4 +81,4 @@ class TestModels(test_interface.TestInterface):
         self.session.add(run)
         self.session.commit()
         result = self.session.query(_Last_Run)
-        self.assertEqual(result.count(), 1)
+        self.assertEqual(1, result.count())

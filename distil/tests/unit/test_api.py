@@ -72,7 +72,7 @@ class TestAPI(test_interface.TestInterface):
                 flavor_name.side_effect = lambda x: x
 
                 resp = self.app.post("/collect_usage")
-                self.assertEqual(resp.status_int, 200)
+                self.assertEqual(200, resp.status_int)
 
                 tenants = self.session.query(models.Tenant)
                 self.assertTrue(tenants.count() > 0)
@@ -121,7 +121,7 @@ class TestAPI(test_interface.TestInterface):
                                          "start": "2014-07-01T00:00:00",
                                          "end": "2014-08-01T00:00:00"})
             self.assertEqual(1, len(values))
-            self.assertEqual(resp2.body, test_string)
+            self.assertEqual(test_string, resp2.body)
 
     @testtools.skip("skip test.")
     def test_memcache_rated_usage(self):
@@ -161,7 +161,7 @@ class TestAPI(test_interface.TestInterface):
                                          "start": "2014-07-01T00:00:00",
                                          "end": "2014-08-01T00:00:00"})
             self.assertEqual(1, len(values))
-            self.assertEqual(resp2.body, test_string)
+            self.assertEqual(test_string, resp2.body)
 
     def test_tenant_dict(self):
         """Checking that the tenant dictionary is built correctly
@@ -186,13 +186,13 @@ class TestAPI(test_interface.TestInterface):
 
         tenant_dict = web.build_tenant_dict(tenant, entries, db)
 
-        self.assertEqual(len(tenant_dict['resources']), num_resources)
-        self.assertEqual(tenant_dict['tenant_id'], "tenant_id_1")
-        self.assertEqual(tenant_dict['name'], "tenant_1")
+        self.assertEqual(num_resources, len(tenant_dict['resources']))
+        self.assertEqual("tenant_id_1", tenant_dict['tenant_id'])
+        self.assertEqual("tenant_1", tenant_dict['name'])
 
         for resource in tenant_dict['resources'].values():
             for service in resource['services']:
-                self.assertEqual(service['volume'], volume)
+                self.assertEqual(volume, service['volume'])
 
     def test_tenant_dict_no_entries(self):
         """Test to ensure that the function handles an
@@ -207,9 +207,9 @@ class TestAPI(test_interface.TestInterface):
 
         tenant_dict = web.build_tenant_dict(tenant, entries, db)
 
-        self.assertEqual(len(tenant_dict['resources']), 0)
-        self.assertEqual(tenant_dict['tenant_id'], "tenant_id_1")
-        self.assertEqual(tenant_dict['name'], "tenant_1")
+        self.assertEqual(0, len(tenant_dict['resources']))
+        self.assertEqual("tenant_id_1", tenant_dict['tenant_id'])
+        self.assertEqual("tenant_1", tenant_dict['name'])
 
     def test_add_cost_to_tenant(self):
         """Checking that the rates are applied correctly,
@@ -299,4 +299,4 @@ class TestAPI(test_interface.TestInterface):
                     2: [{'source':
                          '22c4f150358e4ed287fa51e050d7f024:TrafficAccounting',
                          'resource_id': 2}]}
-        self.assertEqual(usage_by_resource, expected)
+        self.assertEqual(expected, usage_by_resource)
