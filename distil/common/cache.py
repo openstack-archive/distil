@@ -43,7 +43,7 @@ def _keygen(*args, **kwargs):
 
 
 # TODO(flwang): We're recreating wheels, because the way documenting on
-# http://docs.openstack.org/developer/oslo.cache/usage.html doesn't work for
+# https://docs.openstack.org/oslo.cache/latest/user/usage.html doesn't work for
 # us. We will revisit this to replace this decorator when it's sorted out.
 def memoize(function):
     @wraps(function)
