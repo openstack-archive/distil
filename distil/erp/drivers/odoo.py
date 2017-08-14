@@ -292,12 +292,13 @@ class OdooDriver(driver.BaseDriver):
                 'account.invoice',
                 'read',
                 ids,
-                ['date_invoice', 'amount_total']
+                ['date_invoice', 'amount_total', 'state']
             )
             for v in invoices:
                 result[v['date_invoice']] = {
                     'total_cost': round(
-                        v['amount_total'], constants.PRICE_DIGITS)
+                        v['amount_total'], constants.PRICE_DIGITS),
+                    'status': v.get('state')
                 }
 
                 if detailed:

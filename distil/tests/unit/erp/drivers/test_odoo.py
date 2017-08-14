@@ -91,16 +91,18 @@ class TestOdooDriver(base.DistilTestCase):
         odoodriver = odoo.OdooDriver(self.conf)
         odoodriver.invoice.search.return_value = ['1', '2']
         odoodriver.odoo.execute.return_value = [
-            {'date_invoice': '2017-03-31', 'amount_total': 10},
-            {'date_invoice': '2017-04-30', 'amount_total': 20}
+            {'date_invoice': '2017-03-31', 'amount_total': 10,
+             'state': 'paid'},
+            {'date_invoice': '2017-04-30', 'amount_total': 20,
+             'state': 'open'},
         ]
 
         invoices = odoodriver.get_invoices(start, end, fake_project)
 
         self.assertEqual(
             {
-                '2017-03-31': {'total_cost': 10},
-                '2017-04-30': {'total_cost': 20}
+                '2017-03-31': {'total_cost': 10, 'status': 'paid'},
+                '2017-04-30': {'total_cost': 20, 'status': 'open'}
             },
             invoices
         )
@@ -153,8 +155,10 @@ class TestOdooDriver(base.DistilTestCase):
             ]
         ]
         odoodriver.odoo.execute.return_value = [
-            {'id': 1, 'date_invoice': '2017-03-31', 'amount_total': 0.371},
-            {'id': 2, 'date_invoice': '2017-04-30', 'amount_total': 0.859}
+            {'id': 1, 'date_invoice': '2017-03-31', 'amount_total': 0.371,
+             'state': 'paid'},
+            {'id': 2, 'date_invoice': '2017-04-30', 'amount_total': 0.859,
+             'state': 'open'}
         ]
         odoodriver.product_category_mapping = {
             1: 'Compute'
@@ -170,6 +174,7 @@ class TestOdooDriver(base.DistilTestCase):
             {
                 '2017-03-31': {
                     'total_cost': 0.37,
+                    'status': 'paid',
                     'details': {
                         'Compute': {
                             'total_cost': 0.37,
@@ -196,6 +201,7 @@ class TestOdooDriver(base.DistilTestCase):
                 },
                 '2017-04-30': {
                     'total_cost': 0.86,
+                    'status': 'open',
                     'details': {
                         'Compute': {
                             'total_cost': 0.86,
