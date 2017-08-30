@@ -162,7 +162,7 @@ class OdooDriver(driver.BaseDriver):
 
             if len(obj_pids) > 0:
                 obj_p = self.product.browse(obj_pids[0])
-                self.product_catagory_mapping[obj_pids[0]] = \
+                self.product_category_mapping[obj_pids[0]] = \
                     OBJECTSTORAGE_CATEGORY
                 for region in regions:
                     # Ensure returned region name is same with what user see
