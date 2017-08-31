@@ -102,8 +102,11 @@ class TestAPI(base.APITest):
         db_api.resource_add(
             default_project, res_id, {'type': 'Virtual Machine'}
         )
+        # NOTE(flwang): Based on current data model of usage entry:
+        # volume = Column(Numeric(precision=20, scale=2), nullable=False)
+        # it's only necessary to test the case of scale=2.
         db_api.usage_add(
-            default_project, res_id, {'instance': 100}, 'hour',
+            default_project, res_id, {'instance': 100.12}, 'hour',
             datetime.strptime(start, constants.iso_time),
             datetime.strptime(end, constants.iso_time),
         )
@@ -131,7 +134,7 @@ class TestAPI(base.APITest):
                             'type': 'Virtual Machine',
                             'services': [{
                                 'name': 'instance',
-                                'volume': '100.00',
+                                'volume': 100.12,
                                 'unit': 'hour'
                             }]
                         }

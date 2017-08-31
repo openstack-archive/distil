@@ -17,6 +17,7 @@ import json
 
 from oslo_log import log as logging
 
+from distil.common import constants
 from distil.common import general
 from distil.db import api as db_api
 
@@ -35,7 +36,7 @@ def _build_project_dict(project, usage):
 
     for entry in usage:
         service = {'name': entry.get('service'),
-                   'volume': str(entry.get('volume')),
+                   'volume': float(entry.get('volume')),
                    'unit': entry.get('unit')}
 
         resource = project_dict['resources'][entry.get('resource_id')]
