@@ -111,7 +111,7 @@ def sort_entries(data):
 
 
 class Tenant(object):
-    """A wrapper object for the tenant recieved from keystone."""
+    """A wrapper object for the tenant received from keystone."""
     def __init__(self, tenant, conn):
         self.tenant = tenant
         self.conn = conn            # the Interface object that produced us.

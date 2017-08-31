@@ -318,7 +318,7 @@ class OdooDriver(driver.BaseDriver):
                     result[v['date_invoice']].update({'details': details})
         except Exception as e:
             LOG.exception(
-                'Error occured when getting invoices from Odoo, '
+                'Error occurred when getting invoices from Odoo, '
                 'error: %s' % str(e)
             )
 
