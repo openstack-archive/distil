@@ -16,6 +16,7 @@
 import collections
 from decimal import Decimal
 import json
+import re
 
 import odoorpc
 from oslo_log import log
@@ -229,8 +230,10 @@ class OdooDriver(driver.BaseDriver):
                 'cost': round(line['price_subtotal'], constants.PRICE_DIGITS)
             }
 
-            # Original product is a string like "[hour] NZ-POR-1.c1.c2r8"
-            product = line['product_id'][1].split(']')[1].strip()
+            product = line['product_id'][1]
+            if re.match(r"\[.+\].+", product):
+                product = line['product_id'][1].split(']')[1].strip()
+
             category = self.product_category_mapping[line['product_id'][0]]
 
             if category not in detail_dict:

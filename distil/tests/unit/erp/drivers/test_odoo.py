@@ -151,17 +151,26 @@ class TestOdooDriver(base.DistilTestCase):
                     'uos_id': [1, 'Gigabyte-hour(s)'],
                     'price_subtotal': 0.492,
                     'product_id': [1, '[hour] NZ-POR-1.c1.c2r8']
+                },
+                {
+                    "name": "Development Grant",
+                    "quantity": 1,
+                    "price_unit": -0.1,
+                    'uos_id': [1, 'Unit(s)'],
+                    "price_subtotal": -0.1,
+                    'product_id': [4, 'cloud-dev-grant']                    
                 }
             ]
         ]
         odoodriver.odoo.execute.return_value = [
             {'id': 1, 'date_invoice': '2017-03-31', 'amount_total': 0.371,
              'state': 'paid'},
-            {'id': 2, 'date_invoice': '2017-04-30', 'amount_total': 0.859,
+            {'id': 2, 'date_invoice': '2017-04-30', 'amount_total': 0.759,
              'state': 'open'}
         ]
         odoodriver.product_category_mapping = {
-            1: 'Compute'
+            1: 'Compute',
+            4: 'Discounts'
         }
 
         invoices = odoodriver.get_invoices(
@@ -200,9 +209,22 @@ class TestOdooDriver(base.DistilTestCase):
                     }
                 },
                 '2017-04-30': {
-                    'total_cost': 0.86,
+                    'total_cost': 0.76,
                     'status': 'open',
                     'details': {
+                        "Discounts":{
+                            "total_cost": -0.1,
+                            "breakdown":{
+                                'cloud-dev-grant': [
+                                    {
+                                        'quantity': 1.0,
+                                        'unit': 'Unit(s)',
+                                        'cost': -0.1,
+                                        'resource_name': 'Development Grant',
+                                        'rate': -0.1}
+                                ]
+                            }
+                        },
                         'Compute': {
                             'total_cost': 0.86,
                             'breakdown': {
