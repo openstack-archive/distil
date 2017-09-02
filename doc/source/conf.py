@@ -65,10 +65,6 @@ todo_include_todos = True
 # and the source docs do not contain the code so local, offline sphinx builds
 # are "clean."
 templates_path = []
-if os.getenv('HUDSON_PUBLISH_DOCS'):
-    templates_path = ['_ga', '_templates']
-else:
-    templates_path = ['_templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
