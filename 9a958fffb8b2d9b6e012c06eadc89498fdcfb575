@@ -1,0 +1,10 @@
+Code-Review+2: Lingxian Kong <anlin.kong@gmail.com>
+Code-Review+2: Adrian Turjak <adriant@catalyst.net.nz>
+Workflow+1: Adrian Turjak <adriant@catalyst.net.nz>
+Code-Review+1: ShangXiao <shangxiaobj@inspur.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Mon, 04 Sep 2017 00:22:58 +0000
+Reviewed-on: https://review.openstack.org/499867
+Project: openstack/distil
+Branch: refs/heads/master
