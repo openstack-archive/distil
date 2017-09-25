@@ -400,6 +400,116 @@ class TestOdooDriver(base.DistilTestCase):
         )
 
     @mock.patch('odoorpc.ODOO')
+    @mock.patch('distil.erp.drivers.odoo.OdooDriver.get_products')
+    def test_get_quotations_with_details_windows_vm(self, mock_get_products,
+                                                    mock_odoo):
+        mock_get_products.return_value = {
+            'nz_1': {
+                'Compute': [
+                    {
+                        'name': 'c1.c2r16', 'description': 'c1.c2r16',
+                        'rate': 0.01, 'unit': 'hour'
+                    },
+                    {
+                        'name': 'c1.c2r16-windows',
+                        'description': 'c1.c2r16-windows',
+                        'rate': 0.02, 'unit': 'hour'
+                    }
+                ],
+                'Block Storage': [
+                    {
+                        'name': 'b1.standard', 'description': 'b1.standard',
+                        'rate': 0.02, 'unit': 'gigabyte'
+                    }
+                ]
+            }
+        }
+
+        class Resource(object):
+            def __init__(self, id, info):
+                self.id = id
+                self.info = info
+
+        resources = [
+            Resource(1, '{"name": "volume1", "type": "Volume"}'),
+            Resource(
+                2,
+                '{"name": "instance2", "type": "Virtual Machine", '
+                '"os_distro": "windows"}'
+            )
+        ]
+
+        usage = [
+            {
+                'service': 'b1.standard',
+                'resource_id': 1,
+                'volume': 1024 * 1024 * 1024,
+                'unit': 'byte',
+            },
+            {
+                'service': 'c1.c2r16',
+                'resource_id': 2,
+                'volume': 3600,
+                'unit': 'second',
+            }
+        ]
+
+        odoodriver = odoo.OdooDriver(self.conf)
+        quotations = odoodriver.get_quotations(
+            'nz_1', 'fake_id', measurements=usage, resources=resources,
+            detailed=True
+        )
+
+        self.assertDictEqual(
+            {
+                'total_cost': 0.05,
+                'details': {
+                    'Compute': {
+                        'total_cost': 0.03,
+                        'breakdown': {
+                            'NZ-1.c1.c2r16': [
+                                {
+                                    "resource_name": "instance2",
+                                    "resource_id": 2,
+                                    "cost": 0.01,
+                                    "quantity": 1.0,
+                                    "rate": 0.01,
+                                    "unit": "hour",
+                                }
+                            ],
+                            'NZ-1.c1.c2r16-windows': [
+                                {
+                                    "resource_name": "instance2",
+                                    "resource_id": 2,
+                                    "cost": 0.02,
+                                    "quantity": 1.0,
+                                    "rate": 0.02,
+                                    "unit": "hour",
+                                }
+                            ],
+                        }
+                    },
+                    'Block Storage': {
+                        'total_cost': 0.02,
+                        'breakdown': {
+                            'NZ-1.b1.standard': [
+                                {
+                                    "resource_name": "volume1",
+                                    "resource_id": 1,
+                                    "cost": 0.02,
+                                    "quantity": 1.0,
+                                    "rate": 0.02,
+                                    "unit": "gigabyte",
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            quotations
+        )
+
+    @mock.patch('odoorpc.ODOO')
     def test_get_credits(self, mock_odoo):
         fake_credits = [{'create_uid': [182, 'OpenStack Testing'],
                          'initial_balance': 500.0,

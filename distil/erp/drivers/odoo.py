@@ -14,7 +14,9 @@
 # limitations under the License.
 
 import collections
+import copy
 from decimal import Decimal
+import itertools
 import json
 import re
 
@@ -372,6 +374,19 @@ class OdooDriver(driver.BaseDriver):
 
         return price
 
+    def _get_entry_info(self, entry, resources_info, service_mapping):
+        service_name = entry.get('service')
+        volume = entry.get('volume')
+        unit = entry.get('unit')
+        res_id = entry.get('resource_id')
+        resource = resources_info.get(res_id, {})
+        # resource_type is the type defined in meter_mappings.yml.
+        resource_type = resource.get('type')
+        service_type = service_mapping.get(service_name, resource_type)
+
+        return (service_name, service_type, volume, unit, resource,
+                resource_type)
+
     def get_quotations(self, region, project_id, measurements=[], resources=[],
                        detailed=False):
         """Get current month quotation.
@@ -401,7 +416,12 @@ class OdooDriver(driver.BaseDriver):
         cost_details = {}
 
         odoo_region = self.region_mapping.get(region, region).upper()
-        resources = {row.id: json.loads(row.info) for row in resources}
+
+        resources_info = {}
+        for row in resources:
+            info = json.loads(row.info)
+            info.update({'id': row.id})
+            resources_info[row.id] = info
 
         # NOTE(flwang): For most of the cases of Distil API, the request comes
         # from billing panel. Billing panel sends 1 API call for /invoices and
@@ -411,15 +431,25 @@ class OdooDriver(driver.BaseDriver):
         products = self.get_products()[region]
         service_mapping = self._get_service_mapping(products)
 
+        # Find windows VM usage entries
+        windows_vm_entries = []
         for entry in measurements:
-            service_name = entry.get('service')
-            volume = entry.get('volume')
-            unit = entry.get('unit')
-            res_id = entry.get('resource_id')
+            (service_name, service_type, _, _, resource,
+             resource_type) = self._get_entry_info(entry, resources_info,
+                                                   service_mapping)
 
-            # resource_type is the type defined in meter_mappings.yml.
-            resource_type = resources[res_id]['type']
-            service_type = service_mapping.get(service_name, resource_type)
+            if (service_type == COMPUTE_CATEGORY
+                    and resource_type == 'Virtual Machine'
+                    and resource.get('os_distro') == 'windows'):
+                new_entry = copy.deepcopy(entry)
+                new_entry.service = '%s-windows' % service_name
+                windows_vm_entries.append(new_entry)
+
+        for entry in itertools.chain(measurements, windows_vm_entries):
+            (service_name, service_type, volume, unit, resource,
+             resource_type) = self._get_entry_info(entry, resources_info,
+                                                   service_mapping)
+            res_id = resource['id']
 
             if service_type not in cost_details:
                 cost_details[service_type] = {
@@ -436,10 +466,10 @@ class OdooDriver(driver.BaseDriver):
             price_spec = price_mapping[service_name]
 
             # Convert volume according to unit in price definition.
-            volume = float(general.convert_to(volume, unit,
-                                              price_spec['unit']))
-            cost = (round(volume * price_spec['rate'],
-                          constants.PRICE_DIGITS)
+            volume = float(
+                general.convert_to(volume, unit, price_spec['unit'])
+            )
+            cost = (round(volume * price_spec['rate'], constants.PRICE_DIGITS)
                     if price_spec['rate'] else 0)
 
             total_cost += cost
@@ -455,7 +485,7 @@ class OdooDriver(driver.BaseDriver):
                     odoo_service_name
                 ].append(
                     {
-                        "resource_name": resources[res_id].get('name', ''),
+                        "resource_name": resource.get('name', ''),
                         "resource_id": res_id,
                         "cost": cost,
                         "quantity": round(volume, 3),
@@ -465,8 +495,10 @@ class OdooDriver(driver.BaseDriver):
                     }
                 )
 
-        result = {'total_cost': round(float(total_cost),
-                                      constants.PRICE_DIGITS)}
+        result = {
+            'total_cost': round(float(total_cost), constants.PRICE_DIGITS)
+        }
+
         if detailed:
             result.update({'details': cost_details})
 
