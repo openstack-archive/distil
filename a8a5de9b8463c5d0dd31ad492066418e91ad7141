@@ -1,0 +1,12 @@
+Verified+1: Jenkins
+Code-Review+2: Lingxian Kong <anlin.kong@gmail.com>
+Code-Review+1: dharmendra kushwaha <dharmendra.kushwaha@nectechnologies.in>
+Code-Review+1: Dai Dang Van <daidv@vn.fujitsu.com>
+Code-Review+2: Feilong Wang <flwang@catalyst.net.nz>
+Workflow+1: Feilong Wang <flwang@catalyst.net.nz>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Mon, 16 Oct 2017 03:09:59 +0000
+Reviewed-on: https://review.openstack.org/489489
+Project: openstack/distil
+Branch: refs/heads/master
