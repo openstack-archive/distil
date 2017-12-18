@@ -156,7 +156,7 @@ def filter_and_group(usage, usage_by_resource):
             if (trust_sources and
                 all([not re.match(source, u['source'])
                      for source in trust_sources]) == True):
-                LOG.warn('Ignoring untrusted usage sample ' +
+                LOG.warning('Ignoring untrusted usage sample ' +
                             'from source `%s`' % u['source'])
                 continue
 
@@ -267,7 +267,7 @@ def collect_usage(tenant, db, session, resp, end):
                  }
             )
             resp["errors"] += 1
-            LOG.warn("IntegrityError for %s %s in window: %s - %s " %
+            LOG.warning("IntegrityError for %s %s in window: %s - %s " %
                         (tenant.name, tenant.id,
                          window_start.strftime(iso_time),
                          window_end.strftime(iso_time)))
