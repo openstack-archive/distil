@@ -399,3 +399,38 @@ class TestNetworkServiceTransformer(base.DistilTestCase):
                                       FAKE_DATA.t1)
 
         self.assertEqual({'fake_meter': 0}, usage)
+
+@mock.patch.object(general, 'get_transformer_config',
+                   mock.Mock(return_value=FAKE_CONFIG))
+class TestMagnumTransformer(base.DistilTestCase):
+    def test_basic_sum(self):
+        """Tests that the transformer correctly calculate the sum value.
+        """
+
+        data = [
+            {'timestamp': '2014-01-01T00:00:00', 'volume': 1},
+            {'timestamp': '2014-01-01T00:10:00', 'volume': 0},
+            {'timestamp': '2014-01-01T01:00:00', 'volume': 2},
+        ]
+
+        xform = conversion.MagnumTransformer()
+        usage = xform.transform_usage('fake_meter', data, FAKE_DATA.t0,
+                                      FAKE_DATA.t1)
+
+        self.assertEqual({'fake_meter': 1}, usage)
+
+    def test_only_non_charged(self):
+        """Tests that the transformer correctly calculate the sum value.
+        """
+
+        data = [
+            {'timestamp': '2014-01-01T00:00:00', 'volume': 1},
+            {'timestamp': '2014-01-01T00:10:00', 'volume': 1},
+            {'timestamp': '2014-01-01T01:00:00', 'volume': 18},
+        ]
+
+        xform = conversion.MagnumTransformer()
+        usage = xform.transform_usage('fake_meter', data, FAKE_DATA.t0,
+                                      FAKE_DATA.t1)
+
+        self.assertEqual({'fake_meter': 0}, usage)
