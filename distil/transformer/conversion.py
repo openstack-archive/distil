@@ -161,3 +161,21 @@ class NetworkServiceTransformer(BaseTransformer):
         max_vol = max(volumes) if len(volumes) else 0
         hours = (end - start).total_seconds() / 3600.0
         return {name: max_vol * hours}
+
+
+class MagnumTransformer(BaseTransformer):
+    """Transformer for Magnum clusters.
+    """
+
+    def _transform_usage(self, name, data, start, end):
+        # NOTE(flwang): The magnum pollster of Ceilometer is using
+        # status as the volume(see ceilometer/cim/magnum.py), so we have
+        # to check the volume to make sure only the active clusters are
+        # charged.
+        charged_cluster_status = [2, 5, 8, 9, 11, 14, 15, 16, 17]
+        volumes = [v["volume"] for v in data if
+                   v["volume"] in charged_cluster_status]
+        max_vol = max(volumes) if len(volumes) else 0
+        hours = (end - start).total_seconds() / 3600.0
+        return {name: max_vol * hours}
+
