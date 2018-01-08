@@ -241,3 +241,15 @@
     name:
       sources:
         - name
+
+-
+  meter: cim.coe.cluster
+  service: p1.coe
+  type: COE Cluster
+  transformer: MagnumTransformer
+  unit: hour
+  metadata:
+    name:
+      sources:
+        - name
+
