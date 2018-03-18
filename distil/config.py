@@ -96,6 +96,12 @@ ODOO_OPTS = [
     cfg.StrOpt('object_storage_service_name',
                default='o1.standard',
                help='Service name for object storage.'),
+    cfg.ListOpt('invisible_products', default=['reseller-margin-discount'],
+                help=("The product list which will be invisible to project "
+                      "users. For example, as a cloud provider we would like "
+                      "to hide the reseller margin for reseller's customer.")),
+    cfg.FloatOpt('tax_rate', default='0.15',
+                 help='Tax rate for invoicing.'),
 ]
 
 

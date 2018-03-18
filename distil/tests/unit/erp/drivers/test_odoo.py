@@ -116,6 +116,7 @@ class TestOdooDriver(base.DistilTestCase):
 
         odoodriver = odoo.OdooDriver(self.conf)
         odoodriver.invoice.search.return_value = ['1', '2']
+        odoodriver.product_unit_mapping = {1: 'hour'}
         odoodriver.invoice_line.read.side_effect = [
             [
                 {
@@ -138,7 +139,7 @@ class TestOdooDriver(base.DistilTestCase):
             [
                 {
                     'name': 'resource3',
-                    'quantity': 653.2345,
+                    'quantity': 3,
                     'price_unit': 0.123,
                     'uos_id': [1, 'Gigabyte-hour(s)'],
                     'price_subtotal': 0.369,
@@ -146,10 +147,10 @@ class TestOdooDriver(base.DistilTestCase):
                 },
                 {
                     'name': 'resource4',
-                    'quantity': 4,
+                    'quantity': 40,
                     'price_unit': 0.123,
                     'uos_id': [1, 'Gigabyte-hour(s)'],
-                    'price_subtotal': 0.492,
+                    'price_subtotal': 4.92,
                     'product_id': [1, '[hour] NZ-POR-1.c1.c2r8']
                 },
                 {
@@ -159,13 +160,21 @@ class TestOdooDriver(base.DistilTestCase):
                     'uos_id': [1, 'Unit(s)'],
                     "price_subtotal": -0.1,
                     'product_id': [4, 'cloud-dev-grant']
+                },
+                {
+                    "name": "Reseller Margin discount",
+                    "quantity": 1,
+                    "price_unit": -1,
+                    'uos_id': [1, 'Unit(s)'],
+                    "price_subtotal": -1,
+                    'product_id': [8, 'reseller-margin-discount']
                 }
             ]
         ]
         odoodriver.odoo.execute.return_value = [
-            {'id': 1, 'date_invoice': '2017-03-31', 'amount_total': 0.371,
+            {'id': 1, 'date_invoice': '2017-03-31', 'amount_total': 0.426,
              'state': 'paid'},
-            {'id': 2, 'date_invoice': '2017-04-30', 'amount_total': 0.759,
+            {'id': 2, 'date_invoice': '2017-04-30', 'amount_total': 4.817,
              'state': 'open'}
         ]
         odoodriver.product_category_mapping = {
@@ -182,7 +191,7 @@ class TestOdooDriver(base.DistilTestCase):
         self.assertEqual(
             {
                 '2017-03-31': {
-                    'total_cost': 0.37,
+                    'total_cost': 0.43,
                     'status': 'paid',
                     'details': {
                         'Compute': {
@@ -194,14 +203,14 @@ class TestOdooDriver(base.DistilTestCase):
                                         "quantity": 1,
                                         "rate": 0.123,
                                         "resource_name": "resource1",
-                                        "unit": "Gigabyte-hour(s)"
+                                        "unit": "hour"
                                     },
                                     {
                                         "cost": 0.25,
                                         "quantity": 2,
                                         "rate": 0.123,
                                         "resource_name": "resource2",
-                                        "unit": "Gigabyte-hour(s)"
+                                        "unit": "hour"
                                     }
                                 ]
                             }
@@ -209,7 +218,7 @@ class TestOdooDriver(base.DistilTestCase):
                     }
                 },
                 '2017-04-30': {
-                    'total_cost': 0.76,
+                    'total_cost': 5.97,
                     'status': 'open',
                     'details': {
                         "Discounts":{
@@ -218,7 +227,7 @@ class TestOdooDriver(base.DistilTestCase):
                                 'cloud-dev-grant': [
                                     {
                                         'quantity': 1.0,
-                                        'unit': 'Unit(s)',
+                                        'unit': 'NZD',
                                         'cost': -0.1,
                                         'resource_name': 'Development Grant',
                                         'rate': -0.1}
@@ -226,22 +235,22 @@ class TestOdooDriver(base.DistilTestCase):
                             }
                         },
                         'Compute': {
-                            'total_cost': 0.86,
+                            'total_cost': 5.29,
                             'breakdown': {
                                 'NZ-POR-1.c1.c2r8': [
                                     {
                                         "cost": 0.37,
-                                        "quantity": 653.235,
+                                        "quantity": 3,
                                         "rate": 0.123,
                                         "resource_name": "resource3",
-                                        "unit": "Gigabyte-hour(s)"
+                                        "unit": "hour"
                                     },
                                     {
-                                        "cost": 0.49,
-                                        "quantity": 4,
+                                        "cost": 4.92,
+                                        "quantity": 40,
                                         "rate": 0.123,
                                         "resource_name": "resource4",
-                                        "unit": "Gigabyte-hour(s)"
+                                        "unit": "hour"
                                     }
                                 ]
                             }

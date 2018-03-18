@@ -21,6 +21,7 @@ import json
 import re
 
 import odoorpc
+from oslo_config import cfg
 from oslo_log import log
 
 from distil.common import cache
@@ -31,6 +32,7 @@ from distil.erp import driver
 from distil import exceptions
 
 LOG = log.getLogger(__name__)
+CONF = cfg.CONF
 
 COMPUTE_CATEGORY = "Compute"
 NETWORK_CATEGORY = "Network"
@@ -82,6 +84,7 @@ class OdooDriver(driver.BaseDriver):
         self.credit = self.odoo.env['cloud.credit']
 
         self.product_category_mapping = {}
+        self.product_unit_mapping = {}
 
     def is_healthy(self):
         try:
@@ -94,6 +97,7 @@ class OdooDriver(driver.BaseDriver):
     @cache.memoize
     def get_products(self, regions=[]):
         self.product_category_mapping.clear()
+        self.product_unit_mapping.clear()
         odoo_regions = []
 
         if not regions:
@@ -144,6 +148,7 @@ class OdooDriver(driver.BaseDriver):
                     # Odoo GUI
                     unit = product['default_code']
                     desc = product['description']
+                    self.product_unit_mapping[product['id']] = unit
 
                     prices[actual_region][category.lower()].append(
                         {'name': name,
@@ -217,6 +222,13 @@ class OdooDriver(driver.BaseDriver):
         }
         """
         detail_dict = {}
+        # NOTE(flwang): To hide some cost like 'reseller_margin_discount', we
+        # need to get the total amount for those cost/usage and then
+        # re-calculate the total cost for the monthly cost.
+        # Because the total cost in the final invoice is got from odoo, so it
+        # includes tax(GST). So we also need to include tax when re-calculate
+        # the total cost.
+        invisible_cost = 0
 
         invoice_lines_ids = self.invoice_line.search(
             [('invoice_id', '=', invoice_id)]
@@ -228,7 +240,12 @@ class OdooDriver(driver.BaseDriver):
                 'resource_name': line['name'],
                 'quantity': round(line['quantity'], constants.QUANTITY_DIGITS),
                 'rate': round(line['price_unit'], constants.RATE_DIGITS),
-                'unit': line['uos_id'][1],
+                # TODO(flwang): We're not exposing some product at all, such
+                # as the discount product. For those kind of product, using
+                # NZD as the default. We may have to revisit this part later
+                # if there is new requirement.
+                'unit': self.product_unit_mapping.get(line['product_id'][0],
+                                                      'NZD'),
                 'cost': round(line['price_subtotal'], constants.PRICE_DIGITS)
             }
 
@@ -236,21 +253,24 @@ class OdooDriver(driver.BaseDriver):
             if re.match(r"\[.+\].+", product):
                 product = product.split(']')[1].strip()
 
-            category = self.product_category_mapping[line['product_id'][0]]
+            if product in CONF.odoo.invisible_products:
+                invisible_cost += -line_info['cost'] * (1 + CONF.odoo.tax_rate)
+            else:
+                category = self.product_category_mapping[line['product_id'][0]]
 
-            if category not in detail_dict:
-                detail_dict[category] = {
-                    'total_cost': 0,
-                    'breakdown': collections.defaultdict(list)
-                }
+                if category not in detail_dict:
+                    detail_dict[category] = {
+                        'total_cost': 0,
+                        'breakdown': collections.defaultdict(list)
+                    }
 
-            detail_dict[category]['total_cost'] = round(
-                (detail_dict[category]['total_cost'] + line_info['cost']),
-                constants.PRICE_DIGITS
-            )
-            detail_dict[category]['breakdown'][product].append(line_info)
+                detail_dict[category]['total_cost'] = round(
+                    (detail_dict[category]['total_cost'] + line_info['cost']),
+                    constants.PRICE_DIGITS
+                )
+                detail_dict[category]['breakdown'][product].append(line_info)
 
-        return detail_dict
+        return detail_dict, invisible_cost
 
     @cache.memoize
     def get_invoices(self, start, end, project_id, detailed=False):
@@ -319,7 +339,12 @@ class OdooDriver(driver.BaseDriver):
                     if not self.product_category_mapping:
                         self.get_products()
 
-                    details = self._get_invoice_detail(v['id'])
+                    details, invisible_cost = self._get_invoice_detail(v['id'])
+                    # NOTE(flwang): Revise the total cost based on the
+                    # invisible cost
+                    m = result[v['date_invoice']]
+                    m['total_cost'] = round(m['total_cost'] + invisible_cost,
+                                            constants.PRICE_DIGITS)
                     result[v['date_invoice']].update({'details': details})
         except Exception as e:
             LOG.exception(
