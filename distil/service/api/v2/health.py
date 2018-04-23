@@ -44,7 +44,8 @@ def get_health():
     result = {}
 
     projects_keystone = openstack.get_projects()
-    keystone_projects = [t['id'] for t in projects_keystone]
+    keystone_projects = [t['id'] for t in projects_keystone
+                         if t['name'] not in CONF.collector.ignore_tenants]
 
     threshold = datetime.utcnow() - timedelta(days=1)
 

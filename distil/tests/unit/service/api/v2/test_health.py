@@ -93,8 +93,8 @@ class HealthTest(base.DistilWithDbTestCase):
 
     @mock.patch('odoorpc.ODOO')
     @mock.patch('distil.common.openstack.get_projects')
-    def test_get_health_with_erp_abackend_fail(self, mock_get_projects,
-                                               mock_odoo):
+    def test_get_health_with_erp_backend_fail(self, mock_get_projects,
+                                              mock_odoo):
         new = mock.MagicMock()
         new.db.list.side_effect = Exception('Boom!')
         mock_odoo.return_value = new
@@ -109,3 +109,37 @@ class HealthTest(base.DistilWithDbTestCase):
         ret = health.get_health()
 
         self.assertEqual('OK', ret['erp_backend'].get('status'))
+
+    @mock.patch('distil.common.openstack.get_projects')
+    def test_get_health_with_ignore_tenants(self, mock_get_projects):
+        self.override_config('collector', ignore_tenants=['project_2'])
+        mock_get_projects.return_value = [
+            {'id': '111', 'name': 'project_1', 'description': ''},
+            {'id': '222', 'name': 'project_2', 'description': ''},
+        ]
+
+        # Insert projects in the database.
+        project_1_collect = datetime.utcnow() - timedelta(days=2)
+        db_api.project_add(
+            {
+                'id': '111',
+                'name': 'project_1',
+                'description': '',
+            },
+            project_1_collect
+        )
+        project_2_collect = datetime.utcnow() - timedelta(hours=25)
+        db_api.project_add(
+            {
+                'id': '222',
+                'name': 'project_2',
+                'description': '',
+            },
+            project_2_collect
+        )
+
+        ret = health.get_health()
+
+        self.assertEqual('FAIL', ret['usage_collection'].get('status'))
+        self.assertIn('1', ret['usage_collection'].get('msg'))
+
