@@ -115,7 +115,9 @@ class OdooDriver(driver.BaseDriver):
             product_ids = self.product.search([('categ_id', 'in', c),
                                                ('sale_ok', '=', True),
                                                ('active', '=', True)])
-            products = self.product.read(product_ids)
+            product_fields = ["categ_id", "name_template", "lst_price",
+                              "default_code", "description"]
+            products = self.product.read(product_ids, fields=product_fields)
 
             for region in odoo_regions:
                 # Ensure returned region name is same with what user see from
@@ -167,7 +169,9 @@ class OdooDriver(driver.BaseDriver):
             )
 
             if len(obj_pids) > 0:
-                obj_p = self.product.browse(obj_pids[0])
+                obj_p = self.product.read(obj_pids[0],
+                                          fields=["lst_price", "default_code",
+                                                  "description"])
                 self.product_category_mapping[obj_pids[0]] = \
                     OBJECTSTORAGE_CATEGORY
                 for region in regions:
@@ -178,10 +182,10 @@ class OdooDriver(driver.BaseDriver):
 
                     prices[actual_region]['object storage'].append(
                         {'name': obj_s_name,
-                         'rate': round(obj_p.lst_price,
+                         'rate': round(obj_p["lst_price"],
                                        constants.RATE_DIGITS),
-                         'unit': obj_p.default_code,
-                         'description': obj_p.description}
+                         'unit': obj_p["default_code"],
+                         'description': obj_p["description"]}
                     )
         except odoorpc.error.Error as e:
             LOG.exception(e)
@@ -235,7 +239,10 @@ class OdooDriver(driver.BaseDriver):
         invoice_lines_ids = self.invoice_line.search(
             [('invoice_id', '=', invoice_id)]
         )
-        invoice_lines = self.invoice_line.read(invoice_lines_ids)
+        invoice_fields = ["name", "quantity", "price_unit", "price_subtotal",
+                          "product_id"]
+        invoice_lines = self.invoice_line.read(invoice_lines_ids,
+                                               fields=invoice_fields)
 
         for line in invoice_lines:
             line_info = {
@@ -545,5 +552,7 @@ class OdooDriver(driver.BaseDriver):
             [('cloud_tenant.tenant_id', '=', project_id),
              ('expiry_date', '>', expiry_date.isoformat()),
              ('current_balance', '>', 0.0001)])
-
-        return [self._normalize_credit(c) for c in self.credit.read(ids)]
+        fields = ["code", "credit_type_id", "create_date", "expiry_date",
+                  "current_balance", "recurring"]
+        return [self._normalize_credit(c)
+                for c in self.credit.read(ids, fields=fields)]
