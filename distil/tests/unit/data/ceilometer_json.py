@@ -5,7 +5,7 @@ import json
 from keystoneclient.v2_0 import client
 keystone = client.Client(username="admin", password="openstack",
                          tenant_name="demo",
-                         auth_url="http://localhost:35357/v2.0")
+                         auth_url="http://localhost:5000/v2.0")
 
 resources = json.loads(requests.get("http://localhost:8777/v2/resources",
                                     headers={"X-Auth-Token":

@@ -31,7 +31,7 @@ FAKE_CONFIG = {
         "file": "examples/test_rates.csv"
     },
     "auth": {
-        "end_point": "http://localhost:35357/v2.0",
+        "end_point": "http://localhost:5000/v2.0",
         "username": "admin",
         "password": "openstack",
         "default_tenant": "demo",

@@ -20,7 +20,7 @@ auth:
   insecure: True
   authenticate_clients: True
   # used for authenticate_clients
-  identity_url: http://localhost:35357
+  identity_url: http://localhost:5000
 # configuration for defining usage collection
 collection:
   # defines which meter is mapped to which transformer

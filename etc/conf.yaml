@@ -21,7 +21,7 @@ auth:
   insecure: True
   authenticate_clients: True
   # used for authenticate_clients
-  identity_url: http://localhost:35357
+  identity_url: http://localhost:5000
 # config for Memcache:
 memcache:
   enabled: False
