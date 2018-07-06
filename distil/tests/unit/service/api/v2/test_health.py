@@ -90,6 +90,8 @@ class HealthTest(base.DistilWithDbTestCase):
 
         self.assertEqual('FAIL', ret['usage_collection'].get('status'))
         self.assertIn('2', ret['usage_collection'].get('msg'))
+        self.assertIn('project_1,project_2',
+                      ret['usage_collection'].get('msg'))
 
     @mock.patch('odoorpc.ODOO')
     @mock.patch('distil.common.openstack.get_projects')
