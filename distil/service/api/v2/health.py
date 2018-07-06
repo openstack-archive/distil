@@ -62,9 +62,13 @@ def get_health():
             'msg': 'Tenant usage successfully collected and up-to-date.'
         }
     else:
+        failed_projects = [{"name": p.name, "id": p.id} for p in
+                           failed_projects]
+
         result['usage_collection'] = {
             'status': Status.FAIL.name,
-            'msg': 'Failed to collect usage for %s projects.' % failed_count
+            'msg': 'Failed to collect usage for %s projects.' % failed_count,
+            'failed_projects': failed_projects,
         }
 
     try:

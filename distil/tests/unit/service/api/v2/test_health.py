@@ -87,9 +87,18 @@ class HealthTest(base.DistilWithDbTestCase):
         )
 
         ret = health.get_health()
+        projects = ret['usage_collection'].get('failed_projects')
 
+        self.assertIsNotNone(projects)
+        self.assertEqual(2, len(projects))
         self.assertEqual('FAIL', ret['usage_collection'].get('status'))
         self.assertIn('2', ret['usage_collection'].get('msg'))
+
+        p_names = [p['name'] for p in projects]
+        p_ids = [p['id'] for p in projects]
+
+        self.assertEqual(["project_1", "project_2"], p_names)
+        self.assertEqual(["111", "222"], p_ids)
 
     @mock.patch('odoorpc.ODOO')
     @mock.patch('distil.common.openstack.get_projects')
