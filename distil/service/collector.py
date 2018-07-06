@@ -118,11 +118,11 @@ class CollectorService(service.Service):
             return
 
         projects = openstack.get_projects()
-        project_ids = [p['id'] for p in projects]
         valid_projects = filter_projects(projects)
+        project_ids = [p['id'] for p in valid_projects]
 
         # For new created project, we use the earliest last collection time
-        # among existing projects as the start time.
+        # among existing valid projects as the start time.
         last_collect = db_api.get_last_collect(project_ids).last_collected
 
         end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)

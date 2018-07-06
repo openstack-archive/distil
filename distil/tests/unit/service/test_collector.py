@@ -155,6 +155,46 @@ class CollectorTest(base.DistilWithDbTestCase):
             [(project_1_collect, project_1_collect + timedelta(hours=1))]
         )
 
+    @mock.patch(
+        'distil.collector.ceilometer.CeilometerCollector.collect_usage')
+    @mock.patch('distil.common.openstack.get_ceilometer_client')
+    @mock.patch('distil.common.openstack.get_projects')
+    def test_last_collect_ignore_project(self, mock_get_projects, mock_cclient,
+                                         mock_collect_usage):
+        self.override_config('collector', ignore_tenants=['project_2'])
+
+        mock_get_projects.return_value = [
+            {'id': '111', 'name': 'project_1', 'description': ''},
+            {'id': '222', 'name': 'project_2', 'description': ''},
+        ]
+
+        project1_time = datetime(2017, 5, 17, 20)
+        db_api.project_add(
+            {
+                'id': '111',
+                'name': 'project_1',
+                'description': '',
+            },
+            project1_time
+        )
+        project2_time = datetime(2017, 5, 17, 19)
+        db_api.project_add(
+            {
+                'id': '222',
+                'name': 'project_2',
+                'description': '',
+            },
+            project2_time
+        )
+
+        svc = collector.CollectorService()
+        svc.collect_usage()
+
+        mock_collect_usage.assert_called_once_with(
+            {'id': '111', 'name': 'project_1', 'description': ''},
+            [(project1_time, project1_time + timedelta(hours=1))]
+        )
+
     @mock.patch('distil.common.openstack.get_ceilometer_client')
     @mock.patch('distil.common.openstack.get_projects')
     @mock.patch('distil.db.api.get_project_locks')
