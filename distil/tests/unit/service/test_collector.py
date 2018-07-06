@@ -108,17 +108,14 @@ class CollectorTest(base.DistilWithDbTestCase):
     @mock.patch('distil.common.openstack.get_projects')
     def test_last_collect_new_project(self, mock_get_projects, mock_cclient,
                                       mock_collect_usage):
-        self.override_config('collector', include_tenants=['project_3'])
-
-        # Assume project_3 is a new project that doesn't exist in distil db.
+        # Assume project_2 is a new project that doesn't exist in distil db.
         mock_get_projects.return_value = [
             {'id': '111', 'name': 'project_1', 'description': ''},
             {'id': '222', 'name': 'project_2', 'description': ''},
-            {'id': '333', 'name': 'project_3', 'description': ''},
         ]
 
-        # Insert 3 projects in the database, including one project which is
-        # not in keystone.
+        # Insert project_0 and project_1 in the database, project_0 is not in
+        # keystone anymore.
         project_0_collect = datetime(2017, 5, 17, 19)
         db_api.project_add(
             {
@@ -137,22 +134,54 @@ class CollectorTest(base.DistilWithDbTestCase):
             },
             project_1_collect
         )
-        project_2_collect = datetime(2017, 5, 17, 21)
+
+        svc = collector.CollectorService()
+        svc.collect_usage()
+
+        self.assertEqual(2, mock_collect_usage.call_count)
+        mock_collect_usage.assert_called_with(
+            {'id': '222', 'name': 'project_2', 'description': ''},
+            [(project_1_collect, project_1_collect + timedelta(hours=1))]
+        )
+
+    @mock.patch(
+        'distil.collector.ceilometer.CeilometerCollector.collect_usage')
+    @mock.patch('distil.common.openstack.get_ceilometer_client')
+    @mock.patch('distil.common.openstack.get_projects')
+    def test_last_collect_ignore_project(self, mock_get_projects, mock_cclient,
+                                         mock_collect_usage):
+        self.override_config('collector', ignore_tenants=['project_2'])
+
+        mock_get_projects.return_value = [
+            {'id': '111', 'name': 'project_1', 'description': ''},
+            {'id': '222', 'name': 'project_2', 'description': ''},
+        ]
+
+        project1_time = datetime(2017, 5, 17, 20)
+        db_api.project_add(
+            {
+                'id': '111',
+                'name': 'project_1',
+                'description': '',
+            },
+            project1_time
+        )
+        project2_time = datetime(2017, 5, 17, 19)
         db_api.project_add(
             {
                 'id': '222',
                 'name': 'project_2',
                 'description': '',
             },
-            project_2_collect
+            project2_time
         )
 
         svc = collector.CollectorService()
         svc.collect_usage()
 
         mock_collect_usage.assert_called_once_with(
-            {'id': '333', 'name': 'project_3', 'description': ''},
-            [(project_1_collect, project_1_collect + timedelta(hours=1))]
+            {'id': '111', 'name': 'project_1', 'description': ''},
+            [(project1_time, project1_time + timedelta(hours=1))]
         )
 
     @mock.patch('distil.common.openstack.get_ceilometer_client')
