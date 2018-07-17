@@ -32,14 +32,18 @@ from distil import exceptions
 
 LOG = log.getLogger(__name__)
 
+# FIXME(flwang): We need a better way to handle new products to avoid
+# unexpected failure when adding new products.
 COMPUTE_CATEGORY = "Compute"
 NETWORK_CATEGORY = "Network"
 BLOCKSTORAGE_CATEGORY = "Block Storage"
 OBJECTSTORAGE_CATEGORY = "Object Storage"
 DISCOUNTS_CATEGORY = "Discounts"
+PREMIUM_SUPPORT = "Premium Support"
+SUPPORT = "Support"
 PRODUCT_CATEGORY = [COMPUTE_CATEGORY, NETWORK_CATEGORY,
                     BLOCKSTORAGE_CATEGORY, OBJECTSTORAGE_CATEGORY,
-                    DISCOUNTS_CATEGORY]
+                    DISCOUNTS_CATEGORY, PREMIUM_SUPPORT, SUPPORT]
 
 
 class OdooDriver(driver.BaseDriver):
