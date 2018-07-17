@@ -1,0 +1,9 @@
+Code-Review+2: Lingxian Kong <anlin.kong@gmail.com>
+Code-Review+2: Adrian Turjak <adriant@catalyst.net.nz>
+Workflow+1: Adrian Turjak <adriant@catalyst.net.nz>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Tue, 17 Jul 2018 05:37:55 +0000
+Reviewed-on: https://review.openstack.org/583096
+Project: openstack/distil
+Branch: refs/heads/master
