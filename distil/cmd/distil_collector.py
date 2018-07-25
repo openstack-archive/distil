@@ -26,7 +26,7 @@ def main():
     config.parse_args(sys.argv[1:], 'distil-collector')
 
     srv = collector.CollectorService()
-    launcher = service.launch(cfg.CONF, srv)
+    launcher = service.launch(cfg.CONF, srv, restart_method='mutate')
     launcher.wait()
 
 
