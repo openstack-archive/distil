@@ -470,21 +470,23 @@ class OdooDriver(driver.BaseDriver):
         products = self.get_products()[region]
         service_mapping = self._get_service_mapping(products)
 
-        # Find windows VM usage entries
-        windows_vm_entries = []
+        # Find licensed VM usage entries
+        licensed_vm_entries = []
         for entry in measurements:
             (service_name, service_type, _, _, resource,
              resource_type) = self._get_entry_info(entry, resources_info,
                                                    service_mapping)
 
-            if (service_type == COMPUTE_CATEGORY
-                    and resource_type == 'Virtual Machine'
-                    and resource.get('os_distro') == 'windows'):
-                new_entry = copy.deepcopy(entry)
-                setattr(new_entry, 'service', '%s-windows' % service_name)
-                windows_vm_entries.append(new_entry)
+            for os_distro in self.conf.odoo.licensed_os_distro_list:
+                if (service_type == COMPUTE_CATEGORY
+                        and resource_type == 'Virtual Machine'
+                        and resource.get('os_distro') == os_distro):
+                    new_entry = copy.deepcopy(entry)
+                    setattr(new_entry,
+                            'service', '%s-%s' % (service_name, os_distro))
+                    licensed_vm_entries.append(new_entry)
 
-        for entry in itertools.chain(measurements, windows_vm_entries):
+        for entry in itertools.chain(measurements, licensed_vm_entries):
             (service_name, service_type, volume, unit, resource,
              resource_type) = self._get_entry_info(entry, resources_info,
                                                    service_mapping)

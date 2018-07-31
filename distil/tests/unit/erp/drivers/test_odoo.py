@@ -410,8 +410,8 @@ class TestOdooDriver(base.DistilTestCase):
 
     @mock.patch('odoorpc.ODOO')
     @mock.patch('distil.erp.drivers.odoo.OdooDriver.get_products')
-    def test_get_quotations_with_details_windows_vm(self, mock_get_products,
-                                                    mock_odoo):
+    def test_get_quotations_with_details_licensed_vm(self, mock_get_products,
+                                                      mock_odoo):
         mock_get_products.return_value = {
             'nz_1': {
                 'Compute': [
@@ -420,9 +420,18 @@ class TestOdooDriver(base.DistilTestCase):
                         'rate': 0.01, 'unit': 'hour'
                     },
                     {
+                        'name': 'c1.c4r32', 'description': 'c1.c4r32',
+                        'rate': 0.04, 'unit': 'hour'
+                    },
+                    {
                         'name': 'c1.c2r16-windows',
                         'description': 'c1.c2r16-windows',
                         'rate': 0.02, 'unit': 'hour'
+                    },
+                    {
+                        'name': 'c1.c4r32-sql-server-standard-windows',
+                        'description': 'c1.c4r32-sql-server-standard-windows',
+                        'rate': 0.04, 'unit': 'hour'
                     }
                 ],
                 'Block Storage': [
@@ -445,6 +454,11 @@ class TestOdooDriver(base.DistilTestCase):
                 2,
                 '{"name": "instance2", "type": "Virtual Machine", '
                 '"os_distro": "windows"}'
+            ),
+            Resource(
+                3,
+                '{"name": "instance3", "type": "Virtual Machine", '
+                '"os_distro": "sql-server-standard-windows"}'
             )
         ]
 
@@ -460,7 +474,8 @@ class TestOdooDriver(base.DistilTestCase):
 
         usage = [
             Usage('b1.standard', 1, 1024 * 1024 * 1024, 'byte'),
-            Usage('c1.c2r16', 2, 3600, 'second')
+            Usage('c1.c2r16', 2, 3600, 'second'),
+            Usage('c1.c4r32', 3, 3600, 'second'),
         ]
 
         odoodriver = odoo.OdooDriver(self.conf)
@@ -471,10 +486,10 @@ class TestOdooDriver(base.DistilTestCase):
 
         self.assertDictEqual(
             {
-                'total_cost': 0.05,
+                'total_cost': 0.13,
                 'details': {
                     'Compute': {
-                        'total_cost': 0.03,
+                        'total_cost': 0.11,
                         'breakdown': {
                             'NZ-1.c1.c2r16': [
                                 {
@@ -493,6 +508,26 @@ class TestOdooDriver(base.DistilTestCase):
                                     "cost": 0.02,
                                     "quantity": 1.0,
                                     "rate": 0.02,
+                                    "unit": "hour",
+                                }
+                            ],
+                            'NZ-1.c1.c4r32': [
+                                {
+                                    "resource_name": "instance3",
+                                    "resource_id": 3,
+                                    "cost": 0.04,
+                                    "quantity": 1.0,
+                                    "rate": 0.04,
+                                    "unit": "hour",
+                                }
+                            ],
+                            'NZ-1.c1.c4r32-sql-server-standard-windows': [
+                                {
+                                    "resource_name": "instance3",
+                                    "resource_id": 3,
+                                    "cost": 0.04,
+                                    "quantity": 1.0,
+                                    "rate": 0.04,
                                     "unit": "hour",
                                 }
                             ],
