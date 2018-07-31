@@ -102,6 +102,13 @@ ODOO_OPTS = [
                       "to hide the reseller margin for reseller's customer.")),
     cfg.FloatOpt('tax_rate', default='0.15',
                  help='Tax rate for invoicing.'),
+    cfg.ListOpt('microsoft_os_distro_list',
+                default=['windows',
+                         'sql-server-standard-windows',
+                         'sql-server-enterprise-windows'],
+                help='The os_distro list supported for microsoft product '
+                     'family. e.g. in Odoo, the product name could be '
+                     'c1.c1r2-windows or c1.c2r4-sql-server-standard-windows')
 ]
 
 
