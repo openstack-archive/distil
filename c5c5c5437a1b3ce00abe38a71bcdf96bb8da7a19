@@ -1,0 +1,8 @@
+Code-Review+2: Lingxian Kong <anlin.kong@gmail.com>
+Workflow+1: Feilong Wang <flwang@catalyst.net.nz>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Sun, 02 Dec 2018 21:12:27 +0000
+Reviewed-on: https://review.openstack.org/587272
+Project: openstack/distil
+Branch: refs/heads/master
