@@ -96,6 +96,10 @@ ODOO_OPTS = [
     cfg.StrOpt('object_storage_service_name',
                default='o1.standard',
                help='Service name for object storage.'),
+    cfg.ListOpt('extra_product_category_list',
+                default=[],
+                help='Additional product categories which should be easily '
+                     'parsed. Such as new product category created in Odoo.'),
     cfg.ListOpt('invisible_products', default=['reseller-margin-discount'],
                 help=("The product list which will be invisible to project "
                       "users. For example, as a cloud provider we would like "
