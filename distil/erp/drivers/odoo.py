@@ -32,8 +32,6 @@ from distil import exceptions
 
 LOG = log.getLogger(__name__)
 
-# FIXME(flwang): We need a better way to handle new products to avoid
-# unexpected failure when adding new products.
 COMPUTE_CATEGORY = "Compute"
 NETWORK_CATEGORY = "Network"
 BLOCKSTORAGE_CATEGORY = "Block Storage"
@@ -41,13 +39,16 @@ OBJECTSTORAGE_CATEGORY = "Object Storage"
 DISCOUNTS_CATEGORY = "Discounts"
 PREMIUM_SUPPORT = "Premium Support"
 SUPPORT = "Support"
-PRODUCT_CATEGORY = [COMPUTE_CATEGORY, NETWORK_CATEGORY,
-                    BLOCKSTORAGE_CATEGORY, OBJECTSTORAGE_CATEGORY,
-                    DISCOUNTS_CATEGORY, PREMIUM_SUPPORT, SUPPORT]
+SLA_DISCOUNT_CATEGORY = "SLA Discount"
 
 
 class OdooDriver(driver.BaseDriver):
     def __init__(self, conf):
+        self.PRODUCT_CATEGORY = [COMPUTE_CATEGORY, NETWORK_CATEGORY,
+                                 BLOCKSTORAGE_CATEGORY, OBJECTSTORAGE_CATEGORY,
+                                 DISCOUNTS_CATEGORY, PREMIUM_SUPPORT, SUPPORT,
+                                 SLA_DISCOUNT_CATEGORY] + \
+            conf.odoo.extra_product_category_list
         self.odoo = odoorpc.ODOO(conf.odoo.hostname,
                                  protocol=conf.odoo.protocol,
                                  port=conf.odoo.port,
@@ -115,7 +116,7 @@ class OdooDriver(driver.BaseDriver):
             # odoo, so we prefer to get all the products by one call and then
             # filter them in Distil. And another problem is the filter for
             # region doesn't work when query odoo.
-            c = self.category.search([('name', 'in', PRODUCT_CATEGORY)])
+            c = self.category.search([('name', 'in', self.PRODUCT_CATEGORY)])
             product_ids = self.product.search([('categ_id', 'in', c),
                                                ('sale_ok', '=', True),
                                                ('active', '=', True)])
@@ -136,7 +137,7 @@ class OdooDriver(driver.BaseDriver):
                     # those product won't be returned as a part of the
                     # /products API.
                     self.product_category_mapping[product['id']] = category
-                    if category == DISCOUNTS_CATEGORY:
+                    if category in (DISCOUNTS_CATEGORY, SLA_DISCOUNT_CATEGORY):
                         continue
 
                     if region.upper() not in product['name_template']:
