@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from collections import defaultdict
 import re
 
 from ceilometerclient import client as ceilometerclient
@@ -28,7 +29,7 @@ from distil.common import general
 
 CONF = cfg.CONF
 KS_SESSION = None
-cache = {}
+cache = defaultdict(list)
 ROOT_DEVICE_PATTERN = re.compile('^/dev/(x?v|s|h)da1?$')
 
 
@@ -136,7 +137,7 @@ def get_root_volume(instance_id):
 
 @general.disable_ssl_warnings
 def get_volume_type(volume_type):
-    if not cache['volume_types']:
+    if not cache.get("volume_types"):
         cinder = get_cinder_client()
         for vtype in cinder.volume_types.list():
             cache['volume_types'].append({'id': vtype.id, 'name': vtype.name})
