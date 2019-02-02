@@ -1,0 +1,1205 @@
+{
+    "nz-region-1":{
+       "compute":[
+          {
+             "resource":"c1.c1r05",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.019",
+             "description":"1 vCPU, 0.5 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c1r05-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.0017",
+             "description":"1 vCPU, 0.5 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c1r05-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.228",
+             "description":"1 vCPU, 0.5 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c1r1",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.039",
+             "description":"1 vCPU, 1 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c1r1-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.0087",
+             "description":"1 vCPU, 1 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c1r1-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.468",
+             "description":"1 vCPU, 1 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c1r2",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.062",
+             "description":"1 vCPU, 2 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c1r2-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.014",
+             "description":"1 vCPU, 2 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c1r2-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.555",
+             "description":"1 vCPU, 2 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c1r4",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.098",
+             "description":"1 vCPU, 4 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c1r4-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.022",
+             "description":"1 vCPU, 4 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c1r4-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.877",
+             "description":"1 vCPU, 4 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c2r1",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.070",
+             "description":"2 vCPU, 1 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c2r1-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.016",
+             "description":"2 vCPU, 1 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c2r1-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.627",
+             "description":"2 vCPU, 1 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c2r2",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.088",
+             "description":"2 vCPU, 2 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c2r2-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.020",
+             "description":"2 vCPU, 2 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c2r2-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.788",
+             "description":"2 vCPU, 2 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c2r4",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.124",
+             "description":"2 vCPU, 4 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c2r4-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.028",
+             "description":"2 vCPU, 4 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c2r4-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.606",
+             "description":"2 vCPU, 4 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c2r6",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.160",
+             "description":"2 vCPU, 6 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c2r6-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.036",
+             "description":"2 vCPU, 6 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c2r6-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.782",
+             "description":"2 vCPU, 6 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c2r8",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.196",
+             "description":"2 vCPU, 8 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c2r8-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.040",
+             "description":"2 vCPU, 8 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c2r8-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.958",
+             "description":"2 vCPU, 8 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c2r16",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.339",
+             "description":"2 vCPU, 16 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c2r16-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.076",
+             "description":"2 vCPU, 16 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c2r16-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.658",
+             "description":"2 vCPU, 16 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c4r2",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.14",
+             "description":"4 vCPU, 2 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c4r2-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.031",
+             "description":"4 vCPU, 2 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c4r2-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.685",
+             "description":"4 vCPU, 2 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c4r4",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.176",
+             "description":"4 vCPU, 4 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c4r4-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.039",
+             "description":"4 vCPU, 4 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c4r4-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.861",
+             "description":"4 vCPU, 4 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c4r6",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.212",
+             "description":"4 vCPU, 6 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c4r6-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.047",
+             "description":"4 vCPU, 6 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c4r6-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.037",
+             "description":"4 vCPU, 6 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c4r8",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.248",
+             "description":"4 vCPU, 8 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c4r8-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.055",
+             "description":"4 vCPU, 8 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c4r8-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.213",
+             "description":"4 vCPU, 8 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c4r16",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.391",
+             "description":"4 vCPU, 16 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c4r16-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.087",
+             "description":"4 vCPU, 16 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c4r16-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.974",
+             "description":"4 vCPU, 16 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c4r24",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.535",
+             "description":"4 vCPU, 24 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c4r24-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.119",
+             "description":"4 vCPU, 24 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c4r24-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.332",
+             "description":"4 vCPU, 24 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c4r32",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.678",
+             "description":"4 vCPU, 32 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c4r32-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.151",
+             "description":"4 vCPU, 32 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c4r32-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.668",
+             "description":"4 vCPU, 32 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c8r4",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.280",
+             "description":"8 vCPU, 4 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c8r4-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.062",
+             "description":"8 vCPU, 4 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c8r4-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.697",
+             "description":"8 vCPU, 4 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c8r6",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.316",
+             "description":"8 vCPU, 6 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c8r6-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.071",
+             "description":"8 vCPU, 6 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c8r6-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.787",
+             "description":"8 vCPU, 4 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c8r8",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.352",
+             "description":"8 vCPU, 8 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c8r8-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.079",
+             "description":"8 vCPU, 8 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c8r8-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.876",
+             "description":"8 vCPU, 8 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c8r16",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.496",
+             "description":"8 vCPU, 16 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c8r16-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.111",
+             "description":"8 vCPU, 16 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c8r16-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.235",
+             "description":"8 vCPU, 16 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c8r24",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.640",
+             "description":"8 vCPU, 24 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c8r24-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.143",
+             "description":"8 vCPU, 24 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c8r16-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.594",
+             "description":"8 vCPU, 24 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c8r32",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.783",
+             "description":"8 vCPU, 32 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c8r32-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.175",
+             "description":"8 vCPU, 32 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c8r32-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.950",
+             "description":"8 vCPU, 32 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c8r64",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.112",
+             "description":"8 vCPU, 64 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c8r64-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.248",
+             "description":"8 vCPU, 64 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c8r64-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"2.769",
+             "description":"8 vCPU, 64 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c16r8",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.566",
+             "description":"16 vCPU, 8 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c16r8-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.126",
+             "description":"16 vCPU, 8 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c16r8-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.409",
+             "description":"16 vCPU, 8 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c16r16",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.711",
+             "description":"16 vCPU, 16 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c16r16-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.159",
+             "description":"16 vCPU, 16 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c16r16-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.770",
+             "description":"16 vCPU, 16 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c16r24",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.856",
+             "description":"16 vCPU, 24 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c16r24-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.191",
+             "description":"16 vCPU, 24 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c16r24-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"2.131",
+             "description":"16 vCPU, 24 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c16r32",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.001",
+             "description":"16 vCPU, 32 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c16r32-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.223",
+             "description":"16 vCPU, 32 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c16r32-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"2.491",
+             "description":"16 vCPU, 32 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c16r64",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.352",
+             "description":"16 vCPU, 64 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c16r64-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.302",
+             "description":"16 vCPU, 64 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c16r64-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"3.366",
+             "description":"16 vCPU, 64 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c16r96",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.599",
+             "description":"16 vCPU, 96 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c16r96-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.357",
+             "description":"16 vCPU, 96 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c16r96-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"3.982",
+             "description":"16 vCPU, 96 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c16r128",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.845",
+             "description":"16 vCPU, 128 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c16r128-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.412",
+             "description":"16 vCPU, 128 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c16r128-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"4.594",
+             "description":"16 vCPU, 128 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c16r256",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"3.176",
+             "description":"16 vCPU, 256 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c16r256-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.709",
+             "description":"16 vCPU, 256 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c16r256-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"7.908",
+             "description":"16 vCPU, 256 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c32r16",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.057",
+             "description":"32 vCPU, 16 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c32r16-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.236",
+             "description":"32 vCPU, 16 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c32r16-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"2.632",
+             "description":"32 vCPU, 16 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c32r24",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.159",
+             "description":"32 vCPU, 24 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c32r24-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.259",
+             "description":"32 vCPU, 24 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c32r24-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"2.886",
+             "description":"32 vCPU, 24 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c32r32",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.260",
+             "description":"32 vCPU, 32 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c32r32-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.281",
+             "description":"32 vCPU, 32 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c32r32-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"3.137",
+             "description":"32 vCPU, 32 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c32r64",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.586",
+             "description":"32 vCPU, 64 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c32r64-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.354",
+             "description":"32 vCPU, 64 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c32r64-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"3.949",
+             "description":"32 vCPU, 64 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c32r96",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.816",
+             "description":"32 vCPU, 96 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c32r96-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.405",
+             "description":"32 vCPU, 96 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c32r96-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"4.552",
+             "description":"32 vCPU, 96 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c32r128",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"2.191",
+             "description":"32 vCPU, 128 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c32r128-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.489",
+             "description":"32 vCPU, 128 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c32r128-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"5.456",
+             "description":"32 vCPU, 128 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c32r256",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"3.688",
+             "description":"32 vCPU, 256 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c32r256-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.823",
+             "description":"32 vCPU, 256 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c32r256-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"9.183",
+             "description":"32 vCPU, 256 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c32r512",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"6.352",
+             "description":"32 vCPU, 512 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c32r512-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.418",
+             "description":"32 vCPU, 512 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c32r512-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"15.816",
+             "description":"32 vCPU, 512 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c64r256",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"4.381",
+             "description":"64 vCPU, 256 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c64r256-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"0.978",
+             "description":"64 vCPU, 256 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c64r256-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"10.909",
+             "description":"64 vCPU, 256 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c64r512",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"6.916",
+             "description":"64 vCPU, 512 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c64r512-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"1.544",
+             "description":"64 vCPU, 512 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c64r512-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"17.221",
+             "description":"64 vCPU, 512 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c64r768",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"9.810",
+             "description":"64 vCPU, 768 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c64r768-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"2.190",
+             "description":"64 vCPU, 768 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c64r768-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"24.427",
+             "description":"64 vCPU, 768 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c64r1024",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"12.703",
+             "description":"64 vCPU, 1024 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c64r1024-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"2.835",
+             "description":"64 vCPU, 1024 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c64r1024-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"31.630",
+             "description":"64 vCPU, 1024 GB RAM",
+             "operating-system":"SQL Std"
+          },
+          {
+             "resource":"c1.c64r1280",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"15.596",
+             "description":"64 vCPU, 1280 GB RAM",
+             "operating-system":"Linux"
+          },
+          {
+             "resource":"c1.c64r1280-windows",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"3.481",
+             "description":"64 vCPU, 1280 GB RAM",
+             "operating-system":"Windows"
+          },
+          {
+             "resource":"c1.c64r1280-sqlstd",
+             "unit":"instance",
+             "timeUnit":"month",
+             "price":"38.834",
+             "description":"64 vCPU, 1280 GB RAM",
+             "operating-system":"SQL Std"
+          }
+       ],
+       "block_storage":[
+          {
+             "resource":"b1.standard",
+             "unit":"gigabyte",
+             "price":"0.000416",
+             "description":"b1.standard"
+          },
+          {
+             "resource":"b1.sr-r2-hdd-100",
+             "unit":"gigabyte",
+             "price":"0.000248",
+             "description":"b1.sr-r2-hdd-100"
+          },
+          {
+             "resource":"b1.sr-r3-hdd-250",
+             "unit":"gigabyte",
+             "price":"0.000342",
+             "description":"b1.sr-r3-hdd-250"
+          },
+          {
+             "resource":"b1.sr-r3-hdd-500",
+             "unit":"gigabyte",
+             "price":"0.000416",
+             "description":"b1.sr-r3-hdd-500"
+          },
+          {
+             "resource":"b1.sr-r3-nvme-1000",
+             "unit":"gigabyte",
+             "price":"0.000523",
+             "description":"b1.sr-r3-nvme-1000"
+          },
+          {
+             "resource":"b1.sr-r3-nvme-2500",
+             "unit":"gigabyte",
+             "price":"0.000581",
+             "description":"b1.sr-r3-nvme-2500"
+          },
+          {
+             "resource":"b1.sr-r3-nvme-5000",
+             "unit":"gigabyte",
+             "price":"0.000678",
+             "description":"b1.sr-r3-nvme-5000"
+          }
+       ],
+       "object_storage":[
+          {
+             "resource":"o1.standard",
+             "unit":"gigabyte",
+             "price":"0.000275",
+             "description":"Multi-region 3 replicas"
+          }
+       ],
+       "network":[
+          {
+             "resource":"n1.ipv4",
+             "unit":"ip",
+             "price":"0.006",
+             "description":"Public IPv4"
+          },
+          {
+             "resource":"n1.network",
+             "unit":"network",
+             "price":"0.016400",
+             "timeUnit":"month",
+             "description":"Network",
+             "first-free":true
+          },
+          {
+             "resource":"n1.router",
+             "unit":"router",
+             "price":"0.017",
+             "timeUnit":"month",
+             "description":"Router",
+             "first-free":true
+          },
+          {
+             "resource":"n1.lb",
+             "unit":"load-balancer",
+             "price":"0.034",
+             "timeUnit":"month",
+             "description":"Load balancer"
+          },
+          {
+             "resource":"n1.vpn",
+             "unit":"vpn",
+             "price":"0.017",
+             "description":"VPN"
+          }
+       ],
+       "data transfer":[
+          {
+             "resource":"n1.local",
+             "unit":"gigabyte",
+             "timeUnit":false,
+             "price":"0",
+             "description":"Between cloud services in the same region"
+          },
+          {
+             "resource":"n1.inter-region",
+             "unit":"gigabyte",
+             "timeUnit":false,
+             "price":"0.12",
+             "description":"Between cloud services in different regions"
+          },
+          {
+             "resource":"n1.national",
+             "unit":"gigabyte",
+             "timeUnit":false,
+             "price":"0.12",
+             "description":"National traffic over the internet"
+          },
+          {
+             "resource":"n1.international",
+             "unit":"gigabyte",
+             "timeUnit":false,
+             "price":"0.3",
+             "description":"International traffic over the internet"
+          }
+       ]
+    }
+ }
