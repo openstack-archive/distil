@@ -115,6 +115,12 @@ ODOO_OPTS = [
                      'c1.c1r2-windows or c1.c2r4-sql-server-standard-windows')
 ]
 
+JSONFILE_OPTS = [
+    cfg.StrOpt('products_file_path',
+               default='/etc/distil/products.json',
+               help='Json file to contain the products and prices.'),
+]
+
 
 CLI_OPTS = [
     cfg.StrOpt(
@@ -128,10 +134,12 @@ CLI_OPTS = [
 AUTH_GROUP = 'keystone_authtoken'
 ODOO_GROUP = 'odoo'
 COLLECTOR_GROUP = 'collector'
+JSONFILE_GROUP = 'jsonfile'
 
 
 CONF.register_opts(DEFAULT_OPTIONS)
 CONF.register_opts(ODOO_OPTS, group=ODOO_GROUP)
+CONF.register_opts(JSONFILE_OPTS, group=JSONFILE_GROUP)
 CONF.register_opts(COLLECTOR_OPTS, group=COLLECTOR_GROUP)
 CONF.register_cli_opts(CLI_OPTS)
 
