@@ -52,7 +52,6 @@ def get_quotations(project_id, detailed=False):
     usage = db_api.usage_get(project_id, start, end)
     all_resource_ids = set([entry.get('resource_id') for entry in usage])
     res_list = db_api.resource_get_by_ids(project_id, all_resource_ids)
-
     erp_driver = erp_utils.load_erp_driver(CONF)
     quotations = erp_driver.get_quotations(
         region_name,
