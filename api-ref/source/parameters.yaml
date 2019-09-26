@@ -1,8 +1,0 @@
-# variables in path
-regions:
-  description: |
-    The regions list to request products. Separated with comma, for example:
-    /v2/products?regions=region1,regions2
-  in: path
-  required: false
-  type: string
